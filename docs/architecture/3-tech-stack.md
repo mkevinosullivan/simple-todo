@@ -1,0 +1,34 @@
+# 3. Tech Stack
+
+## Technology Stack Table
+
+| Category | Technology | Version | Purpose | Rationale |
+|----------|-----------|---------|---------|-----------|
+| **Frontend Language** | TypeScript | 5.3+ | Type-safe frontend development | Type safety prevents bugs, enables shared types with backend, excellent React support, PRD specifies TypeScript 5+ |
+| **Frontend Framework** | React | 18.2+ | UI component library and rendering | PRD specifies React, component-based architecture, large ecosystem, hooks API for state management |
+| **UI Component Library** | Headless UI + Custom | 1.7+ | Accessible UI primitives | Minimal bundle size, accessibility built-in, works with Tailwind, allows custom styling per brand guidelines |
+| **State Management** | React Context API | Built-in | Global state (tasks, config, UI) | Sufficient for MVP scope, no Redux complexity needed (YAGNI), built into React (0KB overhead) |
+| **Backend Language** | TypeScript | 5.3+ | Type-safe backend development | Shared types with frontend, prevents runtime errors, PRD specifies TypeScript 5+ |
+| **Backend Framework** | Express.js | 4.18+ | HTTP server and REST API routing | PRD recommends Express, minimal and proven, excellent middleware ecosystem, simple to learn |
+| **API Style** | REST | N/A | HTTP JSON API for CRUD operations | Simple CRUD operations don't need GraphQL complexity, standard HTTP verbs, easy to test with curl/Postman |
+| **Database** | JSON Files | N/A | Local file storage for tasks/config | PRD specifies "JSON for MVP simplicity", no database server needed, easy to inspect/debug |
+| **Cache** | In-Memory (Node.js) | N/A | Active tasks cached in memory | Fast access, localhost single-user has no cache invalidation issues, read from file on startup |
+| **File Storage** | Node.js fs module | Built-in | JSON file read/write operations | Built into Node.js, async/await support, atomic writes via temp file + rename pattern |
+| **Authentication** | None | N/A | Not needed for MVP | PRD: single-user localhost app, no login required, all data local |
+| **Frontend Testing** | Vitest + React Testing Library | 1.0+ / 14.0+ | Component and integration tests | Fast (Vite-powered), modern test runner, RTL for user-centric tests |
+| **Backend Testing** | Jest | 29.7+ | Unit and integration tests for services | PRD specifies Jest, TypeScript support, mocking capabilities, 70%+ coverage target |
+| **E2E Testing** | Playwright | 1.40+ (Phase 2) | End-to-end browser tests | Deferred to Phase 2 per PRD, fast and reliable, multi-browser support |
+| **Build Tool** | Vite | 5.0+ | Frontend dev server and bundler | PRD recommends Vite, instant HMR, optimized builds, native ESM support |
+| **Bundler** | Rollup (via Vite) | Built-in | Production bundling | Built into Vite, tree-shaking, code splitting, small bundle output |
+| **IaC Tool** | None (Phase 2) | N/A | No infrastructure for localhost MVP | Localhost deployment, no cloud infrastructure, consider for Phase 2 if migrating to hosted |
+| **CI/CD** | GitHub Actions | N/A | Automated testing on push/PR | Free for public repos, runs tests and coverage checks, PRD specifies CI/CD pipeline |
+| **Monitoring** | None (MVP) / Console | N/A | Development console logging | Localhost MVP doesn't need external monitoring, console.log sufficient for debugging |
+| **Logging** | Winston | 3.11+ | Structured logging to file | Persistent logs for debugging, log levels (error/warn/info/debug), JSON format for parsing |
+| **CSS Framework** | Tailwind CSS | 3.4+ | Utility-first styling | Rapid UI development, matches Front-End Spec design system, tree-shaking removes unused styles |
+| **Real-Time Communication** | Server-Sent Events (SSE) | Native | Server→client prompting push | Built into browsers and Node.js, simpler than WebSockets for one-way push, auto-reconnection |
+| **Task Scheduling** | node-schedule | 2.1+ | Proactive prompt scheduling | Cron-like syntax, in-process scheduling, PRD recommends for periodic prompts |
+| **Date/Time Utilities** | date-fns | 3.0+ | Time formatting and calculations | Lightweight (tree-shakeable), modern API, used for task age calculations and timestamps |
+| **Input Validation** | Zod | 3.22+ | Runtime type validation | TypeScript-first schema validation, validates API inputs, prevents injection attacks (NFR10) |
+| **Process Manager** | npm scripts | Built-in | Development and production scripts | Simple for MVP, `npm run dev` (concurrent frontend+backend), `npm start` (production) |
+
+---
