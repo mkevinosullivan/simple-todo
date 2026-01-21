@@ -10,9 +10,9 @@
       "@simple-todo/shared/*": ["../../packages/shared/src/*"]
     },
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
     "composite": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "references": [{ "path": "../../packages/shared" }]
 }

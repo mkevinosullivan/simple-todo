@@ -1,2 +1,2 @@
-// Shared TypeScript types will be added in future stories
-export {};
+// Shared TypeScript types
+export type { Task, TaskStatus } from './Task.js';

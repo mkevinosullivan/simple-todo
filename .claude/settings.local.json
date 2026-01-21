@@ -3,15 +3,13 @@
     "allow": [
       "Bash(test:*)",
       "Bash(ls:*)",
-      "Bash(npm install:*)",
-      "Bash(npm run lint:*)",
-      "Bash(npm run lint:fix:*)",
-      "Bash(npm run format:check:*)",
-      "Bash(npm run format:*)",
-      "Bash(npm run validate:*)",
-      "Bash(npm run dev:*)",
       "Bash(curl:*)",
-      "Bash(npm run type-check:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "Bash(tsc:*)",
+      "Bash(npx tsc)",
+      "Bash(npx eslint:*)"
     ]
   }
 }
