@@ -14,6 +14,7 @@ export default {
     ],
   },
   testMatch: ['**/tests/**/*.test.ts'],
+  transformIgnorePatterns: ['node_modules/(?!(uuid)/)'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
