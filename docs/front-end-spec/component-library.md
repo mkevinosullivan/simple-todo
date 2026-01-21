@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Simple To-Do App uses a focused set of reusable components to maintain consistency and simplify development. Each component is defined with its variants, states, and technical specifications.
+The Simple To-Do App uses a focused set of reusable components to maintain
+consistency and simplify development. Each component is defined with its
+variants, states, and technical specifications.
 
 ## Core Components
 
@@ -51,6 +53,7 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
   - Example: Task action buttons (✓, 🗑️, ✏️)
 
 **States:**
+
 - Default
 - Hover (cursor: pointer, visual feedback)
 - Active/Pressed (visual depression)
@@ -58,6 +61,7 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
 - Loading (spinner replaces text/icon)
 
 **Accessibility:**
+
 - All buttons have descriptive aria-labels
 - Keyboard accessible (focusable, Enter/Space triggers)
 - Focus indicator: 2px outline offset 2px in accent color
@@ -85,17 +89,20 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
   - Cursor: not-allowed
 
 **States:**
+
 - Default
 - Focus (border color: accent #3B82F6, 2px border, remove outline)
 - Error (border color: red #EF4444, red text for error message below)
 - Disabled (grayed out)
 
 **Validation:**
+
 - Error message appears below input in red (#EF4444)
 - Font-size: 14px
 - Example: "Task cannot be empty"
 
 **Accessibility:**
+
 - Label associated with input (explicit or aria-label)
 - Error messages announced by screen readers (aria-describedby)
 - Keyboard accessible
@@ -105,6 +112,7 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
 **Purpose:** Display individual tasks with metadata and actions
 
 **Structure:**
+
 ```
 ┌──────────────────────────────────────────────────┐
 │ [●] Task text here                  [✏️] [✓] [🗑️] │
@@ -137,6 +145,7 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
   - Format: "Created X ago" (human-readable relative time)
 
 **Styling:**
+
 - Background: White (#FFFFFF)
 - Border: 1px solid #E5E7EB
 - Border-radius: 8px
@@ -145,6 +154,7 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
 - Hover shadow: 0 4px 6px rgba(0,0,0,0.1) (elevate on hover)
 
 **States:**
+
 - Default
 - Hover (elevated shadow, slightly lighter background)
 - Edit mode (shows input field replacing text, Save/Cancel buttons)
@@ -178,6 +188,7 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
   - Auto-dismiss: 5 seconds
 
 **Content Structure (Proactive Prompt):**
+
 - Icon (⏰)
 - Heading: "Could you do this task now?"
 - Task text (truncated if long)
@@ -186,10 +197,12 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
 - Timer: "Auto-dismiss: 30s"
 
 **Animations:**
+
 - Enter: Slide in from right (300ms ease-out)
 - Exit: Slide out to right (300ms ease-in)
 
 **Accessibility:**
+
 - role="alert" for screen reader announcement
 - Focusable action buttons
 - Escape key dismisses
@@ -219,19 +232,23 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
   - No backdrop (celebrations don't dim background)
 
 **Header:**
+
 - Title text (20px, bold)
 - Close button (X) in top-right corner
 
 **Footer (Settings Modal):**
+
 - Two-button layout
 - Cancel (left, secondary)
 - Save Changes (right, primary)
 
 **Animations:**
+
 - Enter: Fade in + scale from 0.95 to 1.0 (200-300ms)
 - Exit: Fade out + scale to 0.95 (200ms)
 
 **Accessibility:**
+
 - role="dialog"
 - aria-modal="true"
 - Focus trap (Tab cycles within modal)
@@ -240,9 +257,11 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
 
 ### 6. Slider (Range Input) Component
 
-**Purpose:** Adjust numeric values (WIP limit, prompt frequency, celebration duration)
+**Purpose:** Adjust numeric values (WIP limit, prompt frequency, celebration
+duration)
 
 **Styling:**
+
 - Width: 100%
 - Height: 6px track
 - Thumb: 20px circle
@@ -253,17 +272,20 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
 - Current value displayed above or to right
 
 **States:**
+
 - Default
 - Hover (enlarge thumb slightly)
 - Focus (outline on thumb)
 - Active/Dragging (enlarge thumb, show current value)
 
 **Behavior:**
+
 - Click anywhere on track jumps to that value
 - Drag thumb for fine control
 - Keyboard accessible (arrow keys adjust value)
 
 **Accessibility:**
+
 - role="slider"
 - aria-valuenow, aria-valuemin, aria-valuemax
 - Keyboard: Left/Right arrows change value
@@ -273,6 +295,7 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
 **Purpose:** Enable/disable binary settings
 
 **Styling:**
+
 - Width: 44px
 - Height: 24px
 - Border-radius: 12px (pill shape)
@@ -284,15 +307,18 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
 - Transition: 200ms ease
 
 **States:**
+
 - Off (default)
 - On
 - Disabled (opacity 0.5)
 
 **Label:**
+
 - Text label to right of switch
 - Clicking label also toggles switch
 
 **Accessibility:**
+
 - role="switch"
 - aria-checked="true/false"
 - Keyboard: Space toggles
@@ -321,6 +347,7 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
   - Larger, more prominent than info cards
 
 **Content:**
+
 - Headline (24-32px, bold)
 - Body text (16px, regular)
 - Optional list or stats
@@ -331,6 +358,7 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
 **Purpose:** Display current active task count vs limit
 
 **Styling:**
+
 - Format: "[N/limit]" e.g., "[5/7]"
 - Font-size: 16px
 - Font-weight: 600
@@ -344,6 +372,7 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
 - Optional: Progress bar visual
 
 **Behavior:**
+
 - Clickable to open settings
 - Tooltip: "Work In Progress limit helps you stay focused"
 - Updates in real-time as tasks added/completed
@@ -353,6 +382,7 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
 **Purpose:** Visual indicator of task age
 
 **Styling:**
+
 - Size: 12px diameter circle
 - Colors based on age:
   - Fresh (<24h): Green (#10B981) or no indicator
@@ -364,21 +394,22 @@ The Simple To-Do App uses a focused set of reusable components to maintain consi
 - Tooltip: "Created X days ago"
 
 **Accessibility:**
+
 - Not relied upon solely (timestamp text also present)
 - Tooltip provides text alternative
 - Screen readers announce age via timestamp
 
 ## Component Specifications Summary Table
 
-| Component | Primary Use | Key Variants | Accessibility Features |
-|-----------|-------------|--------------|------------------------|
-| Button | Actions, CTAs | Primary, Secondary, Icon, Action | aria-label, keyboard, focus indicator |
-| Input Field | Text entry | Default, Disabled, Error | Labels, error messages, validation |
-| Task Card | Display tasks | Default, Edit mode, Hover | Semantic HTML, action labels, timestamps |
-| Toast | Notifications | Prompt, Error, Success | role="alert", dismissible, timers |
-| Modal | Settings, dialogs | Settings, Celebration | Focus trap, Escape closes, aria-modal |
-| Slider | Numeric input | WIP, Frequency, Duration | role="slider", keyboard navigation |
-| Toggle | Binary settings | On/Off | role="switch", keyboard toggle |
-| Card | Content groups | Info, Celebration | Semantic headings, readable text |
-| WIP Indicator | Status display | Color-coded by percentage | Tooltip, real-time updates |
-| Age Badge | Task age visual | Color by age category | Tooltip, not sole indicator |
+| Component     | Primary Use       | Key Variants                     | Accessibility Features                   |
+| ------------- | ----------------- | -------------------------------- | ---------------------------------------- |
+| Button        | Actions, CTAs     | Primary, Secondary, Icon, Action | aria-label, keyboard, focus indicator    |
+| Input Field   | Text entry        | Default, Disabled, Error         | Labels, error messages, validation       |
+| Task Card     | Display tasks     | Default, Edit mode, Hover        | Semantic HTML, action labels, timestamps |
+| Toast         | Notifications     | Prompt, Error, Success           | role="alert", dismissible, timers        |
+| Modal         | Settings, dialogs | Settings, Celebration            | Focus trap, Escape closes, aria-modal    |
+| Slider        | Numeric input     | WIP, Frequency, Duration         | role="slider", keyboard navigation       |
+| Toggle        | Binary settings   | On/Off                           | role="switch", keyboard toggle           |
+| Card          | Content groups    | Info, Celebration                | Semantic headings, readable text         |
+| WIP Indicator | Status display    | Color-coded by percentage        | Tooltip, real-time updates               |
+| Age Badge     | Task age visual   | Color by age category            | Tooltip, not sole indicator              |

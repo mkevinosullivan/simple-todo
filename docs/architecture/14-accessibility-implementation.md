@@ -2,30 +2,43 @@
 
 ## Rationale and Key Decisions:
 
-**1. WCAG 2.1 AA Compliance Target**: The Simple To-Do App will target WCAG 2.1 Level AA compliance to ensure usability for users with disabilities. This includes keyboard navigation, screen reader compatibility, sufficient color contrast, and proper semantic HTML.
+**1. WCAG 2.1 AA Compliance Target**: The Simple To-Do App will target WCAG 2.1
+Level AA compliance to ensure usability for users with disabilities. This
+includes keyboard navigation, screen reader compatibility, sufficient color
+contrast, and proper semantic HTML.
 
-**2. Accessibility-First Component Design**: Rather than retrofitting accessibility, each component will be designed with accessibility as a core requirement from the start. This includes proper ARIA attributes, keyboard event handlers, and focus management.
+**2. Accessibility-First Component Design**: Rather than retrofitting
+accessibility, each component will be designed with accessibility as a core
+requirement from the start. This includes proper ARIA attributes, keyboard event
+handlers, and focus management.
 
-**3. Automated Testing Integration**: Accessibility testing will be integrated into the CI/CD pipeline using axe-core and jest-axe to catch violations early. Manual testing with screen readers (NVDA, JAWS, VoiceOver) will supplement automated tests.
+**3. Automated Testing Integration**: Accessibility testing will be integrated
+into the CI/CD pipeline using axe-core and jest-axe to catch violations early.
+Manual testing with screen readers (NVDA, JAWS, VoiceOver) will supplement
+automated tests.
 
-**4. Progressive Enhancement**: The app will function without JavaScript for core task viewing (though creating/completing tasks requires JS). This ensures basic functionality for users with JavaScript disabled or using assistive technologies that struggle with complex JS interactions.
+**4. Progressive Enhancement**: The app will function without JavaScript for
+core task viewing (though creating/completing tasks requires JS). This ensures
+basic functionality for users with JavaScript disabled or using assistive
+technologies that struggle with complex JS interactions.
 
 ## Accessibility Standards & Requirements
 
 **WCAG 2.1 Level AA Principles:**
 
-| Principle | Implementation | Verification |
-|-----------|---------------|--------------|
-| **Perceivable** | Semantic HTML, ARIA labels, sufficient color contrast (4.5:1 minimum) | Automated contrast checker, screen reader testing |
-| **Operable** | Full keyboard navigation, no keyboard traps, focus indicators | Manual keyboard testing, focus order validation |
-| **Understandable** | Clear labels, consistent navigation, error identification | User testing with screen readers |
-| **Robust** | Valid HTML, compatible with assistive technologies | W3C validator, screen reader compatibility testing |
+| Principle          | Implementation                                                        | Verification                                       |
+| ------------------ | --------------------------------------------------------------------- | -------------------------------------------------- |
+| **Perceivable**    | Semantic HTML, ARIA labels, sufficient color contrast (4.5:1 minimum) | Automated contrast checker, screen reader testing  |
+| **Operable**       | Full keyboard navigation, no keyboard traps, focus indicators         | Manual keyboard testing, focus order validation    |
+| **Understandable** | Clear labels, consistent navigation, error identification             | User testing with screen readers                   |
+| **Robust**         | Valid HTML, compatible with assistive technologies                    | W3C validator, screen reader compatibility testing |
 
 ## Component-Level Accessibility Requirements
 
 ### 1. TaskCard Component
 
 **Semantic HTML:**
+
 ```typescript
 // apps/web/src/components/TaskCard.tsx
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onComplete, onDelete }) => {
@@ -67,18 +80,22 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onComplete, onDelete }
 ```
 
 **Keyboard Navigation:**
+
 - Tab: Move between Complete and Delete buttons
 - Enter/Space: Activate button
 - Focus indicators visible (2px solid outline, 4.5:1 contrast)
 
 **Screen Reader Announcements:**
-- On focus: "Complete task: Buy groceries, button" or "Delete task: Buy groceries, button"
+
+- On focus: "Complete task: Buy groceries, button" or "Delete task: Buy
+  groceries, button"
 - After complete: "Task completed: Buy groceries"
 - After delete: "Task deleted: Buy groceries"
 
 ### 2. AddTaskInput Component
 
 **Accessible Form:**
+
 ```typescript
 // apps/web/src/components/AddTaskInput.tsx
 export const AddTaskInput: React.FC = () => {
@@ -155,17 +172,20 @@ export const AddTaskInput: React.FC = () => {
 ```
 
 **Keyboard Navigation:**
+
 - Tab: Move to input field, then to Add Task button
 - Enter: Submit form (from input or button)
 - Escape: Clear input and error (if present)
 
 **Error Announcements:**
+
 - Errors announced immediately via `role="alert"` and `aria-live="polite"`
 - Focus returns to input field after validation error
 
 ### 3. PromptToast Component
 
 **Live Region Announcements:**
+
 ```typescript
 // apps/web/src/components/PromptToast.tsx
 export const PromptToast: React.FC<PromptToastProps> = ({ prompt, onComplete, onDismiss, onSnooze }) => {
@@ -240,6 +260,7 @@ function announceToScreenReader(message: string) {
 ```
 
 **Keyboard Navigation:**
+
 - Prompt appears: Focus automatically moves to "Complete Now" button
 - Tab: Cycle through Complete Now → Snooze → Dismiss buttons
 - Escape: Dismiss prompt (same as Dismiss button)
@@ -248,6 +269,7 @@ function announceToScreenReader(message: string) {
 ### 4. CelebrationOverlay Component
 
 **Non-Blocking Announcement:**
+
 ```typescript
 // apps/web/src/components/CelebrationOverlay.tsx
 export const CelebrationOverlay: React.FC<CelebrationProps> = ({ message, onDismiss }) => {
@@ -289,6 +311,7 @@ export const CelebrationOverlay: React.FC<CelebrationProps> = ({ message, onDism
 ```
 
 **Keyboard Navigation:**
+
 - Celebration appears: Does NOT steal focus (non-blocking)
 - Tab: Can navigate to Close button if user chooses
 - Escape: Dismiss celebration
@@ -297,6 +320,7 @@ export const CelebrationOverlay: React.FC<CelebrationProps> = ({ message, onDism
 ### 5. SettingsModal Component
 
 **Modal Dialog with Focus Trap:**
+
 ```typescript
 // apps/web/src/components/SettingsModal.tsx
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
@@ -452,7 +476,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 ```
 
 **Keyboard Navigation:**
-- Modal opens: Focus moves to first interactive element (Close button or first input)
+
+- Modal opens: Focus moves to first interactive element (Close button or first
+  input)
 - Tab: Cycles through modal controls only (focus trapped)
 - Shift+Tab: Cycles backward through modal controls
 - Escape: Closes modal, restores focus to trigger element
@@ -462,13 +488,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
 **Minimum Contrast Ratios (WCAG 2.1 AA):**
 
-| Element Type | Minimum Ratio | Example |
-|--------------|---------------|---------|
-| Normal text (body) | 4.5:1 | #333333 on #FFFFFF (11.6:1) ✅ |
-| Large text (18pt+) | 3:1 | #666666 on #FFFFFF (5.7:1) ✅ |
-| Interactive elements (buttons, links) | 4.5:1 | #0066CC on #FFFFFF (7.7:1) ✅ |
-| UI components (borders, icons) | 3:1 | #999999 on #FFFFFF (2.8:1) ❌ Use #767676 (4.5:1) ✅ |
-| Focus indicators | 3:1 against background | 2px solid #0066CC outline ✅ |
+| Element Type                          | Minimum Ratio          | Example                                              |
+| ------------------------------------- | ---------------------- | ---------------------------------------------------- |
+| Normal text (body)                    | 4.5:1                  | #333333 on #FFFFFF (11.6:1) ✅                       |
+| Large text (18pt+)                    | 3:1                    | #666666 on #FFFFFF (5.7:1) ✅                        |
+| Interactive elements (buttons, links) | 4.5:1                  | #0066CC on #FFFFFF (7.7:1) ✅                        |
+| UI components (borders, icons)        | 3:1                    | #999999 on #FFFFFF (2.8:1) ❌ Use #767676 (4.5:1) ✅ |
+| Focus indicators                      | 3:1 against background | 2px solid #0066CC outline ✅                         |
 
 **Color Palette with Contrast Values:**
 
@@ -476,31 +502,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 /* apps/web/src/styles/colors.css */
 :root {
   /* Primary colors - WCAG AA compliant */
-  --color-primary: #0066CC;         /* 7.7:1 on white */
-  --color-primary-hover: #0052A3;   /* 9.4:1 on white */
+  --color-primary: #0066cc; /* 7.7:1 on white */
+  --color-primary-hover: #0052a3; /* 9.4:1 on white */
 
   /* Text colors */
-  --color-text-primary: #1A1A1A;    /* 16.1:1 on white */
-  --color-text-secondary: #4A4A4A;  /* 9.7:1 on white */
-  --color-text-tertiary: #767676;   /* 4.5:1 on white - minimum for AA */
+  --color-text-primary: #1a1a1a; /* 16.1:1 on white */
+  --color-text-secondary: #4a4a4a; /* 9.7:1 on white */
+  --color-text-tertiary: #767676; /* 4.5:1 on white - minimum for AA */
 
   /* Status colors */
-  --color-success: #008A00;         /* 4.5:1 on white */
-  --color-error: #C71F1F;           /* 5.9:1 on white */
-  --color-warning: #947600;         /* 4.5:1 on white */
+  --color-success: #008a00; /* 4.5:1 on white */
+  --color-error: #c71f1f; /* 5.9:1 on white */
+  --color-warning: #947600; /* 4.5:1 on white */
 
   /* UI colors */
-  --color-border: #CCCCCC;          /* 2.6:1 - decorative only */
-  --color-border-focus: #0066CC;    /* 7.7:1 - focus indicator */
+  --color-border: #cccccc; /* 2.6:1 - decorative only */
+  --color-border-focus: #0066cc; /* 7.7:1 - focus indicator */
 
   /* Background colors */
-  --color-bg-primary: #FFFFFF;
-  --color-bg-secondary: #F5F5F5;    /* Subtle, decorative */
-  --color-bg-hover: #E8E8E8;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f5f5f5; /* Subtle, decorative */
+  --color-bg-hover: #e8e8e8;
 }
 ```
 
 **Dark Mode Considerations** (Phase 2):
+
 - Invert ratios: Text must be 4.5:1 against dark backgrounds
 - Example: #E0E0E0 text on #1A1A1A background (12.6:1) ✅
 
@@ -508,26 +535,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
 **Global Keyboard Shortcuts:**
 
-| Key | Action | Context |
-|-----|--------|---------|
-| Tab | Navigate forward | Global |
-| Shift+Tab | Navigate backward | Global |
-| Enter | Activate button/link | Focused element |
-| Space | Activate button, toggle checkbox | Focused element |
-| Escape | Close modal/toast | Modal or toast open |
-| / | Focus search (future feature) | Global |
+| Key       | Action                           | Context             |
+| --------- | -------------------------------- | ------------------- |
+| Tab       | Navigate forward                 | Global              |
+| Shift+Tab | Navigate backward                | Global              |
+| Enter     | Activate button/link             | Focused element     |
+| Space     | Activate button, toggle checkbox | Focused element     |
+| Escape    | Close modal/toast                | Modal or toast open |
+| /         | Focus search (future feature)    | Global              |
 
 **Component-Specific Navigation:**
 
-| Component | Tab Order | Special Keys |
-|-----------|-----------|--------------|
-| TaskCard | Complete button → Delete button | - |
-| AddTaskInput | Input field → Add button | Enter to submit |
-| PromptToast | Complete → Snooze → Dismiss | Escape to dismiss |
-| SettingsModal | Close → Inputs → Cancel → Save | Escape to close |
-| CelebrationOverlay | Close button (optional) | Escape to dismiss |
+| Component          | Tab Order                       | Special Keys      |
+| ------------------ | ------------------------------- | ----------------- |
+| TaskCard           | Complete button → Delete button | -                 |
+| AddTaskInput       | Input field → Add button        | Enter to submit   |
+| PromptToast        | Complete → Snooze → Dismiss     | Escape to dismiss |
+| SettingsModal      | Close → Inputs → Cancel → Save  | Escape to close   |
+| CelebrationOverlay | Close button (optional)         | Escape to dismiss |
 
 **Focus Indicators:**
+
 ```css
 /* apps/web/src/styles/focus.css */
 *:focus {
@@ -589,21 +617,25 @@ export const App = () => (
 
 **Screen Reader Announcements:**
 
-| Event | Announcement | Priority |
-|-------|--------------|----------|
-| Task created | "Task added: [task text]" | Polite |
-| Task completed | "Task completed: [task text]" | Polite |
-| Task deleted | "Task deleted: [task text]" | Polite |
+| Event             | Announcement                                                                    | Priority  |
+| ----------------- | ------------------------------------------------------------------------------- | --------- |
+| Task created      | "Task added: [task text]"                                                       | Polite    |
+| Task completed    | "Task completed: [task text]"                                                   | Polite    |
+| Task deleted      | "Task deleted: [task text]"                                                     | Polite    |
 | WIP limit reached | "Cannot add task. You have 7 active tasks. Complete a task before adding more." | Assertive |
-| Prompt appears | "Task reminder: [task text]" | Polite |
-| Celebration | "[Celebration message]" | Polite |
-| Validation error | "[Error message]" | Assertive |
-| Settings saved | "Settings saved successfully" | Polite |
+| Prompt appears    | "Task reminder: [task text]"                                                    | Polite    |
+| Celebration       | "[Celebration message]"                                                         | Polite    |
+| Validation error  | "[Error message]"                                                               | Assertive |
+| Settings saved    | "Settings saved successfully"                                                   | Polite    |
 
 **Live Region Implementation:**
+
 ```typescript
 // apps/web/src/utils/announceToScreenReader.ts
-export function announceToScreenReader(message: string, priority: 'polite' | 'assertive' = 'polite') {
+export function announceToScreenReader(
+  message: string,
+  priority: 'polite' | 'assertive' = 'polite'
+) {
   const announcement = document.createElement('div');
   announcement.setAttribute('role', 'status');
   announcement.setAttribute('aria-live', priority);
@@ -621,6 +653,7 @@ export function announceToScreenReader(message: string, priority: 'polite' | 'as
 ```
 
 **Screen Reader Only Utility Class:**
+
 ```css
 /* apps/web/src/styles/accessibility.css */
 .sr-only {
@@ -653,6 +686,7 @@ export function announceToScreenReader(message: string, priority: 'polite' | 'as
 ### Automated Testing (Jest + jest-axe)
 
 **Component Tests:**
+
 ```typescript
 // apps/web/tests/unit/components/TaskCard.a11y.test.tsx
 import { render } from '@testing-library/react';
@@ -706,6 +740,7 @@ describe('TaskCard Accessibility', () => {
 ```
 
 **CI/CD Integration:**
+
 ```yaml
 # .github/workflows/ci.yaml (accessibility tests)
 - name: Run accessibility tests
@@ -723,46 +758,47 @@ describe('TaskCard Accessibility', () => {
 
 **Screen Reader Testing:**
 
-| Test | Tool | Pass Criteria |
-|------|------|---------------|
-| Navigate task list | NVDA (Windows) | Tasks announced with text and age |
-| Complete task | JAWS (Windows) | Completion announced, task removed from list |
-| Add task with validation error | VoiceOver (macOS) | Error announced immediately, focus on input |
-| Receive proactive prompt | NVDA | Prompt announced, focus on Complete button |
-| Navigate settings modal | VoiceOver | Focus trapped, slider values announced |
-| Celebrate task completion | JAWS | Celebration message announced |
+| Test                           | Tool              | Pass Criteria                                |
+| ------------------------------ | ----------------- | -------------------------------------------- |
+| Navigate task list             | NVDA (Windows)    | Tasks announced with text and age            |
+| Complete task                  | JAWS (Windows)    | Completion announced, task removed from list |
+| Add task with validation error | VoiceOver (macOS) | Error announced immediately, focus on input  |
+| Receive proactive prompt       | NVDA              | Prompt announced, focus on Complete button   |
+| Navigate settings modal        | VoiceOver         | Focus trapped, slider values announced       |
+| Celebrate task completion      | JAWS              | Celebration message announced                |
 
 **Keyboard-Only Testing:**
 
-| Test | Keys Used | Pass Criteria |
-|------|-----------|---------------|
-| Navigate entire app | Tab, Shift+Tab | All interactive elements reachable |
-| Add task | Tab to input, Enter to submit | Task added without mouse |
-| Complete task | Tab to Complete button, Enter | Task completed without mouse |
-| Dismiss prompt | Escape | Prompt dismissed without mouse |
-| Close settings | Escape | Settings modal closed, focus restored |
-| Focus indicators visible | Tab through elements | 2px blue outline visible on all focused elements |
+| Test                     | Keys Used                     | Pass Criteria                                    |
+| ------------------------ | ----------------------------- | ------------------------------------------------ |
+| Navigate entire app      | Tab, Shift+Tab                | All interactive elements reachable               |
+| Add task                 | Tab to input, Enter to submit | Task added without mouse                         |
+| Complete task            | Tab to Complete button, Enter | Task completed without mouse                     |
+| Dismiss prompt           | Escape                        | Prompt dismissed without mouse                   |
+| Close settings           | Escape                        | Settings modal closed, focus restored            |
+| Focus indicators visible | Tab through elements          | 2px blue outline visible on all focused elements |
 
 **Color Contrast Testing:**
 
-| Tool | Usage | Pass Criteria |
-|------|-------|---------------|
-| WebAIM Contrast Checker | Manual spot checks | All text 4.5:1, UI components 3:1 |
-| axe DevTools | Automated page scan | No contrast violations reported |
-| Chrome DevTools | Inspect element contrast | Passes WCAG AA |
+| Tool                    | Usage                    | Pass Criteria                     |
+| ----------------------- | ------------------------ | --------------------------------- |
+| WebAIM Contrast Checker | Manual spot checks       | All text 4.5:1, UI components 3:1 |
+| axe DevTools            | Automated page scan      | No contrast violations reported   |
+| Chrome DevTools         | Inspect element contrast | Passes WCAG AA                    |
 
 ### Browser Compatibility
 
 **Assistive Technology Support:**
 
-| Browser | Screen Reader | Support Level |
-|---------|---------------|---------------|
-| Chrome 100+ | NVDA | Full support ✅ |
-| Firefox 100+ | NVDA | Full support ✅ |
-| Edge 100+ | JAWS | Full support ✅ |
-| Safari 15+ | VoiceOver | Full support ✅ |
+| Browser      | Screen Reader | Support Level   |
+| ------------ | ------------- | --------------- |
+| Chrome 100+  | NVDA          | Full support ✅ |
+| Firefox 100+ | NVDA          | Full support ✅ |
+| Edge 100+    | JAWS          | Full support ✅ |
+| Safari 15+   | VoiceOver     | Full support ✅ |
 
 **Reduced Motion:**
+
 ```css
 /* apps/web/src/styles/animations.css */
 @media (prefers-reduced-motion: reduce) {
@@ -784,6 +820,7 @@ describe('TaskCard Accessibility', () => {
 ## Accessibility Acceptance Criteria
 
 **Must Pass Before Release:**
+
 - ✅ Zero axe-core violations in automated tests
 - ✅ All interactive elements keyboard accessible
 - ✅ All form inputs have associated labels
@@ -793,11 +830,13 @@ describe('TaskCard Accessibility', () => {
 - ✅ Screen reader testing passes on NVDA (Windows) and VoiceOver (macOS)
 
 **Should Pass Before Pilot Users:**
+
 - ⚠️ JAWS screen reader testing complete
 - ⚠️ Manual keyboard-only navigation tested for all user flows
 - ⚠️ Reduced motion preference respected
 
 **Nice to Have (Phase 2):**
+
 - 📊 WCAG 2.1 AAA compliance (7:1 contrast for text)
 - 📊 Voice control testing (Dragon NaturallySpeaking)
 - 📊 High contrast mode support

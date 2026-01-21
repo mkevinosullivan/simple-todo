@@ -1,32 +1,48 @@
 # 12. Scalability & Future Considerations
 
-Based on the PRD's phased approach (MVP localhost → Phase 2 potential hosted deployment → Phase 3+ intelligent features) and current architecture decisions, here's the scalability roadmap and migration strategy:
+Based on the PRD's phased approach (MVP localhost → Phase 2 potential hosted
+deployment → Phase 3+ intelligent features) and current architecture decisions,
+here's the scalability roadmap and migration strategy:
 
 ## Rationale and Key Decisions:
 
-**1. MVP Scalability is Intentionally Limited**: The localhost single-user architecture is designed for 5-10 pilot users with <1000 tasks each. This is appropriate for hypothesis validation. We're explicitly NOT optimizing for web-scale because it would add 4-6 weeks of unnecessary complexity.
+**1. MVP Scalability is Intentionally Limited**: The localhost single-user
+architecture is designed for 5-10 pilot users with <1000 tasks each. This is
+appropriate for hypothesis validation. We're explicitly NOT optimizing for
+web-scale because it would add 4-6 weeks of unnecessary complexity.
 
-**2. JSON → SQLite Migration is Straightforward**: The DataService abstraction means swapping storage backends requires changing only one service. All business logic (TaskService, WIPLimitService, etc.) remains unchanged. Estimated migration effort: 2-3 days.
+**2. JSON → SQLite Migration is Straightforward**: The DataService abstraction
+means swapping storage backends requires changing only one service. All business
+logic (TaskService, WIPLimitService, etc.) remains unchanged. Estimated
+migration effort: 2-3 days.
 
-**3. Localhost → Hosted Migration Requires Authentication**: Moving to hosted deployment necessitates adding user authentication, database per-user isolation, and infrastructure setup. This is a Phase 2+ decision dependent on MVP success. Estimated effort: 2-4 weeks.
+**3. Localhost → Hosted Migration Requires Authentication**: Moving to hosted
+deployment necessitates adding user authentication, database per-user isolation,
+and infrastructure setup. This is a Phase 2+ decision dependent on MVP success.
+Estimated effort: 2-4 weeks.
 
-**4. Proactive Prompting is the Hardest to Scale**: Background scheduling works trivially for single-user localhost but requires rethinking for multi-tenant hosted (worker queues, user timezone handling, distributed locking). This is the primary technical risk for scaling.
+**4. Proactive Prompting is the Hardest to Scale**: Background scheduling works
+trivially for single-user localhost but requires rethinking for multi-tenant
+hosted (worker queues, user timezone handling, distributed locking). This is the
+primary technical risk for scaling.
 
-**5. Data Retention Strategy Deferred**: MVP has no archival or deletion policies. As users accumulate thousands of completed tasks, we'll need tiered storage (hot/cold data) or user-controlled cleanup. Not critical until Phase 2.
+**5. Data Retention Strategy Deferred**: MVP has no archival or deletion
+policies. As users accumulate thousands of completed tasks, we'll need tiered
+storage (hot/cold data) or user-controlled cleanup. Not critical until Phase 2.
 
 ## Current Architecture Limitations:
 
 **MVP Scalability Boundaries**:
 
-| Metric | MVP Capacity | Degradation Point | Hard Limit | Migration Trigger |
-|--------|--------------|-------------------|------------|-------------------|
-| **Users** | 1 (single-user localhost) | N/A | 1 | Any multi-user need → Phase 2 |
-| **Active Tasks** | 10 (WIP limit enforced) | N/A | 10 | User can adjust 5-10 |
-| **Total Tasks** | 10,000 | 5,000 (switch to streaming parser) | ~50,000 (JSON file limits) | 10k+ → migrate to SQLite |
-| **Concurrent Requests** | 1 (single user) | N/A | No limit (Express handles) | N/A for localhost |
-| **File Size (tasks.json)** | ~500KB (1k tasks) | 5MB (5k tasks) | 50MB (parsing becomes slow) | 5MB → SQLite migration |
-| **Startup Time** | <1s typical | <2s at 10k tasks | ~5s at 50k tasks (violates NFR1) | 2s exceeded → optimize |
-| **Prompt Frequency** | Configurable 1-6 hours | N/A | 1 hour minimum (avoid annoyance) | N/A |
+| Metric                     | MVP Capacity              | Degradation Point                  | Hard Limit                       | Migration Trigger             |
+| -------------------------- | ------------------------- | ---------------------------------- | -------------------------------- | ----------------------------- |
+| **Users**                  | 1 (single-user localhost) | N/A                                | 1                                | Any multi-user need → Phase 2 |
+| **Active Tasks**           | 10 (WIP limit enforced)   | N/A                                | 10                               | User can adjust 5-10          |
+| **Total Tasks**            | 10,000                    | 5,000 (switch to streaming parser) | ~50,000 (JSON file limits)       | 10k+ → migrate to SQLite      |
+| **Concurrent Requests**    | 1 (single user)           | N/A                                | No limit (Express handles)       | N/A for localhost             |
+| **File Size (tasks.json)** | ~500KB (1k tasks)         | 5MB (5k tasks)                     | 50MB (parsing becomes slow)      | 5MB → SQLite migration        |
+| **Startup Time**           | <1s typical               | <2s at 10k tasks                   | ~5s at 50k tasks (violates NFR1) | 2s exceeded → optimize        |
+| **Prompt Frequency**       | Configurable 1-6 hours    | N/A                                | 1 hour minimum (avoid annoyance) | N/A                           |
 
 **When to Migrate from MVP Architecture**:
 
@@ -61,6 +77,7 @@ graph TB
 ## Migration Path 1: JSON → SQLite
 
 **Trigger Conditions**:
+
 - Total task count exceeds 10,000
 - User requests data export/import features
 - Analytics queries become slow (>500ms)
@@ -70,13 +87,19 @@ graph TB
 
 **ORM Decision**:
 
-**MVP (Current):** Use **better-sqlite3** with raw SQL for simplicity and performance.
+**MVP (Current):** Use **better-sqlite3** with raw SQL for simplicity and
+performance.
 
-**Phase 2+ (Hosted):** Migrate to **Prisma** when moving to PostgreSQL or team grows beyond 2 developers.
+**Phase 2+ (Hosted):** Migrate to **Prisma** when moving to PostgreSQL or team
+grows beyond 2 developers.
 
-**Rationale:** Current data model is simple enough that ORM overhead (learning curve, performance, bundle size) outweighs benefits. However, Prisma becomes valuable for hosted deployment with complex relationships and multi-developer teams.
+**Rationale:** Current data model is simple enough that ORM overhead (learning
+curve, performance, bundle size) outweighs benefits. However, Prisma becomes
+valuable for hosted deployment with complex relationships and multi-developer
+teams.
 
-**Migration Effort:** Raw SQL → Prisma takes 1-2 days using automated schema introspection.
+**Migration Effort:** Raw SQL → Prisma takes 1-2 days using automated schema
+introspection.
 
 **Implementation Approach**:
 
@@ -125,7 +148,7 @@ export class SQLiteDataService implements IDataService {
 
   async loadTasks(): Promise<Task[]> {
     const rows = this.db.prepare('SELECT * FROM tasks').all();
-    return rows.map(row => ({
+    return rows.map((row) => ({
       id: row.id,
       text: row.text,
       status: row.status as TaskStatus,
@@ -143,7 +166,13 @@ export class SQLiteDataService implements IDataService {
 
     const saveMany = this.db.transaction((tasks: Task[]) => {
       for (const task of tasks) {
-        insert.run(task.id, task.text, task.status, task.createdAt, task.completedAt);
+        insert.run(
+          task.id,
+          task.text,
+          task.status,
+          task.createdAt,
+          task.completedAt
+        );
       }
     });
 
@@ -191,15 +220,16 @@ migrate();
 
 **Performance Comparison** (10k tasks):
 
-| Operation | JSON (current) | SQLite | Improvement |
-|-----------|---------------|---------|-------------|
-| Load all tasks | ~400ms | ~50ms | 8x faster |
-| Load active tasks only | ~400ms (filter in memory) | ~10ms (indexed query) | 40x faster |
-| Insert single task | ~80ms | ~5ms | 16x faster |
-| Analytics queries | ~200ms (full scan) | ~20ms (indexed) | 10x faster |
-| Startup time | ~1000ms | ~100ms | 10x faster |
+| Operation              | JSON (current)            | SQLite                | Improvement |
+| ---------------------- | ------------------------- | --------------------- | ----------- |
+| Load all tasks         | ~400ms                    | ~50ms                 | 8x faster   |
+| Load active tasks only | ~400ms (filter in memory) | ~10ms (indexed query) | 40x faster  |
+| Insert single task     | ~80ms                     | ~5ms                  | 16x faster  |
+| Analytics queries      | ~200ms (full scan)        | ~20ms (indexed)       | 10x faster  |
+| Startup time           | ~1000ms                   | ~100ms                | 10x faster  |
 
 **Backward Compatibility**:
+
 - Keep JSONDataService in codebase for users who prefer file-based storage
 - Configuration flag: `DATA_BACKEND=json|sqlite` in `.env`
 - All services use `IDataService` interface, agnostic to implementation
@@ -209,6 +239,7 @@ migrate();
 ## Migration Path 2: Localhost → Hosted Deployment
 
 **Trigger Conditions**:
+
 - User needs access from multiple devices
 - Sharing tasks with team/family (multi-user)
 - Mobile app development (needs API backend)
@@ -293,32 +324,26 @@ CREATE INDEX idx_tasks_user_id ON tasks(user_id);
 ```yaml
 # vercel.json
 {
-  "builds": [
+  'builds':
+    [
+      {
+        'src': 'apps/web/package.json',
+        'use': '@vercel/static-build',
+        'config': { 'distDir': 'dist' },
+      },
+      { 'src': 'apps/server/src/index.ts', 'use': '@vercel/node' },
+    ],
+  'routes':
+    [
+      { 'src': '/api/(.*)', 'dest': 'apps/server/src/index.ts' },
+      { 'src': '/(.*)', 'dest': 'apps/web/dist/$1' },
+    ],
+  'env':
     {
-      "src": "apps/web/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+      'DATABASE_URL': '@database-url',
+      'AUTH0_DOMAIN': '@auth0-domain',
+      'AUTH0_CLIENT_ID': '@auth0-client-id',
     },
-    {
-      "src": "apps/server/src/index.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "apps/server/src/index.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "apps/web/dist/$1"
-    }
-  ],
-  "env": {
-    "DATABASE_URL": "@database-url",
-    "AUTH0_DOMAIN": "@auth0-domain",
-    "AUTH0_CLIENT_ID": "@auth0-client-id"
-  }
 }
 ```
 
@@ -346,11 +371,7 @@ class PromptingService {
   }
 
   async schedulePrompt(userId: string, delayMs: number) {
-    await this.queue.add(
-      'generate-prompt',
-      { userId },
-      { delay: delayMs }
-    );
+    await this.queue.add('generate-prompt', { userId }, { delay: delayMs });
   }
 }
 
@@ -364,15 +385,15 @@ const worker = new Worker('prompts', async (job) => {
 
 **Infrastructure Costs** (hosted deployment):
 
-| Service | Provider | Monthly Cost (100 users) | Monthly Cost (1000 users) |
-|---------|----------|--------------------------|---------------------------|
-| **Frontend Hosting** | Vercel | $0 (Hobby tier) | $20 (Pro tier) |
-| **Backend Compute** | Vercel Serverless | $0 (included) | ~$10 (execution time) |
-| **Database** | Supabase | $0 (Free tier, 500MB) | $25 (Pro tier, 8GB) |
-| **Authentication** | Auth0 | $0 (7000 MAU free) | $35 (10k MAU) |
-| **Background Jobs** | Upstash Redis | $0 (Free tier) | $10 (paid tier) |
-| **Monitoring** | Sentry | $0 (5k events/mo) | $26 (50k events) |
-| **TOTAL** | | **$0/month** | **~$126/month** |
+| Service              | Provider          | Monthly Cost (100 users) | Monthly Cost (1000 users) |
+| -------------------- | ----------------- | ------------------------ | ------------------------- |
+| **Frontend Hosting** | Vercel            | $0 (Hobby tier)          | $20 (Pro tier)            |
+| **Backend Compute**  | Vercel Serverless | $0 (included)            | ~$10 (execution time)     |
+| **Database**         | Supabase          | $0 (Free tier, 500MB)    | $25 (Pro tier, 8GB)       |
+| **Authentication**   | Auth0             | $0 (7000 MAU free)       | $35 (10k MAU)             |
+| **Background Jobs**  | Upstash Redis     | $0 (Free tier)           | $10 (paid tier)           |
+| **Monitoring**       | Sentry            | $0 (5k events/mo)        | $26 (50k events)          |
+| **TOTAL**            |                   | **$0/month**             | **~$126/month**           |
 
 ---
 
@@ -391,7 +412,8 @@ class IntelligentPromptingService extends PromptingService {
    * Use task history + user behavior to predict best prompt timing
    */
   async predictOptimalPromptTime(userId: string): Promise<Date> {
-    const userHistory = await this.analyticsService.getUserBehaviorPattern(userId);
+    const userHistory =
+      await this.analyticsService.getUserBehaviorPattern(userId);
 
     // Pattern: User completes most tasks between 9-11am and 2-4pm
     // Avoid prompting during low-engagement periods (lunch, evenings)
@@ -410,7 +432,7 @@ class IntelligentPromptingService extends PromptingService {
   async selectSmartTask(userId: string): Promise<Task | null> {
     const tasks = await this.taskService.getActiveTasks(userId);
 
-    const scoredTasks = tasks.map(task => ({
+    const scoredTasks = tasks.map((task) => ({
       task,
       score: this.calculatePromptScore(task),
     }));
@@ -436,13 +458,17 @@ class IntelligentPromptingService extends PromptingService {
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4',
-      messages: [{
-        role: 'system',
-        content: 'Generate a gentle, encouraging prompt to help user complete this task.',
-      }, {
-        role: 'user',
-        content: `Task: ${task.text}\nAge: ${TaskHelpers.getAge(task)} days`,
-      }],
+      messages: [
+        {
+          role: 'system',
+          content:
+            'Generate a gentle, encouraging prompt to help user complete this task.',
+        },
+        {
+          role: 'user',
+          content: `Task: ${task.text}\nAge: ${TaskHelpers.getAge(task)} days`,
+        },
+      ],
     });
 
     // Output: "You've been thinking about [task] for 5 days - how about tackling it now?"
@@ -452,12 +478,14 @@ class IntelligentPromptingService extends PromptingService {
 ```
 
 **Data Requirements for ML Features**:
+
 - Prompt response history (already tracking in PromptEvent)
 - User engagement patterns (time-of-day analysis)
 - Task completion velocity
 - Seasonal/weekly patterns
 
 **Infrastructure Additions**:
+
 - Machine learning model hosting (TensorFlow.js or cloud ML service)
 - Increased database storage for historical analytics
 - A/B testing framework to validate ML effectiveness
@@ -470,13 +498,13 @@ class IntelligentPromptingService extends PromptingService {
 
 **Future Archival Policy** (Phase 2+):
 
-| Data Type | Retention Period | Archive After | Purge After |
-|-----------|------------------|---------------|-------------|
-| **Active Tasks** | Infinite | N/A | User-initiated delete only |
+| Data Type           | Retention Period    | Archive After                   | Purge After                 |
+| ------------------- | ------------------- | ------------------------------- | --------------------------- |
+| **Active Tasks**    | Infinite            | N/A                             | User-initiated delete only  |
 | **Completed Tasks** | 90 days hot storage | 90 days (move to archive table) | 2 years (user configurable) |
-| **Prompt Events** | 30 days hot | 30 days | 1 year |
-| **Analytics Data** | Aggregated monthly | N/A | Never (small aggregates) |
-| **Logs** | 7 days | 7 days | 30 days |
+| **Prompt Events**   | 30 days hot         | 30 days                         | 1 year                      |
+| **Analytics Data**  | Aggregated monthly  | N/A                             | Never (small aggregates)    |
+| **Logs**            | 7 days              | 7 days                          | 30 days                     |
 
 **Implementation**:
 
@@ -488,17 +516,23 @@ const archiveJob = new CronJob('0 0 * * *', async () => {
   const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
 
   // Move old completed tasks to archive table
-  await db.exec(`
+  await db.exec(
+    `
     INSERT INTO tasks_archive
     SELECT * FROM tasks
     WHERE status = 'completed' AND completed_at < ?
-  `, [ninetyDaysAgo.toISOString()]);
+  `,
+    [ninetyDaysAgo.toISOString()]
+  );
 
   // Delete from main table
-  await db.exec(`
+  await db.exec(
+    `
     DELETE FROM tasks
     WHERE status = 'completed' AND completed_at < ?
-  `, [ninetyDaysAgo.toISOString()]);
+  `,
+    [ninetyDaysAgo.toISOString()]
+  );
 
   console.log('Archived old completed tasks');
 });
@@ -511,21 +545,26 @@ archiveJob.start();
 ## Scalability Acceptance Criteria
 
 **MVP Success Criteria** (must achieve):
+
 - ✅ Supports 1 user, 10 active tasks, 10k total tasks
 - ✅ Startup time <2s with realistic data (100-1000 tasks)
 - ✅ All operations <100ms with 1k tasks
 - ✅ Architecture supports JSON→SQLite migration in <3 days
 
 **Phase 2 Success Criteria** (if migrating to hosted):
+
 - 🎯 Supports 100 concurrent users with <500ms p95 response time
-- 🎯 Database supports 1M tasks (10k per user × 100 users) without query degradation
+- 🎯 Database supports 1M tasks (10k per user × 100 users) without query
+  degradation
 - 🎯 Background prompting works reliably for 100 users across timezones
 - 🎯 Infrastructure costs <$200/month for 100-500 users
 
 **Phase 3+ Success Criteria** (intelligent features):
+
 - 🚀 ML-driven prompting increases completion rate by 15%+ vs random selection
 - 🚀 Smart timing reduces prompt dismissal rate by 20%+
-- 🚀 Natural language prompts score higher user satisfaction than templated messages
+- 🚀 Natural language prompts score higher user satisfaction than templated
+  messages
 
 ---
 
@@ -533,24 +572,24 @@ archiveJob.start();
 
 **High Impact Features** (require architectural changes):
 
-| Feature | Architectural Impact | Migration Effort |
-|---------|---------------------|------------------|
-| **Multi-user / Team Sharing** | Add auth, user model, permissions, row-level security | 3-4 weeks |
-| **Mobile App (iOS/Android)** | Requires hosted API, push notifications, offline sync | 6-8 weeks |
-| **Task Tags/Categories** | Database schema change, API updates, UI redesign | 1-2 weeks |
-| **Recurring Tasks** | New data model, scheduler complexity, UI updates | 2-3 weeks |
-| **Natural Language Input** | OpenAI integration, prompt engineering, cost management | 1-2 weeks |
-| **Real-time Collaboration** | WebSocket infrastructure, conflict resolution, operational transforms | 4-6 weeks |
+| Feature                       | Architectural Impact                                                  | Migration Effort |
+| ----------------------------- | --------------------------------------------------------------------- | ---------------- |
+| **Multi-user / Team Sharing** | Add auth, user model, permissions, row-level security                 | 3-4 weeks        |
+| **Mobile App (iOS/Android)**  | Requires hosted API, push notifications, offline sync                 | 6-8 weeks        |
+| **Task Tags/Categories**      | Database schema change, API updates, UI redesign                      | 1-2 weeks        |
+| **Recurring Tasks**           | New data model, scheduler complexity, UI updates                      | 2-3 weeks        |
+| **Natural Language Input**    | OpenAI integration, prompt engineering, cost management               | 1-2 weeks        |
+| **Real-time Collaboration**   | WebSocket infrastructure, conflict resolution, operational transforms | 4-6 weeks        |
 
 **Low Impact Features** (fit within current architecture):
 
-| Feature | Implementation Notes | Effort |
-|---------|---------------------|--------|
-| **Task Notes/Description** | Add `description` field to Task model | 2-3 days |
-| **Custom Celebration Messages** | Extend CelebrationService, add UI | 1-2 days |
-| **Export to CSV/JSON** | DataService already has access, add endpoint | 1 day |
-| **Dark Mode** | CSS variables, UI toggle | 2-3 days |
-| **Keyboard Shortcuts** | Frontend-only, event handlers | 2-3 days |
-| **Task Search/Filter** | Add search API endpoint, debounced frontend | 3-4 days |
+| Feature                         | Implementation Notes                         | Effort   |
+| ------------------------------- | -------------------------------------------- | -------- |
+| **Task Notes/Description**      | Add `description` field to Task model        | 2-3 days |
+| **Custom Celebration Messages** | Extend CelebrationService, add UI            | 1-2 days |
+| **Export to CSV/JSON**          | DataService already has access, add endpoint | 1 day    |
+| **Dark Mode**                   | CSS variables, UI toggle                     | 2-3 days |
+| **Keyboard Shortcuts**          | Frontend-only, event handlers                | 2-3 days |
+| **Task Search/Filter**          | Add search API endpoint, debounced frontend  | 3-4 days |
 
 ---

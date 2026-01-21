@@ -2,11 +2,14 @@
 
 ## Critical User Journeys
 
-The following flows represent the most important user interactions in the Simple To-Do App. These flows are designed to be visualized using Mermaid diagrams for clarity.
+The following flows represent the most important user interactions in the Simple
+To-Do App. These flows are designed to be visualized using Mermaid diagrams for
+clarity.
 
 ### Flow 1: First-Time User Onboarding
 
-This flow shows how a new user experiences the app from launch through first task completion.
+This flow shows how a new user experiences the app from launch through first
+task completion.
 
 ```mermaid
 graph TD
@@ -30,6 +33,7 @@ graph TD
 ```
 
 **Key Decision Points:**
+
 - Config existence check determines onboarding path
 - Empty state vs populated list determines which view to show
 - First completion triggers special celebration message
@@ -59,6 +63,7 @@ graph TD
 ```
 
 **Key Decision Points:**
+
 - Input validation prevents empty or oversized tasks
 - WIP limit check determines whether task creation proceeds
 - Error states allow user to retry with corrected input
@@ -66,7 +71,8 @@ graph TD
 
 ### Flow 3: Proactive Prompt Response Flow
 
-Demonstrates the complete lifecycle of a proactive prompt from generation to user response.
+Demonstrates the complete lifecycle of a proactive prompt from generation to
+user response.
 
 ```mermaid
 graph TD
@@ -95,6 +101,7 @@ graph TD
 ```
 
 **Key Decision Points:**
+
 - Active tasks check prevents prompting when list is empty
 - Prompting enabled setting respects opt-out preference
 - User has 4 possible outcomes: complete, dismiss, snooze, or timeout
@@ -129,6 +136,7 @@ graph TD
 ```
 
 **Key Decision Points:**
+
 - Optimistic update provides instant feedback
 - API failure gracefully reverts UI state
 - User can dismiss celebration or let it auto-dismiss
@@ -171,6 +179,7 @@ graph TD
 ```
 
 **Key Decision Points:**
+
 - Settings open as modal, not navigation away
 - Preview button lets users test celebration timing
 - Browser notification permission handled gracefully

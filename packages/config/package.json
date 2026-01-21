@@ -1,0 +1,7 @@
+{
+  "name": "@simple-todo/config",
+  "version": "1.0.0",
+  "description": "Shared ESLint and TypeScript configurations",
+  "private": true,
+  "type": "module"
+}

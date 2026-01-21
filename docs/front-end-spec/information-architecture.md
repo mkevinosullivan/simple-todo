@@ -2,7 +2,8 @@
 
 ## Site Map / Screen Inventory
 
-The Simple To-Do App has a focused, minimal screen structure to maintain simplicity:
+The Simple To-Do App has a focused, minimal screen structure to maintain
+simplicity:
 
 ```
 Simple To-Do App
@@ -40,38 +41,51 @@ Simple To-Do App
 ### Screen Details
 
 **1. First-Launch Configuration**
-- **When Shown:** First app launch only (detected by absence of config.json or hasCompletedSetup flag)
+
+- **When Shown:** First app launch only (detected by absence of config.json or
+  hasCompletedSetup flag)
 - **Purpose:** Guide user through initial WIP limit setup
 - **Exit Path:** "Get Started" button → Main Task List View
 
 **2. Main Task List View**
+
 - **When Shown:** Default view after setup, primary interface
-- **Key Elements:** Add task input at top, active tasks in chronological order, WIP count indicator in header, settings icon
+- **Key Elements:** Add task input at top, active tasks in chronological order,
+  WIP count indicator in header, settings icon
 - **Variations:**
   - Empty state (first-time users) → Quick Start Guide
   - Empty state (returning users) → Inbox Zero Celebration
 
 **3. Settings/Preferences Screen**
+
 - **When Shown:** User clicks settings icon/link
-- **Implementation:** Modal overlay or slide-in panel (does not navigate away from main view)
+- **Implementation:** Modal overlay or slide-in panel (does not navigate away
+  from main view)
 - **Exit Path:** Close button or backdrop click → Returns to Main Task List View
 
 **4. Proactive Prompt Toast**
-- **When Shown:** At configured intervals (default 2-3 hours) when active tasks exist
+
+- **When Shown:** At configured intervals (default 2-3 hours) when active tasks
+  exist
 - **Location:** Bottom-right corner of screen
 - **Behavior:** Non-blocking, auto-dismisses after 30 seconds
 - **Actions:** Complete, Dismiss, Snooze (1 hour)
 
 **5. Celebration Overlay**
-- **When Shown:** Immediately after task completion (via manual action or prompt response)
+
+- **When Shown:** Immediately after task completion (via manual action or prompt
+  response)
 - **Location:** Center screen, prominent but non-blocking
-- **Behavior:** Auto-dismisses after 7 seconds (configurable), user can dismiss via click or Escape key
+- **Behavior:** Auto-dismisses after 7 seconds (configurable), user can dismiss
+  via click or Escape key
 
 ## Navigation Patterns
 
-**Primary Navigation Paradigm:** Single-Page Application (SPA) with minimal navigation
+**Primary Navigation Paradigm:** Single-Page Application (SPA) with minimal
+navigation
 
-The app intentionally avoids traditional multi-page navigation to maintain focus and reduce cognitive load:
+The app intentionally avoids traditional multi-page navigation to maintain focus
+and reduce cognitive load:
 
 1. **No Traditional Menu/Navigation Bar**
    - Main Task List is always the primary view
@@ -119,6 +133,7 @@ Complete Final Task → Inbox Zero Celebration → Returns to Main Task List (em
 ```
 
 **State Persistence:**
+
 - App remembers last view state (scroll position, any in-progress task edits)
 - Settings changes apply immediately without page reload
 - Task operations update UI optimistically (instant feedback)

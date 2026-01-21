@@ -1,20 +1,39 @@
 # 11. Performance Considerations
 
-Based on PRD performance requirements (NFR1: <2s startup, NFR2: <100ms operations, NFR3: 10k tasks without degradation) and the chosen tech stack, here's the performance strategy:
+Based on PRD performance requirements (NFR1: <2s startup, NFR2: <100ms
+operations, NFR3: 10k tasks without degradation) and the chosen tech stack,
+here's the performance strategy:
 
 ## Rationale and Key Decisions:
 
-**1. In-Memory Caching for Active Tasks**: The most frequently accessed data (active tasks) will be cached in memory after initial file read. Since this is a single-user localhost app, cache invalidation is trivial - update cache on every write operation. This eliminates file I/O for reads, achieving <10ms response times even with 10k tasks.
+**1. In-Memory Caching for Active Tasks**: The most frequently accessed data
+(active tasks) will be cached in memory after initial file read. Since this is a
+single-user localhost app, cache invalidation is trivial - update cache on every
+write operation. This eliminates file I/O for reads, achieving <10ms response
+times even with 10k tasks.
 
-**2. Lazy Loading for Completed Tasks**: Completed tasks are rarely accessed (only for analytics or history view). Load them on-demand rather than on startup, keeping initial memory footprint small and startup time under 2 seconds even with thousands of completed tasks.
+**2. Lazy Loading for Completed Tasks**: Completed tasks are rarely accessed
+(only for analytics or history view). Load them on-demand rather than on
+startup, keeping initial memory footprint small and startup time under 2 seconds
+even with thousands of completed tasks.
 
-**3. JSON Streaming for Large Datasets**: If task count approaches 10k, switch from `JSON.parse()` on entire file to streaming JSON parser (`stream-json` library). This prevents loading entire 5-10MB JSON file into memory at once, maintaining <2s startup time.
+**3. JSON Streaming for Large Datasets**: If task count approaches 10k, switch
+from `JSON.parse()` on entire file to streaming JSON parser (`stream-json`
+library). This prevents loading entire 5-10MB JSON file into memory at once,
+maintaining <2s startup time.
 
-**4. React Virtual Scrolling**: For rendering large task lists (100+ visible tasks), implement virtual scrolling (react-window library) to render only visible DOM nodes. Rendering 1000 tasks without virtualization takes ~2-3 seconds; with virtualization, <100ms regardless of list size.
+**4. React Virtual Scrolling**: For rendering large task lists (100+ visible
+tasks), implement virtual scrolling (react-window library) to render only
+visible DOM nodes. Rendering 1000 tasks without virtualization takes ~2-3
+seconds; with virtualization, <100ms regardless of list size.
 
-**5. Vite Code Splitting**: Frontend bundle split by route - main task view, settings, analytics loaded separately. Initial bundle <100KB, loads in <500ms on localhost. Settings/analytics lazy-loaded only when accessed.
+**5. Vite Code Splitting**: Frontend bundle split by route - main task view,
+settings, analytics loaded separately. Initial bundle <100KB, loads in <500ms on
+localhost. Settings/analytics lazy-loaded only when accessed.
 
-**6. Debounced Auto-Save**: For future features like auto-save while typing, debounce writes by 500ms to prevent excessive file I/O. Current MVP doesn't need this (explicit save actions only), but architecture supports it.
+**6. Debounced Auto-Save**: For future features like auto-save while typing,
+debounce writes by 500ms to prevent excessive file I/O. Current MVP doesn't need
+this (explicit save actions only), but architecture supports it.
 
 **Performance Budget Diagram**:
 
@@ -145,9 +164,10 @@ export class DataService {
     const fileSizeMB = stats.size / (1024 * 1024);
 
     // Use streaming for files >5MB (~5000 tasks)
-    const tasks = fileSizeMB > 5
-      ? await this.loadTasksStreaming()
-      : JSON.parse(await fs.readFile(this.tasksFilePath, 'utf-8'));
+    const tasks =
+      fileSizeMB > 5
+        ? await this.loadTasksStreaming()
+        : JSON.parse(await fs.readFile(this.tasksFilePath, 'utf-8'));
 
     this.taskCache = tasks;
     this.cacheInitialized = true;
@@ -174,7 +194,7 @@ export class TaskService {
     }
 
     const allTasks = await this.dataService.loadTasks();
-    this.activeTasksCache = allTasks.filter(t => t.status === 'active');
+    this.activeTasksCache = allTasks.filter((t) => t.status === 'active');
     return this.activeTasksCache;
   }
 
@@ -204,10 +224,12 @@ import compression from 'compression';
 const app = express();
 
 // Compress responses >1KB (reduces /api/tasks payload by ~70%)
-app.use(compression({
-  threshold: 1024, // Only compress if >1KB
-  level: 6, // Balance between compression ratio and CPU
-}));
+app.use(
+  compression({
+    threshold: 1024, // Only compress if >1KB
+    level: 6, // Balance between compression ratio and CPU
+  })
+);
 
 // Example: 10k tasks JSON
 // Uncompressed: ~5MB
@@ -288,7 +310,9 @@ export function useTaskSearch(tasks: Task[]) {
 
   const filteredTasks = useMemo(() => {
     if (!searchTerm) return tasks;
-    return tasks.filter(t => t.text.toLowerCase().includes(searchTerm.toLowerCase()));
+    return tasks.filter((t) =>
+      t.text.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   }, [tasks, searchTerm]);
 
   return { filteredTasks, setSearch: debouncedSearch };
@@ -368,7 +392,11 @@ export default defineConfig({
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 
-export function performanceMonitoring(req: Request, res: Response, next: NextFunction) {
+export function performanceMonitoring(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   const start = Date.now();
 
   res.on('finish', () => {
@@ -444,39 +472,39 @@ export async function measureApiCall<T>(
 
 **Backend Operations** (NFR2: <100ms target):
 
-| Operation | Target | Worst Case (10k tasks) | Optimization |
-|-----------|--------|------------------------|--------------|
-| GET /api/tasks (active only) | <10ms | <20ms | In-memory cache, filter active only |
-| POST /api/tasks | <50ms | <80ms | Atomic file write, cache update |
-| PATCH /api/tasks/:id/complete | <30ms | <60ms | In-memory find + update, atomic write |
-| DELETE /api/tasks/:id | <30ms | <60ms | In-memory filter, atomic write |
-| GET /api/config | <5ms | <10ms | Small config file, in-memory cache |
-| PUT /api/config/wip-limit | <20ms | <40ms | Atomic write, cache invalidation |
+| Operation                     | Target | Worst Case (10k tasks) | Optimization                          |
+| ----------------------------- | ------ | ---------------------- | ------------------------------------- |
+| GET /api/tasks (active only)  | <10ms  | <20ms                  | In-memory cache, filter active only   |
+| POST /api/tasks               | <50ms  | <80ms                  | Atomic file write, cache update       |
+| PATCH /api/tasks/:id/complete | <30ms  | <60ms                  | In-memory find + update, atomic write |
+| DELETE /api/tasks/:id         | <30ms  | <60ms                  | In-memory filter, atomic write        |
+| GET /api/config               | <5ms   | <10ms                  | Small config file, in-memory cache    |
+| PUT /api/config/wip-limit     | <20ms  | <40ms                  | Atomic write, cache invalidation      |
 
 **Frontend Operations** (NFR2: <100ms target):
 
-| Operation | Target | Worst Case (1000 visible tasks) | Optimization |
-|-----------|--------|--------------------------------|--------------|
-| Initial render | <100ms | <150ms | Virtual scrolling, code splitting |
-| Add task (optimistic UI) | <50ms | <80ms | Immediate DOM update, API async |
-| Complete task | <50ms | <80ms | Optimistic removal, celebration |
-| Task list scroll | <16ms (60fps) | <16ms | Virtual scrolling, debounced |
-| Search/filter tasks | <50ms | <100ms | useMemo, debounced input |
+| Operation                | Target        | Worst Case (1000 visible tasks) | Optimization                      |
+| ------------------------ | ------------- | ------------------------------- | --------------------------------- |
+| Initial render           | <100ms        | <150ms                          | Virtual scrolling, code splitting |
+| Add task (optimistic UI) | <50ms         | <80ms                           | Immediate DOM update, API async   |
+| Complete task            | <50ms         | <80ms                           | Optimistic removal, celebration   |
+| Task list scroll         | <16ms (60fps) | <16ms                           | Virtual scrolling, debounced      |
+| Search/filter tasks      | <50ms         | <100ms                          | useMemo, debounced input          |
 
 **Startup Performance** (NFR1: <2s target):
 
-| Phase | Target | Worst Case | Notes |
-|-------|--------|------------|-------|
-| Node.js process start | <300ms | <500ms | OS-dependent, no optimization |
-| Load + parse tasks.json | <200ms | <400ms (10k tasks) | Streaming parser at 5k+ |
-| Initialize services | <100ms | <150ms | Minimal setup, no external calls |
-| Start Express server | <50ms | <100ms | Fast localhost binding |
-| **Total Backend Startup** | **<650ms** | **<1150ms** | Within 2s budget |
-| Load React bundle | <200ms | <300ms | Code splitting, <100KB main bundle |
-| React hydration + first render | <150ms | <250ms | Virtual scrolling enabled |
-| Fetch initial data (/api/tasks) | <20ms | <40ms | In-memory cache on backend |
-| **Total Frontend Ready** | **<370ms** | **<590ms** | Within 2s budget |
-| **TOTAL STARTUP TIME** | **<1020ms** | **<1740ms** | ✅ Well under 2s (NFR1) |
+| Phase                           | Target      | Worst Case         | Notes                              |
+| ------------------------------- | ----------- | ------------------ | ---------------------------------- |
+| Node.js process start           | <300ms      | <500ms             | OS-dependent, no optimization      |
+| Load + parse tasks.json         | <200ms      | <400ms (10k tasks) | Streaming parser at 5k+            |
+| Initialize services             | <100ms      | <150ms             | Minimal setup, no external calls   |
+| Start Express server            | <50ms       | <100ms             | Fast localhost binding             |
+| **Total Backend Startup**       | **<650ms**  | **<1150ms**        | Within 2s budget                   |
+| Load React bundle               | <200ms      | <300ms             | Code splitting, <100KB main bundle |
+| React hydration + first render  | <150ms      | <250ms             | Virtual scrolling enabled          |
+| Fetch initial data (/api/tasks) | <20ms       | <40ms              | In-memory cache on backend         |
+| **Total Frontend Ready**        | **<370ms**  | **<590ms**         | Within 2s budget                   |
+| **TOTAL STARTUP TIME**          | **<1020ms** | **<1740ms**        | ✅ Well under 2s (NFR1)            |
 
 ## Load Testing Approach:
 
@@ -522,17 +550,20 @@ scenarios:
 ## Performance Acceptance Criteria:
 
 **Must Meet** (blocking for release):
+
 - ✅ Cold startup <2s with empty data
 - ✅ Cold startup <2s with 1k tasks
 - ✅ Task operations (add/complete/delete) <100ms with 1k tasks
 - ✅ UI remains responsive (60fps scrolling) with 100 visible tasks
 
 **Should Meet** (warning if not met):
+
 - ⚠️ Cold startup <2s with 10k tasks (fallback: streaming parser)
 - ⚠️ Task operations <100ms with 10k tasks (acceptable degradation to 150ms)
 - ⚠️ Virtual scrolling maintains 60fps with 1000+ tasks
 
 **Nice to Have** (future optimization):
+
 - 📊 Startup time <1s with realistic data (100-500 tasks)
 - 📊 All operations <50ms (2x faster than requirement)
 - 📊 Bundle size <50KB (currently ~80KB)

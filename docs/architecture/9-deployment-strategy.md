@@ -2,15 +2,18 @@
 
 ## Deployment Model: Local Installation
 
-**Deployment Type:** Developer-style local installation (not traditional "deployment")
+**Deployment Type:** Developer-style local installation (not traditional
+"deployment")
 
 **Target Environment:**
+
 - User's local machine (Windows 10+, macOS 12+, Linux Ubuntu 20.04+)
 - Node.js 18+ LTS installed
 - No cloud infrastructure
 - No containerization (Docker optional for development, not required)
 
 **Rationale:**
+
 - PRD explicitly specifies "localhost-only MVP"
 - 5-10 pilot users can run locally
 - Fastest path to validation (no deployment infrastructure setup)
@@ -43,6 +46,7 @@ npm start
 ```
 
 **Prerequisites:**
+
 - Git installed
 - Node.js 18+ and npm 8+
 - ~100MB disk space for dependencies
@@ -51,7 +55,8 @@ npm start
 
 ### Method 2: Pre-built Release Package (Phase 2)
 
-**Future Enhancement:** Package app as standalone executable using pkg, nexe, or Electron.
+**Future Enhancement:** Package app as standalone executable using pkg, nexe, or
+Electron.
 
 **Proposed Installation (Phase 2):**
 
@@ -67,7 +72,8 @@ npm start
 # App starts automatically, opens browser to http://localhost:3000
 ```
 
-**Current MVP Status:** Git clone method only, pre-built packages deferred to Phase 2.
+**Current MVP Status:** Git clone method only, pre-built packages deferred to
+Phase 2.
 
 ---
 
@@ -96,6 +102,7 @@ VITE_API_URL=http://localhost:3001
 ```
 
 **No Secrets Required:**
+
 - No API keys
 - No database credentials
 - No authentication tokens
@@ -150,6 +157,7 @@ simple-todo-app/
 ```
 
 **Target Bundle Size:**
+
 - Frontend: ~100KB gzipped (including React)
 - Backend: N/A (runs locally, not transmitted)
 
@@ -235,6 +243,7 @@ nohup npm start > logs/app.log 2>&1 &
 ```
 
 **Stopping the Server:**
+
 - Development mode: Ctrl+C in terminal
 - Production mode (if backgrounded): `kill <PID>`
 
@@ -275,12 +284,14 @@ tar -czf simple-todo-backup-$(date +%Y-%m-%d).tar.gz ./data
 ### Local Development
 
 **Configuration:**
+
 ```bash
 NODE_ENV=development
 LOG_LEVEL=debug
 ```
 
 **Characteristics:**
+
 - Hot module replacement
 - Detailed error messages
 - Stack traces visible
@@ -293,18 +304,21 @@ LOG_LEVEL=debug
 ### Local Production (User Installation)
 
 **Configuration:**
+
 ```bash
 NODE_ENV=production
 LOG_LEVEL=info
 ```
 
 **Characteristics:**
+
 - Optimized builds
 - Minified code
 - No stack traces in responses
 - Single server process (port 3001)
 
-**Access:** http://localhost:3001 (single server serves both API and static files)
+**Access:** http://localhost:3001 (single server serves both API and static
+files)
 
 ---
 
@@ -400,14 +414,14 @@ grep ERROR logs/combined.log
 
 **Common Issues:**
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| `npm start` fails | Node.js not installed | Install Node.js 18+ from nodejs.org |
-| Port 3001 already in use | Another process using port | Change PORT in .env or kill other process |
-| `Cannot find module` error | Dependencies not installed | Run `npm install` |
-| Tasks not persisting | File permission issue | Check `./data` directory is writable |
-| Prompts not appearing | Prompting disabled in config | Check config.json, enable prompting |
-| Blank screen on localhost:3001 | Frontend build failed | Run `npm run build:client` |
+| Issue                          | Cause                        | Solution                                  |
+| ------------------------------ | ---------------------------- | ----------------------------------------- |
+| `npm start` fails              | Node.js not installed        | Install Node.js 18+ from nodejs.org       |
+| Port 3001 already in use       | Another process using port   | Change PORT in .env or kill other process |
+| `Cannot find module` error     | Dependencies not installed   | Run `npm install`                         |
+| Tasks not persisting           | File permission issue        | Check `./data` directory is writable      |
+| Prompts not appearing          | Prompting disabled in config | Check config.json, enable prompting       |
+| Blank screen on localhost:3001 | Frontend build failed        | Run `npm run build:client`                |
 
 **Debug Mode:**
 
@@ -424,6 +438,7 @@ cat logs/error.log
 ## Deployment Summary
 
 **Current MVP Deployment:**
+
 - ✅ **Local installation only** (git clone + npm install + npm start)
 - ✅ **Single-process monolith** (Express serves both API and frontend)
 - ✅ **No infrastructure required** (no cloud, no containers, no CI/CD)
@@ -432,6 +447,7 @@ cat logs/error.log
 - ✅ **Logs to local files** (Winston)
 
 **Phase 2 Enhancements:**
+
 - 📦 Pre-built executables (pkg/electron)
 - 🐳 Docker containerization
 - ☁️ Hosted deployment (Vercel/Fly.io)
@@ -439,6 +455,7 @@ cat logs/error.log
 - 📊 Application monitoring
 - 🚀 CI/CD pipeline (GitHub Actions)
 
-**Verdict:** Deployment strategy is **optimized for MVP simplicity** while maintaining a clear path to hosted deployment in Phase 2.
+**Verdict:** Deployment strategy is **optimized for MVP simplicity** while
+maintaining a clear path to hosted deployment in Phase 2.
 
 ---

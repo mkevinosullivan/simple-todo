@@ -47,5 +47,8 @@ temp/
 Thumbs.db
 .DS_Store
 
+# Data directory (JSON storage)
+data/
+
 # Custom ignore folder
 .ignore/

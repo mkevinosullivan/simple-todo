@@ -3,6 +3,7 @@
 ## Threat Model
 
 **Application Context:**
+
 - **Deployment:** Localhost-only, single-user application
 - **Network Exposure:** None (no external network access)
 - **Data Sensitivity:** Personal task data (non-critical, but private)
@@ -10,15 +11,16 @@
 
 **Threat Actors:**
 
-| Threat Actor | Likelihood | Impact | Mitigation |
-|--------------|------------|--------|------------|
-| **Remote Attacker** | None | N/A | Not exposed to internet |
-| **Malicious Software on User's Machine** | Low | High | Rely on OS security, file permissions |
-| **Malicious Input (User or Clipboard)** | Medium | Medium | Input validation with Zod |
-| **Accidental Data Loss** | Medium | Medium | Atomic file writes, backup recommendation |
-| **Physical Access to Machine** | Low | High | Out of scope (OS-level security) |
+| Threat Actor                             | Likelihood | Impact | Mitigation                                |
+| ---------------------------------------- | ---------- | ------ | ----------------------------------------- |
+| **Remote Attacker**                      | None       | N/A    | Not exposed to internet                   |
+| **Malicious Software on User's Machine** | Low        | High   | Rely on OS security, file permissions     |
+| **Malicious Input (User or Clipboard)**  | Medium     | Medium | Input validation with Zod                 |
+| **Accidental Data Loss**                 | Medium     | Medium | Atomic file writes, backup recommendation |
+| **Physical Access to Machine**           | Low        | High   | Out of scope (OS-level security)          |
 
 **Out of Scope for MVP:**
+
 - Network-based attacks (no network exposure)
 - Multi-user access control (single-user app)
 - Encryption at rest (acceptable for localhost MVP)
@@ -37,10 +39,11 @@ All API endpoints validate input using Zod schemas before processing:
 ```typescript
 // Example: Task creation validation
 const CreateTaskDtoSchema = z.object({
-  text: z.string()
-    .min(1, "Task cannot be empty")
-    .max(500, "Task text too long (max 500 characters)")
-    .trim() // Remove leading/trailing whitespace
+  text: z
+    .string()
+    .min(1, 'Task cannot be empty')
+    .max(500, 'Task text too long (max 500 characters)')
+    .trim(), // Remove leading/trailing whitespace
 });
 
 // In API route
@@ -51,8 +54,8 @@ app.post('/api/tasks', async (req, res) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
-        error: "Validation failed",
-        details: error.errors
+        error: 'Validation failed',
+        details: error.errors,
       });
     }
   }
@@ -60,6 +63,7 @@ app.post('/api/tasks', async (req, res) => {
 ```
 
 **Validation Rules Enforced:**
+
 - ✅ Task text: 1-500 characters, trimmed
 - ✅ WIP limit: Integer 5-10
 - ✅ Prompting frequency: Number 1-6
@@ -68,10 +72,12 @@ app.post('/api/tasks', async (req, res) => {
 - ✅ Timestamps: Valid ISO 8601 format
 
 **Protection Against:**
+
 - ✅ **SQL Injection:** N/A (no SQL database)
 - ✅ **Command Injection:** No user input passed to shell commands
 - ✅ **Path Traversal:** File paths are hardcoded, not user-controlled
-- ✅ **XSS (Cross-Site Scripting):** React escapes by default, DOMPurify for edge cases
+- ✅ **XSS (Cross-Site Scripting):** React escapes by default, DOMPurify for
+  edge cases
 
 ---
 
@@ -101,6 +107,7 @@ async saveTasks(tasks: Task[]): Promise<void> {
 ```
 
 **Benefits:**
+
 - ✅ Prevents partial writes/corrupted JSON (NFR6: data integrity)
 - ✅ Crash-safe: Either old data or new data, never corrupted state
 - ✅ No race conditions (single-user, single-process)
@@ -128,7 +135,8 @@ React automatically escapes content rendered via JSX:
 <div dangerouslySetInnerHTML={{ __html: task.text }} /> // ❌ DANGEROUS
 ```
 
-**Current Status:** React's default escaping is sufficient for MVP. Content Security Policy deferred to Phase 2.
+**Current Status:** React's default escaping is sufficient for MVP. Content
+Security Policy deferred to Phase 2.
 
 ---
 
@@ -137,11 +145,13 @@ React automatically escapes content rendered via JSX:
 **Current Status:** CSRF protection **not needed** for MVP.
 
 **Rationale:**
+
 1. **Localhost-only:** No external access, no cross-site requests
 2. **No authentication:** No session cookies to steal
 3. **Same-origin policy:** Browser enforces origin checks
 
 **If Phase 2 adds authentication:**
+
 - Implement CSRF tokens for state-changing operations
 - Use SameSite cookie attribute
 - Verify Origin/Referer headers
@@ -166,6 +176,7 @@ class DataService {
 ```
 
 **Protection Against:**
+
 - ✅ **Path Traversal:** No user input in file paths
 - ✅ **Directory Traversal:** Fixed directory structure
 - ✅ **File Overwrite:** Only write to designated files
@@ -189,12 +200,13 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     error: 'Internal server error',
     message: isDevelopment ? err.message : 'An error occurred',
     // Never send stack traces in production
-    ...(isDevelopment && { stack: err.stack })
+    ...(isDevelopment && { stack: err.stack }),
   });
 });
 ```
 
 **Sensitive Information Protection:**
+
 - ✅ No stack traces in production responses
 - ✅ No internal file paths in error messages
 - ✅ No database connection strings (N/A)
@@ -219,20 +231,21 @@ const logger = winston.createLogger({
     // Write to files
     new winston.transports.File({
       filename: 'logs/error.log',
-      level: 'error'
+      level: 'error',
     }),
     new winston.transports.File({
-      filename: 'logs/combined.log'
+      filename: 'logs/combined.log',
     }),
     // Console output in development
     new winston.transports.Console({
-      format: winston.format.simple()
-    })
-  ]
+      format: winston.format.simple(),
+    }),
+  ],
 });
 ```
 
 **Logged Events:**
+
 - ✅ API requests (without sensitive data)
 - ✅ Errors and exceptions
 - ✅ File write operations
@@ -246,31 +259,33 @@ const logger = winston.createLogger({
 
 ### GDPR / Privacy Compliance
 
-**Current Status:** Fully compliant by design (localhost-only, no data collection)
+**Current Status:** Fully compliant by design (localhost-only, no data
+collection)
 
 **GDPR Principles:**
 
-| Principle | Compliance Status |
-|-----------|------------------|
-| **Lawfulness, Fairness, Transparency** | ✅ User owns all data, runs on their machine |
-| **Purpose Limitation** | ✅ Data used only for task management |
-| **Data Minimization** | ✅ Only essential task data stored |
-| **Accuracy** | ✅ User controls all data updates |
-| **Storage Limitation** | ✅ User controls data retention (can delete anytime) |
-| **Integrity & Confidentiality** | ✅ Data never leaves user's machine (NFR4) |
-| **Accountability** | ✅ No data processing, no third parties |
+| Principle                              | Compliance Status                                    |
+| -------------------------------------- | ---------------------------------------------------- |
+| **Lawfulness, Fairness, Transparency** | ✅ User owns all data, runs on their machine         |
+| **Purpose Limitation**                 | ✅ Data used only for task management                |
+| **Data Minimization**                  | ✅ Only essential task data stored                   |
+| **Accuracy**                           | ✅ User controls all data updates                    |
+| **Storage Limitation**                 | ✅ User controls data retention (can delete anytime) |
+| **Integrity & Confidentiality**        | ✅ Data never leaves user's machine (NFR4)           |
+| **Accountability**                     | ✅ No data processing, no third parties              |
 
 **Data Subject Rights:**
 
-| Right | Implementation |
-|-------|---------------|
-| **Right to Access** | User owns JSON files, can read directly |
-| **Right to Rectification** | User can edit/update tasks via UI |
-| **Right to Erasure** | User can delete tasks or entire data directory |
-| **Right to Data Portability** | JSON files are portable, readable format |
-| **Right to Object** | N/A (no automated decision-making) |
+| Right                         | Implementation                                 |
+| ----------------------------- | ---------------------------------------------- |
+| **Right to Access**           | User owns JSON files, can read directly        |
+| **Right to Rectification**    | User can edit/update tasks via UI              |
+| **Right to Erasure**          | User can delete tasks or entire data directory |
+| **Right to Data Portability** | JSON files are portable, readable format       |
+| **Right to Object**           | N/A (no automated decision-making)             |
 
 **No Privacy Policy Required:**
+
 - No data collection or processing by third parties
 - No cookies (session cookies are localhost HTTP-only, functional only)
 - No tracking or analytics
@@ -293,6 +308,7 @@ const logger = winston.createLogger({
 ```
 
 **Checks for:**
+
 - Command injection risks
 - Unsafe regex patterns
 - Non-literal fs operations
@@ -312,6 +328,7 @@ npm audit --audit-level=high
 ```
 
 **Dependabot (GitHub):**
+
 - Automatic PR for dependency updates
 - Security vulnerability alerts
 
@@ -319,29 +336,30 @@ npm audit --audit-level=high
 
 **Test Cases:**
 
-| Test | Expected Behavior |
-|------|------------------|
+| Test                                             | Expected Behavior                    |
+| ------------------------------------------------ | ------------------------------------ |
 | Submit task with `<script>alert('xss')</script>` | Rendered as plain text, not executed |
-| Submit task with 501 characters | Validation error returned |
-| Send task with null/undefined text | Validation error returned |
-| Attempt to set WIP limit to 11 | Validation error returned |
-| Create task while at WIP limit | 409 Conflict with helpful message |
-| Directly edit tasks.json with invalid JSON | App handles gracefully, logs error |
+| Submit task with 501 characters                  | Validation error returned            |
+| Send task with null/undefined text               | Validation error returned            |
+| Attempt to set WIP limit to 11                   | Validation error returned            |
+| Create task while at WIP limit                   | 409 Conflict with helpful message    |
+| Directly edit tasks.json with invalid JSON       | App handles gracefully, logs error   |
 
 ---
 
 ## Known Security Limitations & Accepted Risks
 
-| Limitation | Risk Level | Mitigation | Acceptance Rationale |
-|------------|------------|------------|---------------------|
-| **No encryption at rest** | Low | None for MVP | Localhost-only, user's machine security responsibility |
-| **No authentication** | None | N/A | Single-user localhost app by design |
-| **No HTTPS** | None | N/A | Localhost HTTP is sufficient, no network exposure |
-| **No rate limiting** | None | N/A | Single-user, no abuse potential |
-| **File permissions rely on OS** | Low | Document recommended permissions | Trust OS-level security |
-| **No automated backups** | Medium | Recommend manual backups in docs | User controls data, can copy JSON files |
+| Limitation                      | Risk Level | Mitigation                       | Acceptance Rationale                                   |
+| ------------------------------- | ---------- | -------------------------------- | ------------------------------------------------------ |
+| **No encryption at rest**       | Low        | None for MVP                     | Localhost-only, user's machine security responsibility |
+| **No authentication**           | None       | N/A                              | Single-user localhost app by design                    |
+| **No HTTPS**                    | None       | N/A                              | Localhost HTTP is sufficient, no network exposure      |
+| **No rate limiting**            | None       | N/A                              | Single-user, no abuse potential                        |
+| **File permissions rely on OS** | Low        | Document recommended permissions | Trust OS-level security                                |
+| **No automated backups**        | Medium     | Recommend manual backups in docs | User controls data, can copy JSON files                |
 
-**Risk Acceptance:** All limitations are acceptable for localhost MVP with 5-10 pilot users. Phase 2 deployment requires reevaluation.
+**Risk Acceptance:** All limitations are acceptable for localhost MVP with 5-10
+pilot users. Phase 2 deployment requires reevaluation.
 
 ---
 
@@ -370,6 +388,7 @@ npm audit --audit-level=high
 ## Security Posture Summary
 
 **Strengths:**
+
 - ✅ **Zero network exposure** eliminates 90% of typical web app vulnerabilities
 - ✅ **Privacy-first design** (NFR4) ensures no data leakage
 - ✅ **Input validation** prevents injection attacks
@@ -378,15 +397,18 @@ npm audit --audit-level=high
 - ✅ **GDPR compliant** by design (localhost-only)
 
 **Acceptable Trade-offs:**
+
 - ⚠️ **No encryption at rest** - Acceptable for localhost MVP
 - ⚠️ **No audit trail** - Acceptable for 5-10 users
 - ⚠️ **Trust OS security** - Reasonable assumption for single-user machine
 
 **Phase 2 Requirements:**
+
 - If hosted: Add HTTPS, CSP headers, HSTS, authentication
 - If multi-user: Add RBAC, audit logging, CSRF protection
 - If commercial: Add SOC 2 compliance, penetration testing
 
-**Verdict:** Security posture is **appropriate for localhost MVP** and can be enhanced for Phase 2 deployment as needed.
+**Verdict:** Security posture is **appropriate for localhost MVP** and can be
+enhanced for Phase 2 deployment as needed.
 
 ---

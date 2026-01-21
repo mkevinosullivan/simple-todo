@@ -1,20 +1,40 @@
 # 10. Testing Strategy
 
-Based on the tech stack selections (Jest for backend, Vitest + React Testing Library for frontend, Playwright for E2E deferred to Phase 2) and PRD requirements (70%+ coverage target, NFR8), here's the comprehensive testing strategy:
+Based on the tech stack selections (Jest for backend, Vitest + React Testing
+Library for frontend, Playwright for E2E deferred to Phase 2) and PRD
+requirements (70%+ coverage target, NFR8), here's the comprehensive testing
+strategy:
 
 ## Rationale and Key Decisions:
 
-**1. Testing Pyramid Approach**: Following the classic pyramid with heavy unit test coverage at the base (fast, cheap), moderate integration tests in the middle, and minimal E2E tests at the top. For MVP, we're deferring E2E to Phase 2 since manual testing by 5-10 pilot users provides sufficient validation.
+**1. Testing Pyramid Approach**: Following the classic pyramid with heavy unit
+test coverage at the base (fast, cheap), moderate integration tests in the
+middle, and minimal E2E tests at the top. For MVP, we're deferring E2E to Phase
+2 since manual testing by 5-10 pilot users provides sufficient validation.
 
-**2. Backend Testing with Jest**: Jest chosen for Node.js/TypeScript compatibility, excellent mocking capabilities (needed for DataService file I/O mocking), and built-in coverage reporting. The PRD explicitly specifies Jest for backend testing.
+**2. Backend Testing with Jest**: Jest chosen for Node.js/TypeScript
+compatibility, excellent mocking capabilities (needed for DataService file I/O
+mocking), and built-in coverage reporting. The PRD explicitly specifies Jest for
+backend testing.
 
-**3. Frontend Testing with Vitest + React Testing Library**: Vitest chosen over Jest for frontend because it's built on Vite (already in our stack), providing instant test execution via native ESM. React Testing Library enforces user-centric testing rather than implementation details.
+**3. Frontend Testing with Vitest + React Testing Library**: Vitest chosen over
+Jest for frontend because it's built on Vite (already in our stack), providing
+instant test execution via native ESM. React Testing Library enforces
+user-centric testing rather than implementation details.
 
-**4. 70% Coverage Target**: PRD specifies this threshold for business logic services (TaskService, WIPLimitService, CelebrationService, PromptingService, AnalyticsService). UI components don't need this threshold for MVP - focus on critical paths.
+**4. 70% Coverage Target**: PRD specifies this threshold for business logic
+services (TaskService, WIPLimitService, CelebrationService, PromptingService,
+AnalyticsService). UI components don't need this threshold for MVP - focus on
+critical paths.
 
-**5. Integration Testing Strategy**: Test API endpoints with real DataService layer (using temporary test files), not mocking file I/O. This catches JSON serialization bugs, file permission issues, and atomic write correctness that unit tests would miss.
+**5. Integration Testing Strategy**: Test API endpoints with real DataService
+layer (using temporary test files), not mocking file I/O. This catches JSON
+serialization bugs, file permission issues, and atomic write correctness that
+unit tests would miss.
 
-**6. Test Data Management**: Use factory functions for creating test tasks/config to avoid brittle tests with hardcoded values. Ensures tests remain maintainable as data models evolve.
+**6. Test Data Management**: Use factory functions for creating test
+tasks/config to avoid brittle tests with hardcoded values. Ensures tests remain
+maintainable as data models evolve.
 
 **Testing Architecture Diagram**:
 
@@ -53,6 +73,7 @@ graph TB
 ## Test Organization Structure:
 
 **Backend Tests** (`apps/server/tests/`):
+
 ```
 apps/server/tests/
 ├── unit/
@@ -81,6 +102,7 @@ apps/server/tests/
 ```
 
 **Frontend Tests** (`apps/web/tests/`):
+
 ```
 apps/web/tests/
 ├── unit/
@@ -106,6 +128,7 @@ apps/web/tests/
 ## Test Examples:
 
 **Backend Unit Test** (TaskService with mocked DataService):
+
 ```typescript
 // apps/server/tests/unit/services/TaskService.test.ts
 import { TaskService } from '../../../src/services/TaskService';
@@ -129,7 +152,9 @@ describe('TaskService', () => {
 
       const task = await taskService.createTask('Buy groceries');
 
-      expect(task.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+      expect(task.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      );
       expect(task.text).toBe('Buy groceries');
       expect(task.status).toBe('active');
       expect(task.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/); // ISO 8601
@@ -137,18 +162,25 @@ describe('TaskService', () => {
     });
 
     it('should reject empty task text', async () => {
-      await expect(taskService.createTask('')).rejects.toThrow('Task text cannot be empty');
+      await expect(taskService.createTask('')).rejects.toThrow(
+        'Task text cannot be empty'
+      );
     });
 
     it('should reject task text exceeding 500 characters', async () => {
       const longText = 'a'.repeat(501);
-      await expect(taskService.createTask(longText)).rejects.toThrow('Task text exceeds maximum length');
+      await expect(taskService.createTask(longText)).rejects.toThrow(
+        'Task text exceeds maximum length'
+      );
     });
   });
 
   describe('completeTask', () => {
     it('should set status to completed and record completedAt timestamp', async () => {
-      const activeTask = createTestTask({ status: 'active', completedAt: null });
+      const activeTask = createTestTask({
+        status: 'active',
+        completedAt: null,
+      });
       mockDataService.loadTasks.mockResolvedValue([activeTask]);
       mockDataService.saveTasks.mockResolvedValue();
 
@@ -158,7 +190,7 @@ describe('TaskService', () => {
       expect(completed.completedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
       expect(mockDataService.saveTasks).toHaveBeenCalledWith(
         expect.arrayContaining([
-          expect.objectContaining({ id: activeTask.id, status: 'completed' })
+          expect.objectContaining({ id: activeTask.id, status: 'completed' }),
         ])
       );
     });
@@ -167,6 +199,7 @@ describe('TaskService', () => {
 ```
 
 **Backend Integration Test** (API endpoint with real file I/O):
+
 ```typescript
 // apps/server/tests/integration/api/tasks.test.ts
 import request from 'supertest';
@@ -222,7 +255,9 @@ describe('POST /api/tasks', () => {
   it('should enforce WIP limit', async () => {
     // Create 7 tasks (at limit)
     for (let i = 0; i < 7; i++) {
-      await request(app).post('/api/tasks').send({ text: `Task ${i}` });
+      await request(app)
+        .post('/api/tasks')
+        .send({ text: `Task ${i}` });
     }
 
     // 8th task should be blocked
@@ -238,6 +273,7 @@ describe('POST /api/tasks', () => {
 ```
 
 **Frontend Unit Test** (Component with React Testing Library):
+
 ```typescript
 // apps/web/tests/unit/components/TaskCard.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -274,6 +310,7 @@ describe('TaskCard', () => {
 ```
 
 **Frontend Integration Test** (Full flow with MSW):
+
 ```typescript
 // apps/web/tests/integration/TaskListFlow.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -367,6 +404,7 @@ export function createTestConfig(overrides = {}) {
 ## Coverage Requirements:
 
 **Minimum Coverage Targets** (per PRD NFR8):
+
 - **TaskService**: 80%+ (core business logic)
 - **WIPLimitService**: 75%+ (validation + messaging)
 - **CelebrationService**: 70%+ (message rotation)
@@ -375,16 +413,20 @@ export function createTestConfig(overrides = {}) {
 - **DataService**: 85%+ (critical data integrity)
 
 **Coverage Exclusions**:
+
 - Type definitions (`shared/types`)
 - Configuration files
 - Development scripts
 - UI component styling (CSS)
 
 **CI/CD Coverage Enforcement**:
+
 ```yaml
 # .github/workflows/ci.yaml (excerpt)
 - name: Run tests with coverage
-  run: npm test -- --coverage --coverageThreshold='{"global":{"lines":70,"functions":70,"branches":70,"statements":70}}'
+  run:
+    npm test -- --coverage
+    --coverageThreshold='{"global":{"lines":70,"functions":70,"branches":70,"statements":70}}'
 
 - name: Fail if coverage below threshold
   run: |

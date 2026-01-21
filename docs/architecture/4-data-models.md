@@ -5,14 +5,18 @@
 **Purpose:** Represents a single to-do item with lifecycle tracking
 
 **Key Attributes:**
+
 - **id:** string (UUID) - Unique identifier for the task
 - **text:** string - Task description (1-500 characters per PRD validation)
 - **status:** TaskStatus - Current state of the task ('active' | 'completed')
 - **createdAt:** string (ISO 8601) - Timestamp when task was created (FR13)
-- **completedAt:** string | null (ISO 8601) - Timestamp when task was completed (FR14), null if active
+- **completedAt:** string | null (ISO 8601) - Timestamp when task was completed
+  (FR14), null if active
 
 **Computed Properties (not stored):**
-- **duration:** number | null - Milliseconds from creation to completion, computed from timestamps
+
+- **duration:** number | null - Milliseconds from creation to completion,
+  computed from timestamps
 - **age:** number - Milliseconds since creation, computed from current time
 - **textLength:** number - Character count, computed from text.length
 
@@ -61,7 +65,9 @@ export const TaskHelpers = {
     if (task.status === 'active' || !task.completedAt) {
       return null;
     }
-    return new Date(task.completedAt).getTime() - new Date(task.createdAt).getTime();
+    return (
+      new Date(task.completedAt).getTime() - new Date(task.createdAt).getTime()
+    );
   },
 
   /**
@@ -113,14 +119,17 @@ export const TaskHelpers = {
 
 ### Relationships
 
-- **One-to-Many with PromptEvents:** A task can be prompted multiple times (tracked in PromptEvent model)
-- **No foreign keys:** JSON file storage doesn't enforce referential integrity, handled in application logic
+- **One-to-Many with PromptEvents:** A task can be prompted multiple times
+  (tracked in PromptEvent model)
+- **No foreign keys:** JSON file storage doesn't enforce referential integrity,
+  handled in application logic
 
 ---
 
 ## Config
 
-**Purpose:** User configuration for WIP limits, prompting preferences, and celebration settings
+**Purpose:** User configuration for WIP limits, prompting preferences, and
+celebration settings
 
 ### TypeScript Interface
 
@@ -208,16 +217,22 @@ export interface CelebrationMessage {
  * Example celebration messages pool (at least 10 per FR10)
  */
 export const CELEBRATION_MESSAGES: CelebrationMessage[] = [
-  { message: "Amazing! You crushed it! 🎉", variant: "enthusiastic" },
-  { message: "One more done! You're making progress.", variant: "supportive" },
-  { message: "Task completed! Keep the momentum going!", variant: "motivational" },
-  { message: "Great work! That's progress!", variant: "supportive" },
-  { message: "Boom! Another one bites the dust! ✨", variant: "enthusiastic" },
-  { message: "Well done! You're on a roll!", variant: "motivational" },
-  { message: "Task complete! Nice job staying focused.", variant: "supportive" },
-  { message: "Excellent! You're building momentum!", variant: "motivational" },
-  { message: "Crushed it! Keep going! 🚀", variant: "enthusiastic" },
-  { message: "Progress made! You're doing great.", variant: "supportive" },
+  { message: 'Amazing! You crushed it! 🎉', variant: 'enthusiastic' },
+  { message: "One more done! You're making progress.", variant: 'supportive' },
+  {
+    message: 'Task completed! Keep the momentum going!',
+    variant: 'motivational',
+  },
+  { message: "Great work! That's progress!", variant: 'supportive' },
+  { message: 'Boom! Another one bites the dust! ✨', variant: 'enthusiastic' },
+  { message: "Well done! You're on a roll!", variant: 'motivational' },
+  {
+    message: 'Task complete! Nice job staying focused.',
+    variant: 'supportive',
+  },
+  { message: "Excellent! You're building momentum!", variant: 'motivational' },
+  { message: 'Crushed it! Keep going! 🚀', variant: 'enthusiastic' },
+  { message: "Progress made! You're doing great.", variant: 'supportive' },
   // Data-driven messages dynamically include task count
 ];
 ```
@@ -226,7 +241,8 @@ export const CELEBRATION_MESSAGES: CelebrationMessage[] = [
 
 ## PromptEvent
 
-**Purpose:** Analytics tracking for proactive prompt interactions (FR11-FR12 response tracking)
+**Purpose:** Analytics tracking for proactive prompt interactions (FR11-FR12
+response tracking)
 
 ### TypeScript Interface
 
@@ -268,7 +284,8 @@ export interface SnoozePromptDto {
 
 ## AnalyticsData
 
-**Purpose:** Computed analytics metrics (not persisted, calculated on-demand from tasks/prompts)
+**Purpose:** Computed analytics metrics (not persisted, calculated on-demand
+from tasks/prompts)
 
 ### TypeScript Interface
 

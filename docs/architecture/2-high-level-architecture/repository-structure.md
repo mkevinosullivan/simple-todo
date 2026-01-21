@@ -1,19 +1,26 @@
 # Repository Structure
 
-**Structure:** Monorepo with single Git repository
-**Monorepo Tool:** npm workspaces (built into npm 7+, no additional tooling needed)
-**Package Organization:** Organized by concern with clear boundaries:
+**Structure:** Monorepo with single Git repository **Monorepo Tool:** npm
+workspaces (built into npm 7+, no additional tooling needed) **Package
+Organization:** Organized by concern with clear boundaries:
+
 - `/apps/web` - React frontend application
 - `/apps/server` - Express backend application
 - `/packages/shared` - Shared TypeScript types, constants, and utilities
 - `/packages/config` - Shared ESLint, TypeScript, and testing configurations
 
 **Rationale:**
-1. **MVP Simplicity:** PRD technical assumptions recommend monorepo for ease of development and refactoring
-2. **Type Safety:** Shared types package ensures frontend/backend contract consistency
-3. **No Over-Engineering:** npm workspaces provide sufficient monorepo features without adding Nx/Turborepo complexity
-4. **Fast Iteration:** All code in one place, easy to search and ensure consistency
-5. **Future-Ready:** Structure supports extraction of services or deployment as separate packages if needed in Phase 2
+
+1. **MVP Simplicity:** PRD technical assumptions recommend monorepo for ease of
+   development and refactoring
+2. **Type Safety:** Shared types package ensures frontend/backend contract
+   consistency
+3. **No Over-Engineering:** npm workspaces provide sufficient monorepo features
+   without adding Nx/Turborepo complexity
+4. **Fast Iteration:** All code in one place, easy to search and ensure
+   consistency
+5. **Future-Ready:** Structure supports extraction of services or deployment as
+   separate packages if needed in Phase 2
 
 ## Frontend Directory Structure (`/apps/web`)
 
@@ -115,18 +122,18 @@ apps/web/
 
 **File Placement Guidelines:**
 
-| New File Type | Where to Place | Naming Convention |
-|--------------|----------------|-------------------|
-| React Component | `src/components/` | `ComponentName.tsx` |
-| Page/Route Component | `src/views/` | `PageNameView.tsx` |
-| Custom Hook | `src/hooks/` | `useFeatureName.ts` |
-| API Service | `src/services/` | `resourceName.ts` |
-| Utility Function | `src/utils/` | `functionName.ts` |
-| Context Provider | `src/context/` | `FeatureContext.tsx` |
-| Component Styles | Same directory as component | `ComponentName.module.css` |
-| Global Styles | `src/styles/` | `purpose.css` |
-| Component Test | `tests/unit/components/` | `ComponentName.test.tsx` |
-| Integration Test | `tests/integration/` | `FeatureFlow.test.tsx` |
+| New File Type        | Where to Place              | Naming Convention          |
+| -------------------- | --------------------------- | -------------------------- |
+| React Component      | `src/components/`           | `ComponentName.tsx`        |
+| Page/Route Component | `src/views/`                | `PageNameView.tsx`         |
+| Custom Hook          | `src/hooks/`                | `useFeatureName.ts`        |
+| API Service          | `src/services/`             | `resourceName.ts`          |
+| Utility Function     | `src/utils/`                | `functionName.ts`          |
+| Context Provider     | `src/context/`              | `FeatureContext.tsx`       |
+| Component Styles     | Same directory as component | `ComponentName.module.css` |
+| Global Styles        | `src/styles/`               | `purpose.css`              |
+| Component Test       | `tests/unit/components/`    | `ComponentName.test.tsx`   |
+| Integration Test     | `tests/integration/`        | `FeatureFlow.test.tsx`     |
 
 **Import Path Examples:**
 

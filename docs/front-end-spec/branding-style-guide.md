@@ -2,10 +2,13 @@
 
 ## Brand Identity
 
-**Brand Personality:**
-The Simple To-Do App is your supportive productivity partner—calm, encouraging, intelligent, and approachable. We celebrate progress without being patronizing, provide structure without being rigid, and maintain professionalism while still being warm and human.
+**Brand Personality:** The Simple To-Do App is your supportive productivity
+partner—calm, encouraging, intelligent, and approachable. We celebrate progress
+without being patronizing, provide structure without being rigid, and maintain
+professionalism while still being warm and human.
 
 **Emotional Tone:**
+
 - **Calm** - Never frantic, urgent, or guilt-inducing
 - **Encouraging** - Positive reinforcement, celebrating small wins
 - **Supportive** - A partner, not a taskmaster
@@ -16,18 +19,22 @@ The Simple To-Do App is your supportive productivity partner—calm, encouraging
 
 ### Base/Neutral Colors (Calming Foundation)
 
-These colors form the primary interface, creating a calm environment that reduces cognitive load.
+These colors form the primary interface, creating a calm environment that
+reduces cognitive load.
 
 **Background Colors:**
+
 - **Primary Background:** `#F9FAFB` - Very light gray, main app background
 - **Card Background:** `#FFFFFF` - Pure white for task cards and modals
 - **Secondary Background:** `#F3F4F6` - Slightly darker gray for disabled states
 
 **Border Colors:**
+
 - **Primary Border:** `#E5E7EB` - Subtle borders on cards and inputs
 - **Secondary Border:** `#D1D5DB` - Stronger borders for dividers
 
 **Text Colors:**
+
 - **Primary Text:** `#111827` - Near-black for main content
 - **Secondary Text:** `#6B7280` - Medium gray for timestamps, labels
 - **Tertiary Text:** `#9CA3AF` - Light gray for placeholders
@@ -37,27 +44,32 @@ These colors form the primary interface, creating a calm environment that reduce
 Used for celebrations, positive interactions, and emotional range.
 
 **Primary Accent (Blue):**
+
 - **Main:** `#3B82F6` - Primary actions, links, focus states
 - **Light:** `#DBEAFE` - Backgrounds for info messages
 - **Dark:** `#1E40AF` - Hover states on primary buttons
 
 **Success/Complete (Green):**
+
 - **Main:** `#10B981` - Complete buttons, success states, fresh tasks
 - **Light:** `#D1FAE5` - Success toast backgrounds
 - **Dark:** `#059669` - Hover on complete buttons
 
 **Warning/Aging (Yellow-Orange):**
+
 - **Yellow:** `#F59E0B` - Aging tasks (3-7 days)
 - **Orange:** `#F97316` - Old tasks (7-14 days), WIP limit warning
 - **Light Yellow:** `#FEF3C7` - WIP count indicator approaching limit
 - **Light Orange:** `#FED7AA` - WIP count indicator at limit
 
 **Error/Delete (Red):**
+
 - **Main:** `#EF4444` - Delete buttons, error states, stale tasks (14+ days)
 - **Light:** `#FEE2E2` - Error toast backgrounds
 - **Dark:** `#DC2626` - Hover on delete buttons
 
 **Celebration (Warm Gradient):**
+
 - **Orange:** `#F97316` - Gradient start
 - **Yellow:** `#FCD34D` - Gradient end
 - Used for celebration overlays and Inbox Zero states
@@ -66,30 +78,34 @@ Used for celebrations, positive interactions, and emotional range.
 
 Visual progression showing urgency without anxiety:
 
-| Age Range | Color | Hex | Usage |
-|-----------|-------|-----|-------|
-| Fresh (<24h) | Green | `#10B981` | Optional indicator or none |
-| Recent (1-3 days) | Light Blue | `#3B82F6` | Subtle indicator |
-| Aging (3-7 days) | Yellow | `#F59E0B` | Noticeable indicator |
-| Old (7-14 days) | Orange | `#F97316` | Prominent indicator |
-| Stale (14+ days) | Red | `#EF4444` | Urgent indicator |
+| Age Range         | Color      | Hex       | Usage                      |
+| ----------------- | ---------- | --------- | -------------------------- |
+| Fresh (<24h)      | Green      | `#10B981` | Optional indicator or none |
+| Recent (1-3 days) | Light Blue | `#3B82F6` | Subtle indicator           |
+| Aging (3-7 days)  | Yellow     | `#F59E0B` | Noticeable indicator       |
+| Old (7-14 days)   | Orange     | `#F97316` | Prominent indicator        |
+| Stale (14+ days)  | Red        | `#EF4444` | Urgent indicator           |
 
 ## Typography
 
 ### Font Families
 
-**Primary Font:** **Inter** or **-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto** (system font stack)
+**Primary Font:** **Inter** or **-apple-system, BlinkMacSystemFont, "Segoe UI",
+Roboto** (system font stack)
+
 - Highly readable sans-serif
 - Available in multiple weights
 - Optimized for screen display
 - Fallback to system fonts ensures performance
 
 **Monospace Font (optional):** **"SF Mono", Monaco, Consolas, monospace**
+
 - For technical displays like timestamps or data (if needed)
 
 ### Type Scale
 
 **Headings:**
+
 - **H1 (Page Title):** 32px / 2rem, Font-weight: 700, Line-height: 1.2
   - Example: "Welcome to Simple To-Do!"
 - **H2 (Section Header):** 24px / 1.5rem, Font-weight: 600, Line-height: 1.3
@@ -98,6 +114,7 @@ Visual progression showing urgency without anxiety:
   - Example: "WIP Limit Configuration"
 
 **Body Text:**
+
 - **Large Body:** 18px / 1.125rem, Font-weight: 400, Line-height: 1.6
   - Example: Empty state descriptions
 - **Default Body:** 16px / 1rem, Font-weight: 400, Line-height: 1.5
@@ -106,6 +123,7 @@ Visual progression showing urgency without anxiety:
   - Example: Timestamps, helper text, captions
 
 **Labels & UI:**
+
 - **Label (Emphasized):** 14px / 0.875rem, Font-weight: 600, Line-height: 1.4
   - Example: Form labels, section labels ("Active Tasks")
 - **Button Text:** 16px / 1rem, Font-weight: 600, Line-height: 1
@@ -127,6 +145,7 @@ Consistent spacing creates visual rhythm and hierarchy.
 **Base Unit:** 4px
 
 **Spacing Scale:**
+
 - **4px (0.25rem):** Tiny gaps (between icons in a row)
 - **8px (0.5rem):** Small gaps (between action buttons)
 - **12px (0.75rem):** Default gap (button padding vertical)
@@ -138,6 +157,7 @@ Consistent spacing creates visual rhythm and hierarchy.
 - **48px (3rem):** Maximum spacing (between page sections)
 
 **Application:**
+
 - **Component Padding:** Use 12-20px for internal padding
 - **Component Margins:** Use 16-32px for spacing between components
 - **Section Gaps:** Use 32-48px for major sections
@@ -184,12 +204,15 @@ Shadows create depth and hierarchy without heavy visual weight.
 ## Iconography
 
 **Icon Style:**
+
 - **Type:** Line icons (outlined, not filled) for consistency
 - **Weight:** 2px stroke weight for clarity
 - **Size:** 20x20px default, 16x16px small, 24x24px large
-- **Library Recommendation:** Heroicons (free, consistent, matches design language)
+- **Library Recommendation:** Heroicons (free, consistent, matches design
+  language)
 
 **Common Icons:**
+
 - **Settings:** Gear/cog icon (⚙️)
 - **Help:** Question mark in circle (❓)
 - **Complete:** Checkmark (✓)
@@ -203,6 +226,7 @@ Shadows create depth and hierarchy without heavy visual weight.
 - **Info:** Info circle (ℹ️ or 💡)
 
 **Emoji Usage:**
+
 - Sparingly and purposefully
 - Used in celebrations for emotional impact (🎉✨⭐)
 - Used in empty states for friendliness (👋)
@@ -214,24 +238,30 @@ Shadows create depth and hierarchy without heavy visual weight.
 Animations should feel smooth, purposeful, and respectful of user attention.
 
 **Timing:**
+
 - **Fast (100-200ms):** Micro-interactions (button hover, focus states)
 - **Standard (200-300ms):** Most transitions (modals opening, toasts sliding)
 - **Slow (300-500ms):** Significant state changes (page transitions - rare)
 - **Very Slow (500-1000ms):** Celebrations, special moments only
 
 **Easing Functions:**
-- **Ease-out:** Most entrances (starts fast, ends slow) - `cubic-bezier(0, 0, 0.2, 1)`
-- **Ease-in:** Most exits (starts slow, ends fast) - `cubic-bezier(0.4, 0, 1, 1)`
+
+- **Ease-out:** Most entrances (starts fast, ends slow) -
+  `cubic-bezier(0, 0, 0.2, 1)`
+- **Ease-in:** Most exits (starts slow, ends fast) -
+  `cubic-bezier(0.4, 0, 1, 1)`
 - **Ease-in-out:** Smooth both ways - `cubic-bezier(0.4, 0, 0.2, 1)`
 - **Linear:** Rare, only for continuous loops
 
 **Animation Types:**
+
 - **Fade:** Opacity changes for subtle appearance/disappearance
 - **Slide:** Toasts slide in from edges
 - **Scale:** Modals scale from 0.95 to 1.0 on open
 - **Transform:** Task cards fade + slide out on completion
 
 **Performance:**
+
 - Only animate transform and opacity (GPU-accelerated)
 - Avoid animating width, height, top, left (causes layout reflow)
 - Use `will-change` sparingly for expensive animations
@@ -241,13 +271,16 @@ Animations should feel smooth, purposeful, and respectful of user attention.
 **Copy Guidelines:**
 
 **DO:**
+
 - Use encouraging language: "Great job!", "You're making progress"
 - Explain the "why": "This helps you stay focused"
 - Be concise and clear: "Task cannot be empty"
 - Celebrate small wins: "That's 3 tasks this week!"
-- Use active voice: "Add your first task" (not "Your first task should be added")
+- Use active voice: "Add your first task" (not "Your first task should be
+  added")
 
 **DON'T:**
+
 - Use guilt-inducing language: "You still haven't done this"
 - Be vague: "Something went wrong"
 - Over-explain: Long paragraphs in UI
@@ -256,8 +289,10 @@ Animations should feel smooth, purposeful, and respectful of user attention.
 
 **Example Copy:**
 
-- **Empty state:** "No tasks yet. Add your first task to get started!" (Clear, inviting)
-- **WIP limit:** "You have 7 active tasks - complete one before adding more to maintain focus!" (Encouraging, explanatory)
+- **Empty state:** "No tasks yet. Add your first task to get started!" (Clear,
+  inviting)
+- **WIP limit:** "You have 7 active tasks - complete one before adding more to
+  maintain focus!" (Encouraging, explanatory)
 - **Celebration:** "Amazing! You crushed it!" (Enthusiastic, personal)
 - **Error:** "Task cannot be empty" (Clear, not blaming)
 
