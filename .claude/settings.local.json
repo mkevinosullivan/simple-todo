@@ -10,7 +10,8 @@
       "Bash(npm run format:*)",
       "Bash(npm run validate:*)",
       "Bash(npm run dev:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run type-check:*)"
     ]
   }
 }
