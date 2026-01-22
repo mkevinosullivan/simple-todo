@@ -13,6 +13,6 @@
     "outDir": "./dist",
     "composite": true
   },
-  "include": ["src/**/*", "vite.config.ts"],
+  "include": ["src/**/*", "tests/**/*"], "exclude": ["vite.config.ts"],
   "references": [{ "path": "../../packages/shared" }]
 }

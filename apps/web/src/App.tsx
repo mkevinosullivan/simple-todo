@@ -1,11 +1,11 @@
 import type React from 'react';
 
+import { TaskListView } from './views/TaskListView';
+
+import './styles/global.css';
+
 const App: React.FC = () => {
-  return (
-    <div>
-      <h1>Hello World</h1>
-    </div>
-  );
+  return <TaskListView />;
 };
 
 export default App;

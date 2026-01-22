@@ -1,2 +1,2 @@
-// Shared utility functions will be added in future stories
-export {};
+export { TaskHelpers } from './TaskHelpers.js';
+export type { AgeCategory } from './TaskHelpers.js';

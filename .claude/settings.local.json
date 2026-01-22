@@ -9,7 +9,7 @@
       "Bash(npm run:*)",
       "Bash(npm test:*)",
       "Bash(tsc:*)",
-      "Bash(npx tsc)",
+      "Bash(npx tsc:*)",
       "Bash(npx eslint:*)",
       "Bash(echo:*)"
     ]
