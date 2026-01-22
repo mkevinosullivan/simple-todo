@@ -10,7 +10,8 @@
       "Bash(npm test:*)",
       "Bash(tsc:*)",
       "Bash(npx tsc)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(echo:*)"
     ]
   },
   "hooks": {
@@ -20,7 +21,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash c:/Users/x374780/.local/bin/claude-notify 'Claude Code Alert' 'Needs your attention'"
+            "command": "powershell.exe -File C:/Users/x374780/.local/bin/claude-notify.ps1 \"Claude Code Alert\" \"Needs your attention\""
           }
         ]
       }
@@ -31,7 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash c:/Users/x374780/.local/bin/claude-notify 'Task Complete' 'Claude Code finished'"
+            "command": "powershell.exe -File C:/Users/x374780/.local/bin/claude-notify.ps1 \"Task Complete\" \"Claude Code finished\""
           }
         ]
       }
@@ -42,7 +43,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash c:/Users/x374780/.local/bin/claude-notify 'Subagent Done' 'Subagent task finished'"
+            "command": "powershell.exe -File C:/Users/x374780/.local/bin/claude-notify.ps1 \"Subagent Done\" \"Subagent task finished\""
           }
         ]
       }
