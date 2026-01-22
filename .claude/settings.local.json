@@ -11,5 +11,40 @@
       "Bash(npx tsc)",
       "Bash(npx eslint:*)"
     ]
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash c:/Users/x374780/.local/bin/claude-notify 'Claude Code Alert' 'Needs your attention'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash c:/Users/x374780/.local/bin/claude-notify 'Task Complete' 'Claude Code finished'"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash c:/Users/x374780/.local/bin/claude-notify 'Subagent Done' 'Subagent task finished'"
+          }
+        ]
+      }
+    ]
   }
 }
