@@ -5,6 +5,7 @@
       "Bash(ls:*)",
       "Bash(curl:*)",
       "Bash(npm install:*)",
+      "Bash(npm uninstall:*)",
       "Bash(npm run:*)",
       "Bash(npm test:*)",
       "Bash(tsc:*)",

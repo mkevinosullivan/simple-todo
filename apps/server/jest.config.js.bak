@@ -6,13 +6,7 @@ export default {
     '^(\.{1,2}/.*)\.js$': '$1',
   },
   transform: {
-    '^.+\.tsx?$': [
-      'ts-jest',
-      {
-        useESM: true,
-      },
-    ],
-    '^.+\.m?jsx?$': [
+    '^.+\.ts$': [
       'ts-jest',
       {
         useESM: true,
@@ -20,7 +14,7 @@ export default {
     ],
   },
   testMatch: ['**/tests/**/*.test.ts'],
-  transformIgnorePatterns: [],
+  transformIgnorePatterns: ['node_modules/(?!(uuid)/)'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',

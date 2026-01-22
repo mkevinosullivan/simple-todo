@@ -1,0 +1,211 @@
+# Quality Gate Decision - Story 1.4: REST API Endpoints for Task Management
+schema: 1
+story: "1.4"
+story_title: "REST API Endpoints for Task Management"
+gate: PASS
+status_reason: "All 10 acceptance criteria fully met with comprehensive test coverage (31 integration tests). Excellent error handling, input validation, and code quality. Production-ready implementation."
+reviewer: "Quinn (Test Architect)"
+updated: "2026-01-22T00:00:00Z"
+
+# No critical or blocking issues found
+waiver: { active: false }
+
+top_issues:
+  - id: "MINOR-001"
+    severity: low
+    finding: "Story notes mention Zod for validation (AC references, Dev Notes sections), but implementation uses custom validators (isValidUUID, isValidTaskStatus)"
+    suggested_action: "Consider migrating to Zod validators for consistency with architecture documentation, though current implementation is solid and functional"
+
+# Quality metrics
+quality_score: 95
+expires: "2026-02-05T00:00:00Z"
+
+# Evidence from review
+evidence:
+  tests_reviewed: 31
+  risks_identified: 0
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    ac_gaps: []
+
+# Requirements traceability (Given-When-Then mapping)
+requirements_trace:
+  - ac: 1
+    requirement: "POST /api/tasks - Create new task, accepts { text: string }, returns created task with 201 status"
+    validation: |
+      Given: A valid task text
+      When: POST /api/tasks is called with { text: "Buy groceries" }
+      Then: Returns 201 status with created task containing id, text, status, createdAt, completedAt
+      Coverage: tasks.test.ts:39-117 (8 tests covering creation, validation, trimming, length limits)
+
+  - ac: 2
+    requirement: "GET /api/tasks - Retrieve all tasks, accepts optional ?status=active|completed, returns tasks array"
+    validation: |
+      Given: Tasks exist in the system
+      When: GET /api/tasks is called (optionally with ?status filter)
+      Then: Returns 200 status with array of tasks (filtered by status if specified)
+      Coverage: tasks.test.ts:120-210 (6 tests covering all tasks, status filters, empty state, validation)
+
+  - ac: 3
+    requirement: "GET /api/tasks/:id - Retrieve single task by ID, returns task or 404 if not found"
+    validation: |
+      Given: A task ID
+      When: GET /api/tasks/:id is called
+      Then: Returns 200 with task if found, 404 if not found, 400 for invalid UUID
+      Coverage: tasks.test.ts:212-246 (3 tests covering found, not found, invalid UUID)
+
+  - ac: 4
+    requirement: "PUT /api/tasks/:id - Update task text, accepts { text: string }, returns updated task or 404"
+    validation: |
+      Given: An existing task ID and new text
+      When: PUT /api/tasks/:id is called with { text: "Updated text" }
+      Then: Returns 200 with updated task, 404 if not found, 400 for validation errors
+      Coverage: tasks.test.ts:248-346 (8 tests covering update, validation, not found, completed tasks, invalid UUID)
+
+  - ac: 5
+    requirement: "DELETE /api/tasks/:id - Delete task, returns 204 No Content on success or 404 if not found"
+    validation: |
+      Given: An existing task ID
+      When: DELETE /api/tasks/:id is called
+      Then: Returns 204 on success, 404 if not found, 400 for invalid UUID
+      Coverage: tasks.test.ts:348-399 (4 tests covering delete, persistence, not found, invalid UUID)
+
+  - ac: 6
+    requirement: "PATCH /api/tasks/:id/complete - Mark task as complete, returns updated task or 404"
+    validation: |
+      Given: An active task ID
+      When: PATCH /api/tasks/:id/complete is called
+      Then: Returns 200 with completed task, 404 if not found, 400 if already completed
+      Coverage: tasks.test.ts:401-459 (4 tests covering complete, not found, already completed, invalid UUID)
+
+  - ac: 7
+    requirement: "All endpoints validate input and return appropriate HTTP status codes (400, 500)"
+    validation: |
+      Given: Invalid input to any endpoint
+      When: Endpoint is called with invalid data
+      Then: Returns appropriate status code (400 for validation, 404 for not found, 500 for server errors)
+      Coverage: All test files verify correct status codes for each scenario
+
+  - ac: 8
+    requirement: "Error responses include JSON body with { error: string } message describing the issue"
+    validation: |
+      Given: An error condition
+      When: Any endpoint encounters an error
+      Then: Returns JSON response with { error: string } field
+      Coverage: tasks.test.ts:461-487 (comprehensive error format validation across all endpoints)
+
+  - ac: 9
+    requirement: "Input sanitization: Task text is trimmed of whitespace and checked for maximum length (500 characters)"
+    validation: |
+      Given: Task text with leading/trailing whitespace or exceeding 500 characters
+      When: Task creation or update is attempted
+      Then: Text is trimmed and length is validated, returning 400 if > 500 chars
+      Coverage: tasks.test.ts:60-67, 89-108, 270-280, 306-318 (whitespace trimming and length validation)
+
+  - ac: 10
+    requirement: "Integration tests verify each endpoint with valid/invalid inputs, error handling, proper status codes"
+    validation: |
+      Given: All REST API endpoints
+      When: Integration tests are executed
+      Then: All endpoints tested with valid/invalid inputs, error cases verified
+      Coverage: tasks.test.ts (31 comprehensive integration tests covering all scenarios)
+
+# Non-functional requirements validation
+nfr_validation:
+  security:
+    status: PASS
+    notes: |
+      ✓ Input validation on all endpoints (UUID format, text length, status values)
+      ✓ Input sanitization (text trimming)
+      ✓ No SQL injection risk (JSON file storage)
+      ✓ No command injection risk (no shell commands)
+      ✓ Error messages don't leak internal details ("Internal server error" for 500s)
+      ✓ XSS prevention handled by React on client-side
+      ✓ CORS properly configured for localhost:3000
+
+  performance:
+    status: PASS
+    notes: |
+      ✓ Lightweight operations with minimal overhead
+      ✓ No obvious N+1 queries or performance bottlenecks
+      ✓ Efficient filtering using native array methods
+      ✓ Appropriate for MVP scale (JSON file storage)
+      Note: File I/O performance acceptable for MVP; consider database for production scale
+
+  reliability:
+    status: PASS
+    notes: |
+      ✓ Comprehensive error handling with try-catch blocks on all endpoints
+      ✓ Winston logger integration for error tracking and debugging
+      ✓ Proper error propagation from service layer
+      ✓ Graceful handling of edge cases (empty input, invalid UUIDs, not found, already completed)
+      ✓ 204 No Content properly used for DELETE (no response body)
+
+  maintainability:
+    status: PASS
+    notes: |
+      ✓ Clean code structure with clear separation of concerns (routes → service → data)
+      ✓ Comprehensive JSDoc documentation on all endpoints and service methods
+      ✓ TypeScript types used throughout for type safety
+      ✓ Consistent error handling patterns across endpoints
+      ✓ Test factory pattern for maintainable test data creation
+      ✓ Meaningful variable names and clear logic flow
+      Note: Minor code duplication in error handling blocks, but acceptable for clarity
+
+# Test architecture assessment
+test_architecture:
+  coverage_adequacy: EXCELLENT
+  notes: |
+    ✓ 31 integration tests covering all 6 endpoints
+    ✓ Happy path testing for all operations
+    ✓ Error case testing (validation, not found, invalid input)
+    ✓ Edge case testing (whitespace, length limits, completed tasks, invalid UUIDs)
+    ✓ File persistence verification
+    ✓ Status code validation
+    ✓ Error response format validation
+    ✓ Proper test isolation with beforeEach/afterEach cleanup
+    ✓ Test factory pattern for maintainable test data
+    All 68 server tests pass successfully.
+
+# Recommendations
+recommendations:
+  immediate: []  # No blocking issues
+
+  future:
+    - action: "Consider migrating to Zod validators for consistency with architecture documentation"
+      refs: ["apps/server/src/routes/tasks.ts:16-24"]
+      rationale: "Story notes and Dev Notes mention Zod for validation. Current custom validators work well but Zod would provide more robust validation with better error messages and type inference."
+
+    - action: "Consider extracting error handling middleware to reduce code duplication"
+      refs: ["apps/server/src/routes/tasks.ts"]
+      rationale: "Error handling blocks are similar across endpoints. A centralized error handling middleware could reduce duplication while maintaining clarity."
+
+    - action: "Consider dependency injection pattern for service instantiation in tests"
+      refs: ["apps/server/src/routes/tasks.ts:12-13"]
+      rationale: "Services are instantiated at module level. While current tests work around this, DI would make testing more flexible. Low priority for MVP."
+
+# Code quality highlights
+strengths:
+  - "Excellent error handling with appropriate HTTP status codes (200, 201, 204, 400, 404, 500)"
+  - "Comprehensive input validation (UUID format, text length, status enum, empty checks)"
+  - "Well-documented code with JSDoc comments on all endpoints"
+  - "Clean architecture with proper separation of concerns"
+  - "31 comprehensive integration tests with 100% AC coverage"
+  - "Proper use of Winston logger for error tracking"
+  - "Type-safe implementation with TypeScript"
+  - "Test factory pattern for maintainable test data creation"
+  - "Proper async/await usage throughout"
+  - "Input sanitization (trimming) applied consistently"
+
+# Final assessment
+final_notes: |
+  This is a production-ready implementation that fully meets all acceptance criteria.
+  Code quality is excellent with comprehensive error handling, input validation, and test coverage.
+  All 10 acceptance criteria are covered by tests with clear Given-When-Then validation.
+  Non-functional requirements (security, performance, reliability, maintainability) all pass.
+
+  The only minor note is the use of custom validators instead of Zod as mentioned in story documentation,
+  but this is a minor inconsistency that doesn't impact functionality. The current implementation is
+  solid and well-tested.
+
+  Recommended status: READY FOR DONE ✓
