@@ -10,7 +10,8 @@
 .errorState {
   padding: 2rem;
   text-align: center;
-  font-size: 1rem;
+  font-size: 16px;
+  font-weight: 400;
 }
 
 .loadingState {
@@ -18,7 +19,7 @@
 }
 
 .errorState {
-  color: #DC2626;
+  color: #EF4444;
   background: #FEE2E2;
-  border-radius: 0.5rem;
+  border-radius: 8px;
 }

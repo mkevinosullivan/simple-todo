@@ -16,21 +16,21 @@ describe('TaskCard', () => {
     const task = createTestTask(); // Just created
     render(<TaskCard task={task} />);
 
-    expect(screen.getByText('Just now')).toBeInTheDocument();
+    expect(screen.getByText('Created just now')).toBeInTheDocument();
   });
 
   it('should display age indicator for old tasks (10 days)', () => {
     const task = createTestTaskWithAge(10);
     render(<TaskCard task={task} />);
 
-    expect(screen.getByText('10 days')).toBeInTheDocument();
+    expect(screen.getByText('Created 10 days ago')).toBeInTheDocument();
   });
 
   it('should display singular "day" for 1 day old task', () => {
     const task = createTestTaskWithAge(1);
     render(<TaskCard task={task} />);
 
-    expect(screen.getByText('1 day')).toBeInTheDocument();
+    expect(screen.getByText('Created 1 day ago')).toBeInTheDocument();
   });
 
   it('should display hours for tasks less than 1 day old', () => {
@@ -44,15 +44,16 @@ describe('TaskCard', () => {
 
     render(<TaskCard task={task} />);
 
-    expect(screen.getByText('5 hours')).toBeInTheDocument();
+    expect(screen.getByText('Created 5 hours ago')).toBeInTheDocument();
   });
 
   it('should apply age category class for styling', () => {
     const oldTask = createTestTaskWithAge(10); // Should be "old" category
-    render(<TaskCard task={oldTask} />);
+    const { container } = render(<TaskCard task={oldTask} />);
 
-    // Check that the age indicator exists (CSS modules transform class names)
-    const ageText = screen.getByText('10 days');
-    expect(ageText).toBeInTheDocument();
+    // Check that the age indicator circle exists with the correct class
+    const ageIndicator = container.querySelector('[aria-label="Created 10 days ago"]');
+    expect(ageIndicator).toBeInTheDocument();
+    expect(ageIndicator).toHaveAttribute('title', 'Created 10 days ago');
   });
 });

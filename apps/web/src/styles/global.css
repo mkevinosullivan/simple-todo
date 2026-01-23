@@ -1,17 +1,37 @@
 /* Global styles */
 
-/* CSS Variables - Calming Color Palette */
+/* CSS Variables - Exact Color Palette from Front-End Spec */
 :root {
-  /* Soft blues */
+  /* Base/Neutral Colors */
+  --color-bg-primary: #F9FAFB;
+  --color-bg-card: #FFFFFF;
+  --color-border-primary: #E5E7EB;
+  --color-border-secondary: #D1D5DB;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+  --color-text-tertiary: #9CA3AF;
+
+  /* Age Indicator Colors */
+  --color-age-fresh: #10B981;
+  --color-age-aging: #F59E0B;
+  --color-age-old: #F97316;
+  --color-age-stale: #EF4444;
+
+  /* Action Colors */
+  --color-accent-blue: #3B82F6;
+  --color-success-green: #10B981;
+  --color-error-red: #EF4444;
+
+  /* Soft blues (legacy - kept for backwards compatibility) */
   --color-blue-50: #E0F2FE;
   --color-blue-100: #DBEAFE;
   --color-blue-500: #3B82F6;
 
-  /* Soft greens */
+  /* Soft greens (legacy) */
   --color-green-50: #ECFDF5;
   --color-green-500: #10B981;
 
-  /* Grays */
+  /* Grays (legacy) */
   --color-gray-50: #F9FAFB;
   --color-gray-100: #F3F4F6;
   --color-gray-200: #E5E7EB;
@@ -19,11 +39,14 @@
   --color-gray-600: #6B7280;
   --color-gray-900: #111827;
 
-  /* Amber/Yellow for aging tasks */
+  /* Amber/Yellow */
   --color-amber-100: #FEF3C7;
   --color-amber-500: #F59E0B;
 
-  /* Red for old tasks */
+  /* Orange */
+  --color-orange-500: #F97316;
+
+  /* Red */
   --color-red-100: #FEE2E2;
   --color-red-500: #EF4444;
   --color-red-600: #DC2626;
@@ -43,8 +66,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
-  color: var(--color-gray-900);
-  background: var(--color-gray-50);
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
 }
 
 #root {
@@ -55,11 +78,22 @@ body {
 h1 {
   font-size: 2rem;
   font-weight: 600;
-  color: var(--color-gray-900);
+  color: var(--color-text-primary);
 }
 
 /* Ensure no horizontal scroll on narrow windows */
 body {
   overflow-x: hidden;
   width: 100%;
+}
+
+/* Reduced motion support for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
