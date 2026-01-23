@@ -13,10 +13,11 @@
   },
   "scripts": {
     "dev": "concurrently -n \"server,web\" -c \"blue,green\" \"npm run dev -w @simple-todo/server\" \"npm run dev -w @simple-todo/web\"",
-    "build": "npm run build -w @simple-todo/server && npm run build -w @simple-todo/web",
+    "build": "npm run build -w @simple-todo/shared && npm run build -w @simple-todo/server && npm run build -w @simple-todo/web",
     "test": "npm run test -w @simple-todo/server && npm run test -w @simple-todo/web",
     "test:server": "npm run test -w @simple-todo/server",
     "test:web": "npm run test -w @simple-todo/web",
+    "test:watch": "npm run test:watch -w @simple-todo/server",
     "test:coverage": "npm run test:coverage -w @simple-todo/server && npm run test:coverage -w @simple-todo/web",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",

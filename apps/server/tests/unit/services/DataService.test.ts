@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import type { Task } from '@simple-todo/shared/types';
 
 import { DataService } from '../../../src/services/DataService.js';
 import { createTestTask } from '../../helpers/factories.js';

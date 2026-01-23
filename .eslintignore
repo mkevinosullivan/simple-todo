@@ -12,6 +12,7 @@ data
 
 # Configuration files that don't need linting
 *.config.js
+*.config.ts
 
 # Generated files
 *.generated.*

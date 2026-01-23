@@ -39,7 +39,12 @@ describe('TaskCard Accessibility', () => {
     const { container } = render(
       <ul>
         {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Standard Vitest mock pattern */}
-        <TaskCard task={task} onComplete={mockOnComplete} onDelete={mockOnDelete} onEdit={mockOnEdit} />
+        <TaskCard
+          task={task}
+          onComplete={mockOnComplete}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+        />
       </ul>
     );
 
@@ -54,7 +59,12 @@ describe('TaskCard Accessibility', () => {
     const { container } = render(
       <ul>
         {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Standard Vitest mock pattern */}
-        <TaskCard task={task} onComplete={mockOnComplete} onDelete={mockOnDelete} onEdit={mockOnEdit} />
+        <TaskCard
+          task={task}
+          onComplete={mockOnComplete}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+        />
       </ul>
     );
 
@@ -70,7 +80,12 @@ describe('TaskCard Accessibility', () => {
     const { container } = render(
       <ul>
         {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Standard Vitest mock pattern */}
-        <TaskCard task={task} onComplete={mockOnComplete} onDelete={mockOnDelete} onEdit={mockOnEdit} />
+        <TaskCard
+          task={task}
+          onComplete={mockOnComplete}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+        />
       </ul>
     );
 

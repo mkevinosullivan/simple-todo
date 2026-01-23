@@ -5,6 +5,7 @@ import path from 'path';
 process.env.DATA_DIR = path.join(process.cwd(), 'test-data-api-tasks');
 
 import { describe, it, expect, beforeEach, afterEach, afterAll } from '@jest/globals';
+import type { Task } from '@simple-todo/shared/types';
 import request from 'supertest';
 
 import app from '../../../src/app.js';
@@ -135,7 +136,7 @@ describe('Task API Integration Tests', () => {
       expect(response.body).toHaveLength(2);
       expect(response.body[0].text).toBe('Active task 1');
       expect(response.body[1].text).toBe('Active task 2');
-      expect(response.body.every((t: any) => t.status === 'active')).toBe(true);
+      expect((response.body as Task[]).every((t: Task) => t.status === 'active')).toBe(true);
     });
 
     it('should filter tasks by status=completed', async () => {
@@ -157,7 +158,7 @@ describe('Task API Integration Tests', () => {
       expect(response.body).toHaveLength(2);
       expect(response.body[0].text).toBe('Completed task 1');
       expect(response.body[1].text).toBe('Completed task 2');
-      expect(response.body.every((t: any) => t.status === 'completed')).toBe(true);
+      expect((response.body as Task[]).every((t: Task) => t.status === 'completed')).toBe(true);
     });
 
     it('should return empty array when no tasks exist', async () => {
@@ -404,7 +405,11 @@ describe('Task API Integration Tests', () => {
   describe('Error handling', () => {
     it('should return JSON error responses for all error cases', async () => {
       // Test various error cases and verify JSON error format
-      const errors = [
+      const errors: Array<{
+        method: 'get' | 'post' | 'put' | 'delete' | 'patch';
+        path: string;
+        body: object;
+      }> = [
         { method: 'post', path: '/api/tasks', body: { text: '' } },
         { method: 'get', path: '/api/tasks?status=invalid', body: {} },
         { method: 'get', path: '/api/tasks/invalid-id', body: {} },
@@ -418,7 +423,24 @@ describe('Task API Integration Tests', () => {
       ];
 
       for (const { method, path, body } of errors) {
-        const response = await (request(app) as any)[method](path).send(body);
+        let response;
+        switch (method) {
+          case 'get':
+            response = await request(app).get(path).send(body);
+            break;
+          case 'post':
+            response = await request(app).post(path).send(body);
+            break;
+          case 'put':
+            response = await request(app).put(path).send(body);
+            break;
+          case 'delete':
+            response = await request(app).delete(path).send(body);
+            break;
+          case 'patch':
+            response = await request(app).patch(path).send(body);
+            break;
+        }
 
         expect(response.status).toBeGreaterThanOrEqual(400);
         expect(response.body).toHaveProperty('error');

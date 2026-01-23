@@ -191,9 +191,7 @@ export const TaskListView: React.FC = () => {
           editingTaskId={editingTaskId}
         />
       </main>
-      {toastError && (
-        <ErrorToast message={toastError} onDismiss={() => setToastError(null)} />
-      )}
+      {toastError && <ErrorToast message={toastError} onDismiss={() => setToastError(null)} />}
     </div>
   );
 };

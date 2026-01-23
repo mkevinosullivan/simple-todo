@@ -34,21 +34,13 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
       const timer = setTimeout(onDismiss, autoDismissMs);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [autoDismissMs, onDismiss]);
 
   return (
-    <div
-      role="alert"
-      aria-live="assertive"
-      aria-atomic="true"
-      className={styles.errorToast}
-    >
+    <div role="alert" aria-live="assertive" aria-atomic="true" className={styles.errorToast}>
       <p className={styles.message}>{message}</p>
-      <button
-        onClick={onDismiss}
-        aria-label="Dismiss error"
-        className={styles.dismissButton}
-      >
+      <button onClick={onDismiss} aria-label="Dismiss error" className={styles.dismissButton}>
         ✕
       </button>
     </div>

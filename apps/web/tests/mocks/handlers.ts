@@ -1,12 +1,12 @@
 import type { Task } from '@simple-todo/shared/types';
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse, type HttpHandler } from 'msw';
 
 import { createTestTask } from '../helpers/factories';
 
 /**
  * MSW request handlers for API mocking
  */
-export const handlers = [
+export const handlers: HttpHandler[] = [
   // GET /api/tasks - successful response
   http.get('http://localhost:3001/api/tasks', ({ request }) => {
     const url = new URL(request.url);
@@ -80,13 +80,13 @@ export const handlers = [
 /**
  * Handler for empty task list
  */
-export const emptyTasksHandler = http.get('http://localhost:3001/api/tasks', () => {
+export const emptyTasksHandler: HttpHandler = http.get('http://localhost:3001/api/tasks', () => {
   return HttpResponse.json([]);
 });
 
 /**
  * Handler for API error
  */
-export const errorHandler = http.get('http://localhost:3001/api/tasks', () => {
+export const errorHandler: HttpHandler = http.get('http://localhost:3001/api/tasks', () => {
   return HttpResponse.json({ error: 'Internal server error' }, { status: 500 });
 });

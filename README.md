@@ -71,17 +71,79 @@ This will build both the frontend and backend applications.
 
 ## Testing
 
-To run tests:
+The project uses Jest for backend testing and Vitest for frontend testing, with
+comprehensive unit and integration test coverage.
+
+### Running Tests
+
+Run all tests (backend + frontend):
 
 ```bash
 npm test
 ```
 
-To run tests with coverage:
+Run backend tests only (Jest):
+
+```bash
+npm run test:server
+```
+
+Run frontend tests only (Vitest):
+
+```bash
+npm run test:web
+```
+
+Run tests in watch mode:
+
+```bash
+npm run test:watch
+```
+
+Generate coverage reports:
 
 ```bash
 npm run test:coverage
 ```
+
+### Coverage Requirements
+
+The project maintains the following minimum coverage thresholds:
+
+- **DataService**: 85%+ (critical for data integrity)
+- **TaskService**: 80%+ (core business logic)
+- **Overall**: 70%+ for lines, functions, branches, and statements
+
+Coverage reports are generated in:
+
+- Backend: `apps/server/coverage/`
+- Frontend: `apps/web/coverage/`
+
+### Test Organization
+
+**Backend Tests** (`apps/server/tests/`):
+
+- Unit tests: `tests/unit/services/` - Service layer testing with mocked
+  dependencies
+- Integration tests: `tests/integration/api/` - API endpoint testing with real
+  file I/O
+
+**Frontend Tests** (`apps/web/tests/`):
+
+- Component tests: `tests/unit/components/` - React component testing with React
+  Testing Library
+- Integration tests: `tests/integration/` - Full user flow testing with MSW for
+  API mocking
+- Accessibility tests: Automated a11y checks with jest-axe
+
+### Continuous Integration
+
+GitHub Actions runs all tests automatically on every push and pull request. The
+CI pipeline:
+
+- Runs linting and type checking
+- Executes all tests with coverage
+- Fails if any tests fail or coverage drops below thresholds
 
 ## Code Quality
 

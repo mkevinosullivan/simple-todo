@@ -12,6 +12,7 @@
     "./utils": "./src/utils/index.ts"
   },
   "scripts": {
+    "build": "tsc",
     "type-check": "tsc --noEmit"
   }
 }

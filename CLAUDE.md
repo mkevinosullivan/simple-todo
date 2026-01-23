@@ -28,7 +28,8 @@ MultiEdit(file_path: "D:\repos\project\file.tsx", ...)
 
 ### Creating a git commit message
 
-**Always use the `c:\Users\x374780\.git_commit_template.txt` file as a guide and template when creating a git commit message.**
+**Always use the `c:\Users\x374780\.git_commit_template.txt` file as a guide and
+template when creating a git commit message.**
 
 ### Running the application
 
