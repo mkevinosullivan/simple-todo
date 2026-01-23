@@ -3,53 +3,53 @@
 /* CSS Variables - Exact Color Palette from Front-End Spec */
 :root {
   /* Base/Neutral Colors */
-  --color-bg-primary: #F9FAFB;
-  --color-bg-card: #FFFFFF;
-  --color-border-primary: #E5E7EB;
-  --color-border-secondary: #D1D5DB;
+  --color-bg-primary: #f9fafb;
+  --color-bg-card: #ffffff;
+  --color-border-primary: #e5e7eb;
+  --color-border-secondary: #d1d5db;
   --color-text-primary: #111827;
-  --color-text-secondary: #6B7280;
-  --color-text-tertiary: #9CA3AF;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
 
   /* Age Indicator Colors */
-  --color-age-fresh: #10B981;
-  --color-age-aging: #F59E0B;
-  --color-age-old: #F97316;
-  --color-age-stale: #EF4444;
+  --color-age-fresh: #10b981;
+  --color-age-aging: #f59e0b;
+  --color-age-old: #f97316;
+  --color-age-stale: #ef4444;
 
   /* Action Colors */
-  --color-accent-blue: #3B82F6;
-  --color-success-green: #10B981;
-  --color-error-red: #EF4444;
+  --color-accent-blue: #3b82f6;
+  --color-success-green: #10b981;
+  --color-error-red: #ef4444;
 
   /* Soft blues (legacy - kept for backwards compatibility) */
-  --color-blue-50: #E0F2FE;
-  --color-blue-100: #DBEAFE;
-  --color-blue-500: #3B82F6;
+  --color-blue-50: #e0f2fe;
+  --color-blue-100: #dbeafe;
+  --color-blue-500: #3b82f6;
 
   /* Soft greens (legacy) */
-  --color-green-50: #ECFDF5;
-  --color-green-500: #10B981;
+  --color-green-50: #ecfdf5;
+  --color-green-500: #10b981;
 
   /* Grays (legacy) */
-  --color-gray-50: #F9FAFB;
-  --color-gray-100: #F3F4F6;
-  --color-gray-200: #E5E7EB;
-  --color-gray-300: #D1D5DB;
-  --color-gray-600: #6B7280;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-600: #6b7280;
   --color-gray-900: #111827;
 
   /* Amber/Yellow */
-  --color-amber-100: #FEF3C7;
-  --color-amber-500: #F59E0B;
+  --color-amber-100: #fef3c7;
+  --color-amber-500: #f59e0b;
 
   /* Orange */
-  --color-orange-500: #F97316;
+  --color-orange-500: #f97316;
 
   /* Red */
-  --color-red-100: #FEE2E2;
-  --color-red-500: #EF4444;
-  --color-red-600: #DC2626;
+  --color-red-100: #fee2e2;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
 }
 
 * {

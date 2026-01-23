@@ -1,7 +1,6 @@
 import type { Task } from '@simple-todo/shared/types';
 import { http, HttpResponse } from 'msw';
 
-
 import { createTestTask } from '../helpers/factories';
 
 /**
@@ -23,6 +22,19 @@ export const handlers = [
     const filteredTasks = status ? tasks.filter((task) => task.status === status) : tasks;
 
     return HttpResponse.json(filteredTasks);
+  }),
+
+  // POST /api/tasks - successful task creation (default)
+  http.post('http://localhost:3001/api/tasks', async ({ request }) => {
+    const body = (await request.json()) as { text: string };
+    const newTask = createTestTask({
+      id: crypto.randomUUID(),
+      text: body.text,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      completedAt: null,
+    });
+    return HttpResponse.json(newTask, { status: 201 });
   }),
 ];
 

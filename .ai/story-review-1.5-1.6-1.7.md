@@ -1,27 +1,38 @@
 # Front-End Spec Alignment Review
+
 ## Stories 1.5, 1.6, 1.7
 
-**Date:** 2026-01-22
-**Reviewer:** Bob (Scrum Master)
-**Reference:** docs/front-end-spec/
+**Date:** 2026-01-22 **Reviewer:** Bob (Scrum Master) **Reference:**
+docs/front-end-spec/
 
 ---
 
 ## Summary
 
-After reviewing stories 1.5, 1.6, and 1.7 against the comprehensive Front-End Specification, I've identified several **critical gaps** and **alignment issues** that need to be addressed. These stories were created before the front-end spec was fully referenced, and they're missing important styling details, animation specifications, and component structure requirements.
+After reviewing stories 1.5, 1.6, and 1.7 against the comprehensive Front-End
+Specification, I've identified several **critical gaps** and **alignment
+issues** that need to be addressed. These stories were created before the
+front-end spec was fully referenced, and they're missing important styling
+details, animation specifications, and component structure requirements.
 
 ## Critical Findings
 
 ### 1. **Missing Heroicons Icon Library Reference**
-- **Issue:** Stories reference creating custom SVG icons or mention "icon library" generically
-- **Front-End Spec:** Explicitly recommends **Heroicons** (free, consistent, 2px stroke weight, outlined style)
+
+- **Issue:** Stories reference creating custom SVG icons or mention "icon
+  library" generically
+- **Front-End Spec:** Explicitly recommends **Heroicons** (free, consistent, 2px
+  stroke weight, outlined style)
 - **Impact:** HIGH - Affects visual consistency and development efficiency
 - **Stories Affected:** 1.7 (CheckIcon, TrashIcon, EditIcon)
 
 ### 2. **Task Card Structure Incomplete**
-- **Issue:** Stories don't specify complete Task Card structure from component library
-- **Front-End Spec:** Defines specific structure with Age Indicator (12px circle, left), Task Text (center), Action Buttons (right, 32x32px with 8px gap)
+
+- **Issue:** Stories don't specify complete Task Card structure from component
+  library
+- **Front-End Spec:** Defines specific structure with Age Indicator (12px
+  circle, left), Task Text (center), Action Buttons (right, 32x32px with 8px
+  gap)
 - **Missing Details:**
   - Age indicator: 12px diameter colored circles (not just text-based age)
   - Task card padding: 16px vertical, 20px horizontal (not generic "1rem")
@@ -33,8 +44,10 @@ After reviewing stories 1.5, 1.6, and 1.7 against the comprehensive Front-End Sp
 - **Stories Affected:** 1.5, 1.7
 
 ### 3. **Missing Animation Specifications**
+
 - **Issue:** Stories don't reference animation spec details
-- **Front-End Spec:** Comprehensive animation timing and easing functions defined
+- **Front-End Spec:** Comprehensive animation timing and easing functions
+  defined
 - **Missing Details:**
   - Task Card entrance: Slide-down + fade (300ms ease-out)
   - Task Card hover: Shadow transition (200ms ease-out)
@@ -49,16 +62,20 @@ After reviewing stories 1.5, 1.6, and 1.7 against the comprehensive Front-End Sp
 - **Stories Affected:** 1.5, 1.6, 1.7
 
 ### 4. **Touch Target Size Confusion**
-- **Issue:** Stories mention 44x44px touch targets, but spec shows Action Buttons are 32x32px
+
+- **Issue:** Stories mention 44x44px touch targets, but spec shows Action
+  Buttons are 32x32px
 - **Front-End Spec:**
   - Icon Buttons: 44x44px (Settings, Help icons)
   - Action Buttons (inline): 32x32px (Edit, Complete, Delete on task cards)
   - Touch targets MUST be 44x44px minimum for accessibility
-- **Resolution Needed:** Action buttons should have 32x32px visual size but 44x44px clickable area (padding/margin)
+- **Resolution Needed:** Action buttons should have 32x32px visual size but
+  44x44px clickable area (padding/margin)
 - **Impact:** HIGH - Accessibility compliance issue
 - **Stories Affected:** 1.7
 
 ### 5. **Color Hex Values Not Exact**
+
 - **Issue:** Stories use generic color names or approximations
 - **Front-End Spec:** Defines exact hex values for brand consistency
 - **Missing Exact Values:**
@@ -76,7 +93,9 @@ After reviewing stories 1.5, 1.6, and 1.7 against the comprehensive Front-End Sp
 - **Stories Affected:** 1.5, 1.6, 1.7
 
 ### 6. **Typography Scale Not Specified**
-- **Issue:** Stories use generic sizes like "1rem" or "16px" without weight specifications
+
+- **Issue:** Stories use generic sizes like "1rem" or "16px" without weight
+  specifications
 - **Front-End Spec:** Defines complete type scale with weights
 - **Missing Details:**
   - Task text: 16px / Font-weight 400 / Line-height 1.5
@@ -89,12 +108,16 @@ After reviewing stories 1.5, 1.6, and 1.7 against the comprehensive Front-End Sp
 - **Stories Affected:** 1.5, 1.6, 1.7
 
 ### 7. **Error Toast Position Mismatch**
-- **Issue:** Story 1.7 places ErrorToast in bottom-right (following prompt toast pattern)
-- **Front-End Spec:** Error/Success toasts should be top-right (16px from edges), only Prompt toasts are bottom-right
+
+- **Issue:** Story 1.7 places ErrorToast in bottom-right (following prompt toast
+  pattern)
+- **Front-End Spec:** Error/Success toasts should be top-right (16px from
+  edges), only Prompt toasts are bottom-right
 - **Impact:** MEDIUM - User experience pattern consistency
 - **Stories Affected:** 1.7
 
 ### 8. **Input Field Specifications Incomplete**
+
 - **Issue:** Story 1.6 doesn't specify exact input field specs
 - **Front-End Spec:** Defines complete input specifications
 - **Missing Details:**
@@ -104,24 +127,30 @@ After reviewing stories 1.5, 1.6, and 1.7 against the comprehensive Front-End Sp
   - Border-radius: 8px
   - Font-size: 16px
   - Placeholder color: #9CA3AF
-  - Focus state: border #3B82F6, 2px border width, box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1)
+  - Focus state: border #3B82F6, 2px border width, box-shadow: 0 0 0 3px
+    rgba(59, 130, 246, 0.1)
   - Error state: border #EF4444, error message below
   - Disabled state: background #F3F4F6, border #E5E7EB, text #9CA3AF
 - **Impact:** HIGH - Core input component
 - **Stories Affected:** 1.6
 
 ### 9. **Age Indicator Implementation Gap**
-- **Issue:** Story 1.5 mentions age indicator but doesn't specify 12px colored circle visual
-- **Front-End Spec:** Age indicator is 12px diameter colored circle (not just colored text)
+
+- **Issue:** Story 1.5 mentions age indicator but doesn't specify 12px colored
+  circle visual
+- **Front-End Spec:** Age indicator is 12px diameter colored circle (not just
+  colored text)
 - **Missing Details:**
   - Visual: 12px circle, positioned left of task text
-  - Colors by age: Fresh/Recent (Green #10B981), Aging (Yellow #F59E0B), Old (Orange #F97316), Stale (Red #EF4444)
+  - Colors by age: Fresh/Recent (Green #10B981), Aging (Yellow #F59E0B), Old
+    (Orange #F97316), Stale (Red #EF4444)
   - Tooltip: "Created X days ago"
   - Not sole indicator (timestamp text also present for accessibility)
 - **Impact:** MEDIUM - Visual design element
 - **Stories Affected:** 1.5
 
 ### 10. **Spacing System Not Referenced**
+
 - **Issue:** Stories use arbitrary spacing values
 - **Front-End Spec:** Defines consistent 4px-based spacing system
 - **Missing Details:**
@@ -174,6 +203,7 @@ After reviewing stories 1.5, 1.6, and 1.7 against the comprehensive Front-End Sp
    - Entrance: Fade + scale from 0.95 to 1.0 (400ms ease-out)
 
 #### What Story 1.5 Got Right:
+
 - Tasks sorted newest first ✓
 - Loading and error states ✓
 - Empty state component ✓
@@ -226,6 +256,7 @@ After reviewing stories 1.5, 1.6, and 1.7 against the comprehensive Front-End Sp
    - Input width: 100% on mobile
 
 #### What Story 1.6 Got Right:
+
 - Validation logic (empty, whitespace, 500 chars) ✓
 - Optimistic UI pattern consideration ✓
 - ARIA labels ✓
@@ -287,6 +318,7 @@ After reviewing stories 1.5, 1.6, and 1.7 against the comprehensive Front-End Sp
    - API error: "Failed to complete/delete task" (assertive)
 
 #### What Story 1.7 Got Right:
+
 - Optimistic UI with rollback ✓
 - Accessibility (ARIA labels, keyboard nav) ✓
 - Color coding (green complete, red delete) ✓
@@ -300,17 +332,22 @@ After reviewing stories 1.5, 1.6, and 1.7 against the comprehensive Front-End Sp
 ### Priority 1: Critical Updates Required
 
 1. **Update Story 1.7** - Add Heroicons reference and icon specifications
-2. **Update Story 1.6** - Add complete input field specifications from component library
+2. **Update Story 1.6** - Add complete input field specifications from component
+   library
 3. **Update Story 1.5** - Add age indicator circle visual specification
-4. **Update All Stories** - Add touch target size clarification (32px visual, 44px clickable)
+4. **Update All Stories** - Add touch target size clarification (32px visual,
+   44px clickable)
 5. **Update Story 1.7** - Correct ErrorToast position to top-right
 
 ### Priority 2: Important Enhancements
 
-6. **Add Animation References** - All three stories should reference animation-micro-interactions.md
-7. **Exact Color Hex Values** - Replace generic color references with exact brand colors
+6. **Add Animation References** - All three stories should reference
+   animation-micro-interactions.md
+7. **Exact Color Hex Values** - Replace generic color references with exact
+   brand colors
 8. **Typography Scale** - Add font-size, weight, and line-height specifications
-9. **Spacing System** - Reference 4px-based spacing system instead of arbitrary values
+9. **Spacing System** - Reference 4px-based spacing system instead of arbitrary
+   values
 10. **Shadow Specifications** - Use exact elevation levels from style guide
 
 ### Priority 3: Nice-to-Have
@@ -362,7 +399,9 @@ After reviewing stories 1.5, 1.6, and 1.7 against the comprehensive Front-End Sp
 
 ## Conclusion
 
-While stories 1.5, 1.6, and 1.7 provide solid foundational context for implementation, they **require updates** to align with the comprehensive Front-End Specification. The most critical gaps are:
+While stories 1.5, 1.6, and 1.7 provide solid foundational context for
+implementation, they **require updates** to align with the comprehensive
+Front-End Specification. The most critical gaps are:
 
 1. **Missing Heroicons library reference** (Story 1.7)
 2. **Incomplete component specifications** (all stories)
@@ -370,10 +409,10 @@ While stories 1.5, 1.6, and 1.7 provide solid foundational context for implement
 4. **Touch target size confusion** (Story 1.7)
 5. **Error toast position incorrect** (Story 1.7)
 
-These stories should be updated **before** a developer agent implements them to ensure the final UI matches the design specifications exactly.
+These stories should be updated **before** a developer agent implements them to
+ensure the final UI matches the design specifications exactly.
 
 ---
 
-**Status:** NEEDS REVISION
-**Next Step:** Update stories with front-end spec details
-**Timeline:** Should be completed before Stories 1.5-1.7 are implemented
+**Status:** NEEDS REVISION **Next Step:** Update stories with front-end spec
+details **Timeline:** Should be completed before Stories 1.5-1.7 are implemented

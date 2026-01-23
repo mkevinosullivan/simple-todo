@@ -2,17 +2,29 @@
 
 ## Critical Tip
 
-Regardless of what you plan for your existing project you want to start agentic coding with, producing contextual artifacts for agents is of the highest importance.
+Regardless of what you plan for your existing project you want to start agentic
+coding with, producing contextual artifacts for agents is of the highest
+importance.
 
-If using Claude Code - it is recommended to use the document-project task with the architect to systematically produce important key artifacts for your codebase.
+If using Claude Code - it is recommended to use the document-project task with
+the architect to systematically produce important key artifacts for your
+codebase.
 
-Optionally you can product context information and understanding for your repo utilizing web agents like Gemini. If its already in github, you can provide the project URL in gemini and use the agents to help analyze or document the project with the team fullstack or the architect specific gem.
+Optionally you can product context information and understanding for your repo
+utilizing web agents like Gemini. If its already in github, you can provide the
+project URL in gemini and use the agents to help analyze or document the project
+with the team fullstack or the architect specific gem.
 
-If your project is too large, you can also flatten your codebase - which can make it easier to upload or use with some tools. You can read more about the optional tool in the [Flattener Guide](./flattener.md)
+If your project is too large, you can also flatten your codebase - which can
+make it easier to upload or use with some tools. You can read more about the
+optional tool in the [Flattener Guide](./flattener.md)
 
 ## What is Brownfield Development?
 
-Brownfield development refers to adding features, fixing bugs, or modernizing existing software projects. Unlike greenfield (new) projects, brownfield work requires understanding existing code, respecting constraints, and ensuring new changes integrate seamlessly without breaking existing functionality.
+Brownfield development refers to adding features, fixing bugs, or modernizing
+existing software projects. Unlike greenfield (new) projects, brownfield work
+requires understanding existing code, respecting constraints, and ensuring new
+changes integrate seamlessly without breaking existing functionality.
 
 ## When to Use BMad for Brownfield
 
@@ -25,24 +37,37 @@ Brownfield development refers to adding features, fixing bugs, or modernizing ex
 
 ## When NOT to use a Brownfield Flow
 
-If you have just completed an MVP with BMad, and you want to continue with post-MVP, its easier to just talk to the PM and ask it to work with you to create a new epic to add into the PRD, shard out the epic, update any architecture documents with the architect, and just go from there.
+If you have just completed an MVP with BMad, and you want to continue with
+post-MVP, its easier to just talk to the PM and ask it to work with you to
+create a new epic to add into the PRD, shard out the epic, update any
+architecture documents with the architect, and just go from there.
 
 ## The Complete Brownfield Workflow
 
-Starting in the Web Option (potentially save some cost but a potentially more frustrating experience):
+Starting in the Web Option (potentially save some cost but a potentially more
+frustrating experience):
 
-1. **Follow the [<ins>User Guide - Installation</ins>](user-guide.md#installation) steps to setup your agent in the web.**
-2. **Generate a 'flattened' single file of your entire codebase** run: `npx bmad-method flatten`
+1. **Follow the
+   [<ins>User Guide - Installation</ins>](user-guide.md#installation) steps to
+   setup your agent in the web.**
+2. **Generate a 'flattened' single file of your entire codebase** run:
+   `npx bmad-method flatten`
 
-Starting in an IDE with large context and good models (Its important to use quality models for this process for the best results)
+Starting in an IDE with large context and good models (Its important to use
+quality models for this process for the best results)
 
-1. In Claude Code or a similar IDE, select the architect agent and then use the \*document-project task. You will want to ensure you are validating and directing the agent to produce the best possible documents for LLMs to understand your code base, and not include any misleading or unnecessary info.
+1. In Claude Code or a similar IDE, select the architect agent and then use the
+   \*document-project task. You will want to ensure you are validating and
+   directing the agent to produce the best possible documents for LLMs to
+   understand your code base, and not include any misleading or unnecessary
+   info.
 
 ### Choose Your Approach
 
 #### Approach A: PRD-First (Recommended if adding very large and complex new features, single or multiple epics or massive changes)
 
-**Best for**: Large codebases, monorepos, or when you know exactly what you want to build
+**Best for**: Large codebases, monorepos, or when you know exactly what you want
+to build
 
 1. **Create PRD First** to define requirements
 2. **Document only relevant areas** based on PRD needs
@@ -74,7 +99,8 @@ The PM will:
 - **Identify affected areas** that need documentation
 - **Create focused PRD** with clear scope
 
-**Key Advantage**: The PRD identifies which parts of your monorepo/large codebase actually need documentation!
+**Key Advantage**: The PRD identifies which parts of your monorepo/large
+codebase actually need documentation!
 
 #### Phase 2: Focused Documentation
 
@@ -88,7 +114,8 @@ The PM will:
 The architect will:
 
 - **Ask about your focus** if no PRD was provided
-- **Offer options**: Create PRD, provide requirements, or describe the enhancement
+- **Offer options**: Create PRD, provide requirements, or describe the
+  enhancement
 - **Reference the PRD/description** to understand scope
 - **Focus on relevant modules** identified in PRD or your description
 - **Skip unrelated areas** to keep docs lean
@@ -96,14 +123,16 @@ The architect will:
 
 The architect creates:
 
-- **One comprehensive architecture document** following fullstack-architecture template
+- **One comprehensive architecture document** following fullstack-architecture
+  template
 - **Covers all system aspects** in a single file
 - **Easy to copy and save** as `docs/architecture.md`
 - **Can be sharded later** in IDE if desired
 
 For example, if you say "Add payment processing to user service":
 
-- Documents only: user service, API endpoints, database schemas, payment integrations
+- Documents only: user service, API endpoints, database schemas, payment
+  integrations
 - Creates focused source tree showing only payment-related code paths
 - Skips: admin panels, reporting modules, unrelated microservices
 
@@ -144,7 +173,8 @@ The PM agent will:
 **How PM Agent Gets Project Context**:
 
 - In Gemini Web: Already has full project context from Phase 1 documentation
-- In IDE: Will ask "Please provide the path to your existing project documentation"
+- In IDE: Will ask "Please provide the path to your existing project
+  documentation"
 
 **Key Prompts You'll Encounter**:
 
@@ -214,12 +244,9 @@ The PO ensures:
 
 ### Phase 4: Save and Shard Documents
 
-1. Save your PRD and Architecture as:
-   docs/prd.md
-   docs/architecture.md
-   (Note: You can optionally prefix with 'brownfield-' if managing multiple versions)
-2. Shard your docs:
-   In your IDE
+1. Save your PRD and Architecture as: docs/prd.md docs/architecture.md (Note:
+   You can optionally prefix with 'brownfield-' if managing multiple versions)
+2. Shard your docs: In your IDE
 
    ```bash
    @po
@@ -233,7 +260,8 @@ The PO ensures:
 
 ### Phase 5: Transition to Development
 
-**Follow the [<ins>Enhanced IDE Development Workflow</ins>](enhanced-ide-development-workflow.md)**
+**Follow the
+[<ins>Enhanced IDE Development Workflow</ins>](enhanced-ide-development-workflow.md)**
 
 ## Brownfield Best Practices
 
@@ -267,7 +295,10 @@ Brownfield changes should:
 
 #### Why the Test Architect is Critical for Brownfield
 
-In brownfield projects, the Test Architect (Quinn) becomes your safety net against breaking existing functionality. Unlike greenfield where you're building fresh, brownfield requires careful validation that new changes don't destabilize what already works.
+In brownfield projects, the Test Architect (Quinn) becomes your safety net
+against breaking existing functionality. Unlike greenfield where you're building
+fresh, brownfield requires careful validation that new changes don't destabilize
+what already works.
 
 #### Brownfield-Specific Testing Challenges
 
@@ -476,7 +507,8 @@ Document:
 
 1. Document relevant subsystems
 2. Use `create-brownfield-story` for focused fix
-3. **Test Architect Risk Assessment**: Run `@qa *risk` to identify side effect potential
+3. **Test Architect Risk Assessment**: Run `@qa *risk` to identify side effect
+   potential
 4. Include regression test requirements from `@qa *design` output
 5. **During Fix**: Use `@qa *trace` to map affected functionality
 6. **Before Commit**: Run `@qa *review` for comprehensive validation
@@ -509,11 +541,13 @@ Document:
 
 ### "The AI doesn't understand my codebase"
 
-**Solution**: Re-run `document-project` with more specific paths to critical files
+**Solution**: Re-run `document-project` with more specific paths to critical
+files
 
 ### "Generated plans don't fit our patterns"
 
-**Solution**: Update generated documentation with your specific conventions before planning phase
+**Solution**: Update generated documentation with your specific conventions
+before planning phase
 
 ### "Too much boilerplate for small changes"
 
@@ -521,7 +555,8 @@ Document:
 
 ### "Integration points unclear"
 
-**Solution**: Provide more context during PRD creation, specifically highlighting integration systems
+**Solution**: Provide more context during PRD creation, specifically
+highlighting integration systems
 
 ## Quick Reference
 
@@ -546,7 +581,8 @@ Document:
 
 ### Test Architect Commands for Brownfield
 
-Note: Short forms shown below. Full commands: `*risk-profile`, `*test-design`, `*nfr-assess`, `*trace-requirements`
+Note: Short forms shown below. Full commands: `*risk-profile`, `*test-design`,
+`*nfr-assess`, `*trace-requirements`
 
 ```bash
 # BEFORE DEVELOPMENT (Planning)
@@ -592,7 +628,10 @@ Does the change touch legacy code?
 
 ## Conclusion
 
-Brownfield development with BMad Method provides structure and safety when modifying existing systems. The Test Architect becomes your critical safety net, using risk assessment, regression testing, and continuous validation to ensure new changes don't destabilize existing functionality.
+Brownfield development with BMad Method provides structure and safety when
+modifying existing systems. The Test Architect becomes your critical safety net,
+using risk assessment, regression testing, and continuous validation to ensure
+new changes don't destabilize existing functionality.
 
 **The Brownfield Success Formula:**
 
@@ -603,4 +642,5 @@ Brownfield development with BMad Method provides structure and safety when modif
 5. **Review Comprehensively** - Deep analysis before committing
 6. **Gate Decisively** - Document quality decisions
 
-Remember: **In brownfield, the Test Architect isn't optional - it's your insurance policy against breaking production.**
+Remember: **In brownfield, the Test Architect isn't optional - it's your
+insurance policy against breaking production.**

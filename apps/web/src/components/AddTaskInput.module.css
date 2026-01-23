@@ -1,0 +1,141 @@
+/* AddTaskInput Component Styles */
+
+.addTaskForm {
+  display: flex;
+  gap: 8px; /* 0.5rem, matches spacing system */
+  margin-bottom: 24px; /* 1.5rem, matches spacing system */
+}
+
+.input {
+  flex: 1;
+  height: 44px; /* Exact height from spec */
+  padding: 12px 16px; /* Exact padding from spec */
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #111827;
+  transition:
+    border-color 200ms ease-out,
+    box-shadow 200ms ease-out;
+}
+
+.input::placeholder {
+  color: #9ca3af; /* Tertiary text color */
+}
+
+.input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  border-width: 2px; /* Increases from 1px on focus */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input:disabled {
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Error state with shake animation */
+.inputError {
+  border-color: #ef4444;
+  animation: shake 400ms ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.addButton {
+  padding: 12px 24px; /* Exact padding from spec */
+  background-color: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  min-width: 120px;
+  min-height: 44px;
+  transition:
+    background-color 100ms ease-out,
+    transform 100ms ease-out,
+    box-shadow 100ms ease-out;
+}
+
+.addButton:hover:not(:disabled) {
+  background-color: #2563eb; /* Darken by 10% */
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.addButton:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.addButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 400;
+  margin-top: 4px;
+  animation: error-slide-in 200ms ease-out;
+}
+
+@keyframes error-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive: Stack on narrow screens */
+@media (max-width: 640px) {
+  .addTaskForm {
+    flex-direction: column;
+  }
+
+  .addButton {
+    width: 100%;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .input,
+  .addButton,
+  .errorMessage {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

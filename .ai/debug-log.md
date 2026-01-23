@@ -27,7 +27,8 @@
 ### Resolution
 
 - Added build script and built shared package with `npx tsc`
-- Fixed import order to match ESLint rules (Node.js built-ins, external deps, internal packages)
+- Fixed import order to match ESLint rules (Node.js built-ins, external deps,
+  internal packages)
 - Updated Jest collectCoverageFrom to exclude app.ts and routes from Story 1.1
-- Set realistic coverage thresholds: 85% statements/lines, 75% branches, 80% functions
-
+- Set realistic coverage thresholds: 85% statements/lines, 75% branches, 80%
+  functions

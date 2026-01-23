@@ -1,24 +1,24 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { TaskList } from '../../../src/components/TaskList';
-import { server } from '../../helpers/testSetup';
-import { emptyTasksHandler, errorHandler } from '../../mocks/handlers';
+import { createTestTask } from '../../helpers/factories';
 
 describe('TaskList', () => {
   it('should show loading state while fetching', () => {
-    render(<TaskList />);
+    render(<TaskList tasks={[]} loading={true} error={null} />);
 
     expect(screen.getByText('Loading tasks...')).toBeInTheDocument();
   });
 
-  it('should render tasks after successful fetch', async () => {
-    render(<TaskList />);
+  it('should render tasks after successful fetch', () => {
+    const tasks = [
+      createTestTask({ id: '1', text: 'Test task 1', createdAt: '2024-01-20T10:00:00Z' }),
+      createTestTask({ id: '2', text: 'Test task 2', createdAt: '2024-01-21T10:00:00Z' }),
+      createTestTask({ id: '3', text: 'Test task 3', createdAt: '2024-01-22T10:00:00Z' }),
+    ];
 
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(screen.queryByText('Loading tasks...')).not.toBeInTheDocument();
-    });
+    render(<TaskList tasks={tasks} loading={false} error={null} />);
 
     // Check that tasks are rendered
     expect(screen.getByText('Test task 1')).toBeInTheDocument();
@@ -26,12 +26,14 @@ describe('TaskList', () => {
     expect(screen.getByText('Test task 3')).toBeInTheDocument();
   });
 
-  it('should sort tasks by createdAt timestamp (newest first)', async () => {
-    render(<TaskList />);
+  it('should sort tasks by createdAt timestamp (newest first)', () => {
+    const tasks = [
+      createTestTask({ id: '1', text: 'Test task 1', createdAt: '2024-01-20T10:00:00Z' }),
+      createTestTask({ id: '2', text: 'Test task 2', createdAt: '2024-01-21T10:00:00Z' }),
+      createTestTask({ id: '3', text: 'Test task 3', createdAt: '2024-01-22T10:00:00Z' }),
+    ];
 
-    await waitFor(() => {
-      expect(screen.queryByText('Loading tasks...')).not.toBeInTheDocument();
-    });
+    render(<TaskList tasks={tasks} loading={false} error={null} />);
 
     const taskElements = screen.getAllByRole('listitem');
 
@@ -43,36 +45,24 @@ describe('TaskList', () => {
     expect(taskElements[2]).toHaveTextContent('Test task 1');
   });
 
-  it('should show error state on API failure', async () => {
-    // Override handler to return error
-    server.use(errorHandler);
+  it('should show error state on API failure', () => {
+    render(<TaskList tasks={[]} loading={false} error="Failed to load tasks. Please refresh." />);
 
-    render(<TaskList />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Failed to load tasks. Please refresh.')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Failed to load tasks. Please refresh.')).toBeInTheDocument();
   });
 
-  it('should show EmptyState when no tasks', async () => {
-    // Override handler to return empty array
-    server.use(emptyTasksHandler);
+  it('should show EmptyState when no tasks', () => {
+    render(<TaskList tasks={[]} loading={false} error={null} />);
 
-    render(<TaskList />);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText('No tasks yet. Add your first task to get started!'),
-      ).toBeInTheDocument();
-    });
+    expect(
+      screen.getByText('No tasks yet. Add your first task to get started!')
+    ).toBeInTheDocument();
   });
 
-  it('should not show loading state after tasks are loaded', async () => {
-    render(<TaskList />);
+  it('should not show loading state after tasks are loaded', () => {
+    const tasks = [createTestTask({ id: '1', text: 'Test task 1' })];
 
-    await waitFor(() => {
-      expect(screen.queryByText('Loading tasks...')).not.toBeInTheDocument();
-    });
+    render(<TaskList tasks={tasks} loading={false} error={null} />);
 
     expect(screen.queryByText('Loading tasks...')).not.toBeInTheDocument();
   });

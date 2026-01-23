@@ -1,18 +1,33 @@
 # BMad Method — User Guide
 
-This guide will help you understand and effectively use the BMad Method for agile AI-driven planning and development.
+This guide will help you understand and effectively use the BMad Method for
+agile AI-driven planning and development.
 
 ## The BMad Plan and Execute Workflow
 
-First, here is the full standard Greenfield Planning + Execution Workflow. Brownfield is very similar, but it's suggested to understand this greenfield first, even if on a simple project before tackling a brownfield project. The BMad Method needs to be installed to the root of your new project folder. For the planning phase, you can optionally perform it with powerful web agents, potentially resulting in higher quality results at a fraction of the cost it would take to complete if providing your own API key or credits in some Agentic tools. For planning, powerful thinking models and larger context - along with working as a partner with the agents will net the best results.
+First, here is the full standard Greenfield Planning + Execution Workflow.
+Brownfield is very similar, but it's suggested to understand this greenfield
+first, even if on a simple project before tackling a brownfield project. The
+BMad Method needs to be installed to the root of your new project folder. For
+the planning phase, you can optionally perform it with powerful web agents,
+potentially resulting in higher quality results at a fraction of the cost it
+would take to complete if providing your own API key or credits in some Agentic
+tools. For planning, powerful thinking models and larger context - along with
+working as a partner with the agents will net the best results.
 
-If you are going to use the BMad Method with a Brownfield project (an existing project), review **[Working in the Brownfield](./working-in-the-brownfield.md)**.
+If you are going to use the BMad Method with a Brownfield project (an existing
+project), review
+**[Working in the Brownfield](./working-in-the-brownfield.md)**.
 
-If the diagrams below don't render, install Markdown All in One along with the Markdown Preview Mermaid Support plugins to VSCode (or one of the forked clones). With these plugins, if you right click on the tab when open, there should be an Open Preview option, or check the IDE documentation.
+If the diagrams below don't render, install Markdown All in One along with the
+Markdown Preview Mermaid Support plugins to VSCode (or one of the forked
+clones). With these plugins, if you right click on the tab when open, there
+should be an Open Preview option, or check the IDE documentation.
 
 ### The Planning Workflow (Web UI or Powerful IDE Agents)
 
-Before development begins, BMad follows a structured planning workflow that's ideally done in web UI for cost efficiency:
+Before development begins, BMad follows a structured planning workflow that's
+ideally done in web UI for cost efficiency:
 
 ```mermaid
 graph TD
@@ -75,11 +90,15 @@ graph TD
 
 #### Web UI to IDE Transition
 
-**Critical Transition Point**: Once the PO confirms document alignment, you must switch from web UI to IDE to begin the development workflow:
+**Critical Transition Point**: Once the PO confirms document alignment, you must
+switch from web UI to IDE to begin the development workflow:
 
-1. **Copy Documents to Project**: Ensure `docs/prd.md` and `docs/architecture.md` are in your project's docs folder (or a custom location you can specify during installation)
+1. **Copy Documents to Project**: Ensure `docs/prd.md` and
+   `docs/architecture.md` are in your project's docs folder (or a custom
+   location you can specify during installation)
 2. **Switch to IDE**: Open your project in your preferred Agentic IDE
-3. **Document Sharding**: Use the PO agent to shard the PRD and then the Architecture
+3. **Document Sharding**: Use the PO agent to shard the PRD and then the
+   Architecture
 4. **Begin Development**: Start the Core Development Cycle that follows
 
 #### Planning Artifacts (Standard Paths)
@@ -95,7 +114,8 @@ QA Gates         → docs/qa/gates/
 
 ### The Core Development Cycle (IDE)
 
-Once planning is complete and documents are sharded, BMad follows a structured development workflow:
+Once planning is complete and documents are sharded, BMad follows a structured
+development workflow:
 
 ```mermaid
 graph TD
@@ -166,18 +186,21 @@ Before installing BMad Method, ensure you have:
 
 - **Node.js** ≥ 18, **npm** ≥ 9
 - **Git** installed and configured
-- **(Optional)** VS Code with "Markdown All in One" + "Markdown Preview Mermaid Support" extensions
+- **(Optional)** VS Code with "Markdown All in One" + "Markdown Preview Mermaid
+  Support" extensions
 
 ## Installation
 
 ### Optional
 
-If you want to do the planning on the web with Claude (Sonnet 4 or Opus), Gemini Gem (2.5 Pro), or Custom GPTs:
+If you want to do the planning on the web with Claude (Sonnet 4 or Opus), Gemini
+Gem (2.5 Pro), or Custom GPTs:
 
 1. Navigate to `dist/teams/`
 2. Copy `team-fullstack.txt`
 3. Create new Gemini Gem or CustomGPT
-4. Upload file with instructions: "Your critical operating instructions are attached, do not break character as directed"
+4. Upload file with instructions: "Your critical operating instructions are
+   attached, do not break character as directed"
 5. Type `/help` to see available commands
 
 ### IDE Project Setup
@@ -189,22 +212,29 @@ npx bmad-method install
 
 ### OpenCode
 
-BMAD integrates with OpenCode via a project-level `opencode.jsonc`/`opencode.json` (JSON-only, no Markdown fallback).
+BMAD integrates with OpenCode via a project-level
+`opencode.jsonc`/`opencode.json` (JSON-only, no Markdown fallback).
 
 - Installation:
   - Run `npx bmad-method install` and choose `OpenCode` in the IDE list.
-  - The installer will detect an existing `opencode.jsonc`/`opencode.json` or create a minimal `opencode.jsonc` if missing.
+  - The installer will detect an existing `opencode.jsonc`/`opencode.json` or
+    create a minimal `opencode.jsonc` if missing.
   - It will:
-    - Ensure `instructions` includes `.bmad-core/core-config.yaml` (and each selected expansion pack’s `config.yaml`).
-    - Merge BMAD agents and commands using file references (`{file:./.bmad-core/...}`), idempotently.
+    - Ensure `instructions` includes `.bmad-core/core-config.yaml` (and each
+      selected expansion pack’s `config.yaml`).
+    - Merge BMAD agents and commands using file references
+      (`{file:./.bmad-core/...}`), idempotently.
     - Preserve other top-level fields and user-defined entries.
 
 - Prefixes and collisions:
-  - You can opt-in to prefix agent keys with `bmad-` and command keys with `bmad:tasks:` to avoid name collisions.
-  - If a key already exists and is not BMAD-managed, the installer will skip it and suggest enabling prefixes.
+  - You can opt-in to prefix agent keys with `bmad-` and command keys with
+    `bmad:tasks:` to avoid name collisions.
+  - If a key already exists and is not BMAD-managed, the installer will skip it
+    and suggest enabling prefixes.
 
 - What gets added:
-  - `instructions`: `.bmad-core/core-config.yaml` plus any selected expansion pack `config.yaml` files.
+  - `instructions`: `.bmad-core/core-config.yaml` plus any selected expansion
+    pack `config.yaml` files.
   - `agent`: BMAD agents from core and selected packs.
     - `prompt`: `{file:./.bmad-core/agents/<id>.md}` (or pack path)
     - `mode`: `primary` for orchestrators, otherwise `all`
@@ -215,14 +245,16 @@ BMAD integrates with OpenCode via a project-level `opencode.jsonc`/`opencode.jso
     - `description`: extracted from the task’s “Purpose” section
 
 - Selected Packages Only:
-  - The installer includes agents and tasks only from the packages you selected in the earlier step (core and chosen packs).
+  - The installer includes agents and tasks only from the packages you selected
+    in the earlier step (core and chosen packs).
 
 - Refresh after changes:
   - Re-run:
     ```bash
     npx bmad-method install -f -i opencode
     ```
-  - The installer safely updates entries without duplication and preserves your custom fields and comments.
+  - The installer safely updates entries without duplication and preserves your
+    custom fields and comments.
 
 - Optional convenience script:
   - You can add a script to your project’s `package.json` for quick refreshes:
@@ -236,43 +268,61 @@ BMAD integrates with OpenCode via a project-level `opencode.jsonc`/`opencode.jso
 
 ### Codex (CLI & Web)
 
-BMAD integrates with OpenAI Codex via `AGENTS.md` and committed core agent files.
+BMAD integrates with OpenAI Codex via `AGENTS.md` and committed core agent
+files.
 
 - Two installation modes:
   - Codex (local only): keeps `.bmad-core/` ignored for local dev.
     - `npx bmad-method install -f -i codex -d .`
-  - Codex Web Enabled: ensures `.bmad-core/` is tracked so you can commit it for Codex Web.
+  - Codex Web Enabled: ensures `.bmad-core/` is tracked so you can commit it for
+    Codex Web.
     - `npx bmad-method install -f -i codex-web -d .`
 
 - What gets generated:
   - `AGENTS.md` at the project root with a BMAD section containing
     - How-to-use with Codex (CLI & Web)
     - Agent Directory (Title, ID, When To Use)
-    - Detailed per‑agent sections with source path, when-to-use, activation phrasing, and YAML
+    - Detailed per‑agent sections with source path, when-to-use, activation
+      phrasing, and YAML
     - Tasks with quick usage notes
   - If a `package.json` exists, helpful scripts are added:
     - `bmad:refresh`, `bmad:list`, `bmad:validate`
 
 - Using Codex:
-  - CLI: run `codex` in the project root and prompt naturally, e.g., “As dev, implement …”.
-  - Web: commit `.bmad-core/` and `AGENTS.md`, then open the repo in Codex and prompt the same way.
+  - CLI: run `codex` in the project root and prompt naturally, e.g., “As dev,
+    implement …”.
+  - Web: commit `.bmad-core/` and `AGENTS.md`, then open the repo in Codex and
+    prompt the same way.
 
 - Refresh after changes:
-  - Re-run the appropriate install mode (`codex` or `codex-web`) to update the BMAD block in `AGENTS.md`.
+  - Re-run the appropriate install mode (`codex` or `codex-web`) to update the
+    BMAD block in `AGENTS.md`.
 
 ## Special Agents
 
-There are two BMad agents — in the future they'll be consolidated into a single BMad-Master.
+There are two BMad agents — in the future they'll be consolidated into a single
+BMad-Master.
 
 ### BMad-Master
 
-This agent can do any task or command that all other agents can do, aside from actual story implementation. Additionally, this agent can help explain the BMad Method when on the web by accessing the knowledge base and explaining anything to you about the process.
+This agent can do any task or command that all other agents can do, aside from
+actual story implementation. Additionally, this agent can help explain the BMad
+Method when on the web by accessing the knowledge base and explaining anything
+to you about the process.
 
-If you don't want to bother switching between different agents aside from the dev, this is the agent for you. Just remember that as the context grows, the performance of the agent degrades, therefore it is important to instruct the agent to compact the conversation and start a new conversation with the compacted conversation as the initial message. Do this often, preferably after each story is implemented.
+If you don't want to bother switching between different agents aside from the
+dev, this is the agent for you. Just remember that as the context grows, the
+performance of the agent degrades, therefore it is important to instruct the
+agent to compact the conversation and start a new conversation with the
+compacted conversation as the initial message. Do this often, preferably after
+each story is implemented.
 
 ### BMad-Orchestrator
 
-This agent should NOT be used within the IDE, it is a heavyweight, special-purpose agent that utilizes a lot of context and can morph into any other agent. This exists solely to facilitate the teams within the web bundles. If you use a web bundle you will be greeted by the BMad Orchestrator.
+This agent should NOT be used within the IDE, it is a heavyweight,
+special-purpose agent that utilizes a lot of context and can morph into any
+other agent. This exists solely to facilitate the teams within the web bundles.
+If you use a web bundle you will be greeted by the BMad Orchestrator.
 
 ### How Agents Work
 
@@ -322,7 +372,8 @@ dependencies:
 
 ### IDE Best Practices
 
-- **Context Management**: Keep relevant files only in context, keep files as lean and focused as necessary
+- **Context Management**: Keep relevant files only in context, keep files as
+  lean and focused as necessary
 - **Agent Selection**: Use appropriate agent for task
 - **Iterative Development**: Work in small, focused tasks
 - **File Organization**: Maintain clean project structure
@@ -332,7 +383,10 @@ dependencies:
 
 ### Overview
 
-The QA agent in BMad is not just a "senior developer reviewer" - it's a **Test Architect** with deep expertise in test strategy, quality gates, and risk-based testing. Named Quinn, this agent provides advisory authority on quality matters while actively improving code when safe to do so.
+The QA agent in BMad is not just a "senior developer reviewer" - it's a **Test
+Architect** with deep expertise in test strategy, quality gates, and risk-based
+testing. Named Quinn, this agent provides advisory authority on quality matters
+while actively improving code when safe to do so.
 
 #### Quick Start (Essential Commands)
 
@@ -361,18 +415,21 @@ The documentation uses short forms for convenience. Both styles are valid:
 
 #### 1. Risk Profiling (`*risk`)
 
-**When:** After story draft, before development begins (earliest intervention point)
+**When:** After story draft, before development begins (earliest intervention
+point)
 
 Identifies and assesses implementation risks:
 
 - **Categories**: Technical, Security, Performance, Data, Business, Operational
 - **Scoring**: Probability × Impact analysis (1-9 scale)
 - **Mitigation**: Specific strategies for each identified risk
-- **Gate Impact**: Risks ≥9 trigger FAIL, ≥6 trigger CONCERNS (see `tasks/risk-profile.md` for authoritative rules)
+- **Gate Impact**: Risks ≥9 trigger FAIL, ≥6 trigger CONCERNS (see
+  `tasks/risk-profile.md` for authoritative rules)
 
 #### 2. Test Design (`*design`)
 
-**When:** After story draft, before development begins (guides what tests to write)
+**When:** After story draft, before development begins (guides what tests to
+write)
 
 Creates comprehensive test strategies including:
 
@@ -424,8 +481,10 @@ Validates non-functional requirements:
 
 When you run `@qa *review {story}`, Quinn performs:
 
-- **Requirements Traceability**: Maps every acceptance criterion to its validating tests
-- **Test Level Analysis**: Ensures appropriate testing at unit, integration, and E2E levels
+- **Requirements Traceability**: Maps every acceptance criterion to its
+  validating tests
+- **Test Level Analysis**: Ensures appropriate testing at unit, integration, and
+  E2E levels
 - **Coverage Assessment**: Identifies gaps and redundant test coverage
 - **Active Refactoring**: Improves code quality directly when safe
 - **Quality Gate Decision**: Issues PASS/CONCERNS/FAIL status based on findings
@@ -441,13 +500,17 @@ Manages quality gate decisions:
 - **Advisory Nature**: Provides recommendations, not blocks
 - **Waiver Support**: Documents accepted risks when needed
 
-**Note:** Gates are advisory; teams choose their quality bar. WAIVED requires reason, approver, and expiry date. See `templates/qa-gate-tmpl.yaml` for schema and `tasks/review-story.md` (gate rules) and `tasks/risk-profile.md` for scoring.
+**Note:** Gates are advisory; teams choose their quality bar. WAIVED requires
+reason, approver, and expiry date. See `templates/qa-gate-tmpl.yaml` for schema
+and `tasks/review-story.md` (gate rules) and `tasks/risk-profile.md` for
+scoring.
 
 ### Working with the Test Architect
 
 #### Integration with BMad Workflow
 
-The Test Architect provides value throughout the entire development lifecycle. Here's when and how to leverage each capability:
+The Test Architect provides value throughout the entire development lifecycle.
+Here's when and how to leverage each capability:
 
 | **Stage**          | **Command** | **When to Use**         | **Value**                  | **Output**                                                     |
 | ------------------ | ----------- | ----------------------- | -------------------------- | -------------------------------------------------------------- |
@@ -484,14 +547,16 @@ Quinn enforces these test quality principles:
 - **No Hard Waits**: Dynamic waiting strategies only
 - **Stateless & Parallel-Safe**: Tests run independently
 - **Self-Cleaning**: Tests manage their own test data
-- **Appropriate Test Levels**: Unit for logic, integration for interactions, E2E for journeys
+- **Appropriate Test Levels**: Unit for logic, integration for interactions, E2E
+  for journeys
 - **Explicit Assertions**: Keep assertions in tests, not helpers
 
 ### Gate Status Meanings
 
 - **PASS**: All critical requirements met, no blocking issues
 - **CONCERNS**: Non-critical issues found, team should review
-- **FAIL**: Critical issues that should be addressed (security risks, missing P0 tests)
+- **FAIL**: Critical issues that should be addressed (security risks, missing P0
+  tests)
 - **WAIVED**: Issues acknowledged but explicitly accepted by team
 
 ### Special Situations
@@ -523,7 +588,8 @@ Quinn enforces these test quality principles:
 - **Iterative Improvement**: Use QA feedback to improve future stories
 - **Gate Transparency**: Share gate decisions with the team
 - **Continuous Learning**: QA documents patterns for team knowledge sharing
-- **Brownfield Care**: Pay extra attention to regression risks in existing systems
+- **Brownfield Care**: Pay extra attention to regression risks in existing
+  systems
 
 ### Output Paths Reference
 
@@ -540,15 +606,23 @@ Quick reference for where Test Architect outputs are stored:
 
 ## Technical Preferences System
 
-BMad includes a personalization system through the `technical-preferences.md` file located in `.bmad-core/data/` - this can help bias the PM and Architect to recommend your preferences for design patterns, technology selection, or anything else you would like to put in here.
+BMad includes a personalization system through the `technical-preferences.md`
+file located in `.bmad-core/data/` - this can help bias the PM and Architect to
+recommend your preferences for design patterns, technology selection, or
+anything else you would like to put in here.
 
 ### Using with Web Bundles
 
-When creating custom web bundles or uploading to AI platforms, include your `technical-preferences.md` content to ensure agents have your preferences from the start of any conversation.
+When creating custom web bundles or uploading to AI platforms, include your
+`technical-preferences.md` content to ensure agents have your preferences from
+the start of any conversation.
 
 ## Core Configuration
 
-The `.bmad-core/core-config.yaml` file is a critical config that enables BMad to work seamlessly with differing project structures, more options will be made available in the future. Currently the most important is the devLoadAlwaysFiles list section in the yaml.
+The `.bmad-core/core-config.yaml` file is a critical config that enables BMad to
+work seamlessly with differing project structures, more options will be made
+available in the future. Currently the most important is the devLoadAlwaysFiles
+list section in the yaml.
 
 ### Developer Context Files
 
@@ -561,17 +635,26 @@ devLoadAlwaysFiles:
   - docs/architecture/project-structure.md
 ```
 
-You will want to verify from sharding your architecture that these documents exist, that they are as lean as possible, and contain exactly the information you want your dev agent to ALWAYS load into its context. These are the rules the agent will follow.
+You will want to verify from sharding your architecture that these documents
+exist, that they are as lean as possible, and contain exactly the information
+you want your dev agent to ALWAYS load into its context. These are the rules the
+agent will follow.
 
-As your project grows and the code starts to build consistent patterns, coding standards should be reduced to include only the standards the agent still needs enforced. The agent will look at surrounding code in files to infer the coding standards that are relevant to the current task.
+As your project grows and the code starts to build consistent patterns, coding
+standards should be reduced to include only the standards the agent still needs
+enforced. The agent will look at surrounding code in files to infer the coding
+standards that are relevant to the current task.
 
 ## Getting Help
 
 - **Discord Community**: [Join Discord](https://discord.gg/gk8jAdXWmj)
-- **GitHub Issues**: [Report bugs](https://github.com/bmadcode/bmad-method/issues)
+- **GitHub Issues**:
+  [Report bugs](https://github.com/bmadcode/bmad-method/issues)
 - **Documentation**: [Browse docs](https://github.com/bmadcode/bmad-method/docs)
 - **YouTube**: [BMadCode Channel](https://www.youtube.com/@BMadCode)
 
 ## Conclusion
 
-Remember: BMad is designed to enhance your development process, not replace your expertise. Use it as a powerful tool to accelerate your projects while maintaining control over design decisions and implementation details.
+Remember: BMad is designed to enhance your development process, not replace your
+expertise. Use it as a powerful tool to accelerate your projects while
+maintaining control over design decisions and implementation details.

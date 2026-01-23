@@ -15,11 +15,11 @@
 }
 
 .loadingState {
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .errorState {
-  color: #EF4444;
-  background: #FEE2E2;
+  color: #ef4444;
+  background: #fee2e2;
   border-radius: 8px;
 }

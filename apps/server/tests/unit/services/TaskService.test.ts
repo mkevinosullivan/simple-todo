@@ -31,9 +31,7 @@ describe('TaskService', () => {
 
       const task = await taskService.createTask('Buy groceries');
 
-      expect(task.id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-      );
+      expect(task.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
       expect(task.text).toBe('Buy groceries');
       expect(task.status).toBe('active');
       expect(task.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/); // ISO 8601
@@ -58,15 +56,11 @@ describe('TaskService', () => {
     });
 
     it('should throw error for empty text', async () => {
-      await expect(taskService.createTask('')).rejects.toThrow(
-        'Task text cannot be empty'
-      );
+      await expect(taskService.createTask('')).rejects.toThrow('Task text cannot be empty');
     });
 
     it('should throw error for whitespace-only text', async () => {
-      await expect(taskService.createTask('   ')).rejects.toThrow(
-        'Task text cannot be empty'
-      );
+      await expect(taskService.createTask('   ')).rejects.toThrow('Task text cannot be empty');
     });
 
     it('should throw error for text exceeding 500 characters', async () => {
@@ -173,9 +167,9 @@ describe('TaskService', () => {
     it('should throw error for invalid ID', async () => {
       mockDataService.loadTasks.mockResolvedValue([]);
 
-      await expect(
-        taskService.updateTask('nonexistent-id', 'New text')
-      ).rejects.toThrow('Task not found');
+      await expect(taskService.updateTask('nonexistent-id', 'New text')).rejects.toThrow(
+        'Task not found'
+      );
     });
 
     it('should throw error for completed task', async () => {
@@ -204,9 +198,7 @@ describe('TaskService', () => {
     it('should throw error for invalid ID', async () => {
       mockDataService.loadTasks.mockResolvedValue([]);
 
-      await expect(taskService.deleteTask('nonexistent-id')).rejects.toThrow(
-        'Task not found'
-      );
+      await expect(taskService.deleteTask('nonexistent-id')).rejects.toThrow('Task not found');
     });
   });
 
@@ -226,18 +218,14 @@ describe('TaskService', () => {
     it('should throw error for invalid ID', async () => {
       mockDataService.loadTasks.mockResolvedValue([]);
 
-      await expect(taskService.completeTask('nonexistent-id')).rejects.toThrow(
-        'Task not found'
-      );
+      await expect(taskService.completeTask('nonexistent-id')).rejects.toThrow('Task not found');
     });
 
     it('should throw error for already completed task', async () => {
       const task = createTestTask({ status: 'completed' });
       mockDataService.loadTasks.mockResolvedValue([task]);
 
-      await expect(taskService.completeTask(task.id)).rejects.toThrow(
-        'Task is already completed'
-      );
+      await expect(taskService.completeTask(task.id)).rejects.toThrow('Task is already completed');
     });
   });
 

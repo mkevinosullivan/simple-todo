@@ -171,8 +171,7 @@ export class TaskService {
       // Re-throw validation errors with original message
       if (
         error instanceof Error &&
-        (error.message === 'Task not found' ||
-          error.message === 'Cannot update completed tasks')
+        (error.message === 'Task not found' || error.message === 'Cannot update completed tasks')
       ) {
         throw error;
       }
@@ -260,8 +259,7 @@ export class TaskService {
       // Re-throw validation errors with original message
       if (
         error instanceof Error &&
-        (error.message === 'Task not found' ||
-          error.message === 'Task is already completed')
+        (error.message === 'Task not found' || error.message === 'Task is already completed')
       ) {
         throw error;
       }

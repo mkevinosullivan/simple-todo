@@ -45,7 +45,11 @@ recommendations:
   immediate: []
   future:
     - action: "Consider extracting validation logic to private validateTaskText() method"
-      refs: ["apps/server/src/services/TaskService.ts:32-39", "apps/server/src/services/TaskService.ts:137-144"]
+      refs:
+        [
+          "apps/server/src/services/TaskService.ts:32-39",
+          "apps/server/src/services/TaskService.ts:137-144",
+        ]
     - action: "Add integration tests for DataService error scenarios"
       refs: ["apps/server/tests/unit/services/TaskService.test.ts"]
     - action: "Plan for optimization when task volume exceeds ~10,000 items"

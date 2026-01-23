@@ -80,7 +80,9 @@ describe('DataService', () => {
 
     it('should throw descriptive error for file system errors', async () => {
       // Mock fs.readFile to throw a non-SyntaxError
-      const readFileSpy = jest.spyOn(fs, 'readFile').mockRejectedValue(new Error('Permission denied'));
+      const readFileSpy = jest
+        .spyOn(fs, 'readFile')
+        .mockRejectedValue(new Error('Permission denied'));
 
       await expect(dataService.loadTasks()).rejects.toThrow(
         'Failed to load tasks: File system error'
@@ -92,10 +94,7 @@ describe('DataService', () => {
 
   describe('saveTasks', () => {
     it('should write tasks to file with correct JSON formatting', async () => {
-      const testTasks = [
-        createTestTask({ text: 'Task 1' }),
-        createTestTask({ text: 'Task 2' }),
-      ];
+      const testTasks = [createTestTask({ text: 'Task 1' }), createTestTask({ text: 'Task 2' })];
 
       await dataService.saveTasks(testTasks);
 
@@ -125,11 +124,7 @@ describe('DataService', () => {
       await dataService.saveTasks(testTasks);
 
       // Verify temp file was written to
-      expect(writeFileSpy).toHaveBeenCalledWith(
-        tempFile,
-        expect.any(String),
-        'utf-8'
-      );
+      expect(writeFileSpy).toHaveBeenCalledWith(tempFile, expect.any(String), 'utf-8');
 
       // Verify rename was called
       expect(renameSpy).toHaveBeenCalledWith(tempFile, testTasksFile);
