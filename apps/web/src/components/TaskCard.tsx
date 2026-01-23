@@ -1,5 +1,6 @@
 import type React from 'react';
 
+import { CheckIcon, TrashIcon } from '@heroicons/react/24/outline';
 import type { Task } from '@simple-todo/shared/types';
 import { TaskHelpers } from '@simple-todo/shared/utils';
 
@@ -7,22 +8,27 @@ import styles from './TaskCard.module.css';
 
 interface TaskCardProps {
   task: Task;
+  onComplete: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 /**
- * TaskCard displays a single task with text and age indicator
+ * TaskCard displays a single task with complete and delete actions
  *
  * Features:
- * - Shows task text prominently with timestamp below
- * - 12px circular age indicator with color coding (left side)
- * - Tooltip showing task age on hover
- * - Semantic HTML (list item)
- * - Exact styling per front-end spec
+ * - Shows task text and age indicator
+ * - Complete and Delete action buttons
+ * - Keyboard accessible (Tab, Enter, Space)
+ * - Screen reader compatible with ARIA labels
  *
  * @example
- * <TaskCard task={task} />
+ * <TaskCard
+ *   task={task}
+ *   onComplete={(id) => handleComplete(id)}
+ *   onDelete={(id) => handleDelete(id)}
+ * />
  */
-export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ task, onComplete, onDelete }) => {
   const ageCategory = TaskHelpers.getAgeCategory(task);
   const ageMs = TaskHelpers.getAge(task);
 
@@ -55,13 +61,34 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
       <span
         className={`${styles.ageIndicator} ${styles[`age-${ageCategory}`]}`}
         title={tooltipText}
-        aria-label={tooltipText}
+        aria-hidden="true"
       />
 
       {/* Task content: text and timestamp */}
       <div className={styles.taskContent}>
         <span className={styles.taskText}>{task.text}</span>
         <span className={styles.timestamp}>{timestampDisplay}</span>
+      </div>
+
+      {/* Action buttons */}
+      <div className={styles.taskActions} role="group" aria-label="Task actions">
+        <button
+          onClick={() => onComplete(task.id)}
+          aria-label={`Complete task: ${task.text}`}
+          className={styles.btnComplete}
+        >
+          <CheckIcon className={styles.icon} aria-hidden="true" />
+          <span className={styles.buttonText}>Complete</span>
+        </button>
+
+        <button
+          onClick={() => onDelete(task.id)}
+          aria-label={`Delete task: ${task.text}`}
+          className={styles.btnDelete}
+        >
+          <TrashIcon className={styles.icon} aria-hidden="true" />
+          <span className={styles.srOnly}>Delete</span>
+        </button>
       </div>
     </li>
   );

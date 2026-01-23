@@ -77,18 +77,18 @@ export async function apiPost<T, R>(endpoint: string, data: T): Promise<R> {
  * Base PATCH request wrapper
  *
  * @param endpoint - API endpoint path
- * @param data - Request body data
+ * @param body - Optional request body data
  * @returns Parsed JSON response
  * @throws {Error} If response status is not OK
  */
-export async function apiPatch<T, R>(endpoint: string, data: T): Promise<R> {
+export async function apiPatch<T>(endpoint: string, body?: unknown): Promise<T> {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: body ? JSON.stringify(body) : undefined,
     });
 
     if (!response.ok) {
@@ -96,7 +96,7 @@ export async function apiPatch<T, R>(endpoint: string, data: T): Promise<R> {
       throw new Error(errorMessage);
     }
 
-    return (await response.json()) as R;
+    return (await response.json()) as T;
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -109,10 +109,10 @@ export async function apiPatch<T, R>(endpoint: string, data: T): Promise<R> {
  * Base DELETE request wrapper
  *
  * @param endpoint - API endpoint path
- * @returns Parsed JSON response
+ * @returns void (DELETE returns 204 No Content)
  * @throws {Error} If response status is not OK
  */
-export async function apiDelete<T>(endpoint: string): Promise<T> {
+export async function apiDelete(endpoint: string): Promise<void> {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'DELETE',
@@ -123,7 +123,7 @@ export async function apiDelete<T>(endpoint: string): Promise<T> {
       throw new Error(errorMessage);
     }
 
-    return (await response.json()) as T;
+    // DELETE returns 204 No Content, no need to parse response
   } catch (error) {
     if (error instanceof Error) {
       throw error;

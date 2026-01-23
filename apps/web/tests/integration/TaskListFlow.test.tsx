@@ -174,3 +174,179 @@ describe('TaskListFlow - Task Creation Integration', () => {
     expect(updatedTasks[2]).toHaveTextContent('First task');
   });
 });
+
+describe('TaskListFlow - Complete and Delete Actions', () => {
+  it('should complete task, remove from list, and fetch celebration', async () => {
+    const task = createTestTask({
+      id: '1',
+      text: 'Buy groceries',
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      completedAt: null,
+    });
+
+    server.use(
+      http.get('http://localhost:3001/api/tasks', () => {
+        return HttpResponse.json([task]);
+      })
+    );
+
+    server.use(
+      http.patch('http://localhost:3001/api/tasks/1/complete', () => {
+        return HttpResponse.json({
+          ...task,
+          status: 'completed',
+          completedAt: new Date().toISOString(),
+        });
+      })
+    );
+
+    server.use(
+      http.get('http://localhost:3001/api/celebrations/message', () => {
+        return HttpResponse.json({ message: 'Great job!', variant: 'supportive' });
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<TaskListView />);
+
+    // Wait for task to load
+    await waitFor(() => {
+      expect(screen.getByText('Buy groceries')).toBeInTheDocument();
+    });
+
+    // Click complete button
+    const completeButton = screen.getByRole('button', { name: /complete task: buy groceries/i });
+    await user.click(completeButton);
+
+    // Task should be removed immediately (optimistic update)
+    await waitFor(() => {
+      expect(screen.queryByText('Buy groceries')).not.toBeInTheDocument();
+    });
+
+    // Should show empty state
+    expect(screen.getByText(/no tasks yet/i)).toBeInTheDocument();
+  });
+
+  it('should delete task and remove from list', async () => {
+    const task = createTestTask({
+      id: '1',
+      text: 'Old task',
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      completedAt: null,
+    });
+
+    server.use(
+      http.get('http://localhost:3001/api/tasks', () => {
+        return HttpResponse.json([task]);
+      })
+    );
+
+    server.use(
+      http.delete('http://localhost:3001/api/tasks/1', () => {
+        return new HttpResponse(null, { status: 204 });
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<TaskListView />);
+
+    // Wait for task to load
+    await waitFor(() => {
+      expect(screen.getByText('Old task')).toBeInTheDocument();
+    });
+
+    // Click delete button
+    const deleteButton = screen.getByRole('button', { name: /delete task: old task/i });
+    await user.click(deleteButton);
+
+    // Task should be removed immediately (optimistic update)
+    await waitFor(() => {
+      expect(screen.queryByText('Old task')).not.toBeInTheDocument();
+    });
+
+    // Should show empty state
+    expect(screen.getByText(/no tasks yet/i)).toBeInTheDocument();
+  });
+
+  it('should rollback on complete API failure and show error toast', async () => {
+    const task = createTestTask({
+      id: '1',
+      text: 'Buy groceries',
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      completedAt: null,
+    });
+
+    server.use(
+      http.get('http://localhost:3001/api/tasks', () => {
+        return HttpResponse.json([task]);
+      })
+    );
+
+    server.use(
+      http.patch('http://localhost:3001/api/tasks/1/complete', () => {
+        return HttpResponse.json({ error: 'Internal server error' }, { status: 500 });
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<TaskListView />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Buy groceries')).toBeInTheDocument();
+    });
+
+    const completeButton = screen.getByRole('button', { name: /complete task: buy groceries/i });
+    await user.click(completeButton);
+
+    // Task should reappear after API failure
+    await waitFor(() => {
+      expect(screen.getByText('Buy groceries')).toBeInTheDocument();
+    });
+
+    // Error toast should be shown
+    expect(screen.getByRole('alert')).toHaveTextContent(/failed to complete task/i);
+  });
+
+  it('should rollback on delete API failure and show error toast', async () => {
+    const task = createTestTask({
+      id: '1',
+      text: 'Important task',
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      completedAt: null,
+    });
+
+    server.use(
+      http.get('http://localhost:3001/api/tasks', () => {
+        return HttpResponse.json([task]);
+      })
+    );
+
+    server.use(
+      http.delete('http://localhost:3001/api/tasks/1', () => {
+        return HttpResponse.json({ error: 'Internal server error' }, { status: 500 });
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<TaskListView />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Important task')).toBeInTheDocument();
+    });
+
+    const deleteButton = screen.getByRole('button', { name: /delete task: important task/i });
+    await user.click(deleteButton);
+
+    // Task should reappear after API failure
+    await waitFor(() => {
+      expect(screen.getByText('Important task')).toBeInTheDocument();
+    });
+
+    // Error toast should be shown
+    expect(screen.getByRole('alert')).toHaveTextContent(/failed to delete task/i);
+  });
+});

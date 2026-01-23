@@ -41,17 +41,16 @@ export const tasks = {
    * @throws {Error} If API request fails or task not found
    */
   async complete(id: string): Promise<Task> {
-    return apiPatch<{ status: TaskStatus }, Task>(`/api/tasks/${id}`, { status: 'completed' });
+    return apiPatch<Task>(`/api/tasks/${id}/complete`);
   },
 
   /**
    * Delete a task by ID
    *
    * @param id - Task UUID
-   * @returns Confirmation message
    * @throws {Error} If API request fails or task not found
    */
-  async delete(id: string): Promise<{ message: string }> {
-    return apiDelete<{ message: string }>(`/api/tasks/${id}`);
+  async delete(id: string): Promise<void> {
+    return apiDelete(`/api/tasks/${id}`);
   },
 };

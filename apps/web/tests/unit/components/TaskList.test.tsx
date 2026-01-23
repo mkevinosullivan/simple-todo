@@ -1,12 +1,23 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { TaskList } from '../../../src/components/TaskList';
 import { createTestTask } from '../../helpers/factories';
 
 describe('TaskList', () => {
+  const mockOnComplete = vi.fn();
+  const mockOnDelete = vi.fn();
+
   it('should show loading state while fetching', () => {
-    render(<TaskList tasks={[]} loading={true} error={null} />);
+    render(
+      <TaskList
+        tasks={[]}
+        loading={true}
+        error={null}
+        onComplete={mockOnComplete}
+        onDelete={mockOnDelete}
+      />
+    );
 
     expect(screen.getByText('Loading tasks...')).toBeInTheDocument();
   });
@@ -18,7 +29,15 @@ describe('TaskList', () => {
       createTestTask({ id: '3', text: 'Test task 3', createdAt: '2024-01-22T10:00:00Z' }),
     ];
 
-    render(<TaskList tasks={tasks} loading={false} error={null} />);
+    render(
+      <TaskList
+        tasks={tasks}
+        loading={false}
+        error={null}
+        onComplete={mockOnComplete}
+        onDelete={mockOnDelete}
+      />
+    );
 
     // Check that tasks are rendered
     expect(screen.getByText('Test task 1')).toBeInTheDocument();
@@ -33,7 +52,15 @@ describe('TaskList', () => {
       createTestTask({ id: '3', text: 'Test task 3', createdAt: '2024-01-22T10:00:00Z' }),
     ];
 
-    render(<TaskList tasks={tasks} loading={false} error={null} />);
+    render(
+      <TaskList
+        tasks={tasks}
+        loading={false}
+        error={null}
+        onComplete={mockOnComplete}
+        onDelete={mockOnDelete}
+      />
+    );
 
     const taskElements = screen.getAllByRole('listitem');
 
@@ -46,13 +73,29 @@ describe('TaskList', () => {
   });
 
   it('should show error state on API failure', () => {
-    render(<TaskList tasks={[]} loading={false} error="Failed to load tasks. Please refresh." />);
+    render(
+      <TaskList
+        tasks={[]}
+        loading={false}
+        error="Failed to load tasks. Please refresh."
+        onComplete={mockOnComplete}
+        onDelete={mockOnDelete}
+      />
+    );
 
     expect(screen.getByText('Failed to load tasks. Please refresh.')).toBeInTheDocument();
   });
 
   it('should show EmptyState when no tasks', () => {
-    render(<TaskList tasks={[]} loading={false} error={null} />);
+    render(
+      <TaskList
+        tasks={[]}
+        loading={false}
+        error={null}
+        onComplete={mockOnComplete}
+        onDelete={mockOnDelete}
+      />
+    );
 
     expect(
       screen.getByText('No tasks yet. Add your first task to get started!')
@@ -62,7 +105,15 @@ describe('TaskList', () => {
   it('should not show loading state after tasks are loaded', () => {
     const tasks = [createTestTask({ id: '1', text: 'Test task 1' })];
 
-    render(<TaskList tasks={tasks} loading={false} error={null} />);
+    render(
+      <TaskList
+        tasks={tasks}
+        loading={false}
+        error={null}
+        onComplete={mockOnComplete}
+        onDelete={mockOnDelete}
+      />
+    );
 
     expect(screen.queryByText('Loading tasks...')).not.toBeInTheDocument();
   });

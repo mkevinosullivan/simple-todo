@@ -1,0 +1,89 @@
+/* apps/web/src/components/ErrorToast.module.css */
+.errorToast {
+  position: fixed;
+  top: 16px; /* CORRECTED: top-right for error toasts, not bottom-right */
+  right: 16px;
+  width: 320px;
+  max-width: 400px;
+  padding: 12px 16px; /* Exact padding from spec */
+  background-color: #fee2e2; /* Light red */
+  border-left: 4px solid #ef4444; /* Error red */
+  border-radius: 8px; /* Updated from 0.5rem */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Spec shadow */
+  display: flex;
+  align-items: start;
+  gap: 16px;
+  z-index: 1000;
+  animation: toast-enter 300ms ease-out;
+}
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Exit animation (when dismissed) */
+.errorToast.exiting {
+  animation: toast-exit 300ms ease-in forwards;
+}
+
+@keyframes toast-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.message {
+  flex: 1;
+  margin: 0;
+  color: #991b1b; /* Red-800, darker for contrast */
+  font-size: 14px; /* 0.875rem, exact spec */
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.dismissButton {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #991b1b;
+  font-size: 20px; /* 1.25rem */
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 200ms ease-out;
+}
+
+.dismissButton:hover {
+  opacity: 1;
+}
+
+.dismissButton:focus-visible {
+  outline: 2px solid #ef4444; /* Error red */
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .errorToast {
+    animation-duration: 0.01ms !important;
+  }
+  .errorToast.exiting {
+    animation-duration: 0.01ms !important;
+  }
+}
