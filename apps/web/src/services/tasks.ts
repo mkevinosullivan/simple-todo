@@ -1,6 +1,6 @@
 import type { Task, TaskStatus } from '@simple-todo/shared/types';
 
-import { apiDelete, apiGet, apiPatch, apiPost } from './api';
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from './api';
 
 /**
  * Task API service - handles all task-related API calls
@@ -42,6 +42,18 @@ export const tasks = {
    */
   async complete(id: string): Promise<Task> {
     return apiPatch<Task>(`/api/tasks/${id}/complete`);
+  },
+
+  /**
+   * Update a task's text
+   *
+   * @param id - Task UUID
+   * @param text - New task description (1-500 characters)
+   * @returns The updated task
+   * @throws {Error} If API request fails, task not found, or validation fails
+   */
+  async update(id: string, text: string): Promise<Task> {
+    return apiPut<Task>(`/api/tasks/${id}`, { text });
   },
 
   /**

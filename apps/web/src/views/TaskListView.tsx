@@ -30,6 +30,7 @@ export const TaskListView: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [toastError, setToastError] = useState<string | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTasks = async (): Promise<void> => {
@@ -124,6 +125,55 @@ export const TaskListView: React.FC = () => {
     }
   };
 
+  const handleEdit = async (id: string, newText: string): Promise<void> => {
+    // Validation
+    const trimmedText = newText.trim();
+    if (trimmedText === '') {
+      setToastError('Task cannot be empty');
+      announceToScreenReader('Task cannot be empty', 'assertive');
+      return;
+    }
+
+    // Find task for rollback
+    const task = taskList.find((t) => t.id === id);
+    if (!task) {
+      return;
+    }
+
+    const originalText = task.text;
+
+    // Optimistic update: change text immediately
+    setTaskList((prev) => prev.map((t) => (t.id === id ? { ...t, text: trimmedText } : t)));
+
+    // Exit edit mode
+    setEditingTaskId(null);
+
+    try {
+      // Call API to update task
+      await tasks.update(id, trimmedText);
+
+      // Announce to screen reader
+      announceToScreenReader(`Task updated: ${trimmedText}`, 'polite');
+    } catch (err) {
+      // Rollback: restore original text
+      setTaskList((prev) => prev.map((t) => (t.id === id ? { ...t, text: originalText } : t)));
+
+      // Determine error message based on error type
+      const errorMessage =
+        err instanceof Error && err.message.includes('exceeds maximum length')
+          ? 'Task text is too long (max 500 characters)'
+          : err instanceof Error && err.message.includes('cannot be empty')
+            ? 'Task cannot be empty'
+            : 'Failed to update task. Please try again.';
+
+      // Show error toast
+      setToastError(errorMessage);
+
+      // Announce error to screen reader
+      announceToScreenReader(errorMessage, 'assertive');
+    }
+  };
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -137,6 +187,8 @@ export const TaskListView: React.FC = () => {
           error={error}
           onComplete={(id) => void handleComplete(id)}
           onDelete={(id) => void handleDelete(id)}
+          onEdit={(id, text) => void handleEdit(id, text)}
+          editingTaskId={editingTaskId}
         />
       </main>
       {toastError && (

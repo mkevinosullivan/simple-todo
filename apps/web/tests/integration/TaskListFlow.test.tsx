@@ -350,3 +350,226 @@ describe('TaskListFlow - Complete and Delete Actions', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/failed to delete task/i);
   });
 });
+
+describe('TaskListFlow - Edit Task Actions', () => {
+  it('should edit task, update text in list, and call API', async () => {
+    const task = createTestTask({
+      id: '1',
+      text: 'Buy groceries',
+      status: 'active',
+      createdAt: '2024-01-22T10:00:00Z',
+      completedAt: null,
+    });
+
+    server.use(
+      http.get('http://localhost:3001/api/tasks', () => {
+        return HttpResponse.json([task]);
+      })
+    );
+
+    server.use(
+      http.put('http://localhost:3001/api/tasks/1', async ({ request }) => {
+        const body = (await request.json()) as { text: string };
+        return HttpResponse.json({
+          ...task,
+          text: body.text,
+        });
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<TaskListView />);
+
+    // Wait for task to load
+    await waitFor(() => {
+      expect(screen.getByText('Buy groceries')).toBeInTheDocument();
+    });
+
+    // Click edit button
+    const editButton = screen.getByRole('button', { name: /edit task: buy groceries/i });
+    await user.click(editButton);
+
+    // Edit text
+    const input = screen.getByRole('textbox', { name: /edit task/i });
+    await user.clear(input);
+    await user.type(input, 'Buy milk');
+
+    // Click save button
+    const saveButton = screen.getByRole('button', { name: /save changes/i });
+    await user.click(saveButton);
+
+    // Task text should be updated immediately (optimistic update)
+    await waitFor(() => {
+      expect(screen.getByText('Buy milk')).toBeInTheDocument();
+    });
+
+    // Original text should be gone
+    expect(screen.queryByText('Buy groceries')).not.toBeInTheDocument();
+  });
+
+  it('should cancel edit without API call', async () => {
+    const task = createTestTask({
+      id: '1',
+      text: 'Buy groceries',
+      status: 'active',
+      createdAt: '2024-01-22T10:00:00Z',
+      completedAt: null,
+    });
+
+    server.use(
+      http.get('http://localhost:3001/api/tasks', () => {
+        return HttpResponse.json([task]);
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<TaskListView />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Buy groceries')).toBeInTheDocument();
+    });
+
+    const editButton = screen.getByRole('button', { name: /edit task: buy groceries/i });
+    await user.click(editButton);
+
+    const input = screen.getByRole('textbox', { name: /edit task/i });
+    await user.clear(input);
+    await user.type(input, 'Buy milk');
+
+    const cancelButton = screen.getByRole('button', { name: /cancel editing/i });
+    await user.click(cancelButton);
+
+    // Original text should remain
+    expect(screen.getByText('Buy groceries')).toBeInTheDocument();
+    // New text should not appear
+    expect(screen.queryByText('Buy milk')).not.toBeInTheDocument();
+  });
+
+  it('should show validation error for empty text', async () => {
+    const task = createTestTask({
+      id: '1',
+      text: 'Buy groceries',
+      status: 'active',
+      createdAt: '2024-01-22T10:00:00Z',
+      completedAt: null,
+    });
+
+    server.use(
+      http.get('http://localhost:3001/api/tasks', () => {
+        return HttpResponse.json([task]);
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<TaskListView />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Buy groceries')).toBeInTheDocument();
+    });
+
+    const editButton = screen.getByRole('button', { name: /edit task: buy groceries/i });
+    await user.click(editButton);
+
+    const input = screen.getByRole('textbox', { name: /edit task/i });
+    await user.clear(input);
+
+    // Save button should be disabled
+    const saveButton = screen.getByRole('button', { name: /save changes/i });
+    expect(saveButton).toBeDisabled();
+  });
+
+  it('should rollback on edit API failure and show error toast', async () => {
+    const task = createTestTask({
+      id: '1',
+      text: 'Buy groceries',
+      status: 'active',
+      createdAt: '2024-01-22T10:00:00Z',
+      completedAt: null,
+    });
+
+    server.use(
+      http.get('http://localhost:3001/api/tasks', () => {
+        return HttpResponse.json([task]);
+      })
+    );
+
+    server.use(
+      http.put('http://localhost:3001/api/tasks/1', () => {
+        return HttpResponse.json({ error: 'Internal server error' }, { status: 500 });
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<TaskListView />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Buy groceries')).toBeInTheDocument();
+    });
+
+    const editButton = screen.getByRole('button', { name: /edit task: buy groceries/i });
+    await user.click(editButton);
+
+    const input = screen.getByRole('textbox', { name: /edit task/i });
+    await user.clear(input);
+    await user.type(input, 'Buy milk');
+
+    const saveButton = screen.getByRole('button', { name: /save changes/i });
+    await user.click(saveButton);
+
+    // Task should revert to original text after API failure
+    await waitFor(() => {
+      expect(screen.getByText('Buy groceries')).toBeInTheDocument();
+    });
+
+    // New text should not appear
+    expect(screen.queryByText('Buy milk')).not.toBeInTheDocument();
+
+    // Error toast should be shown
+    expect(screen.getByRole('alert')).toHaveTextContent(/failed to update task/i);
+  });
+
+  it('should handle editing with keyboard shortcuts', async () => {
+    const task = createTestTask({
+      id: '1',
+      text: 'Buy groceries',
+      status: 'active',
+      createdAt: '2024-01-22T10:00:00Z',
+      completedAt: null,
+    });
+
+    server.use(
+      http.get('http://localhost:3001/api/tasks', () => {
+        return HttpResponse.json([task]);
+      })
+    );
+
+    server.use(
+      http.put('http://localhost:3001/api/tasks/1', async ({ request }) => {
+        const body = (await request.json()) as { text: string };
+        return HttpResponse.json({
+          ...task,
+          text: body.text,
+        });
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<TaskListView />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Buy groceries')).toBeInTheDocument();
+    });
+
+    const editButton = screen.getByRole('button', { name: /edit task: buy groceries/i });
+    await user.click(editButton);
+
+    const input = screen.getByRole('textbox', { name: /edit task/i });
+    await user.clear(input);
+    await user.type(input, 'Buy milk{Enter}');
+
+    // Task text should be updated (Enter key saves)
+    await waitFor(() => {
+      expect(screen.getByText('Buy milk')).toBeInTheDocument();
+    });
+  });
+});

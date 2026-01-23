@@ -36,6 +36,45 @@ export const handlers = [
     });
     return HttpResponse.json(newTask, { status: 201 });
   }),
+
+  // PUT /api/tasks/:id - successful task update (default)
+  http.put('http://localhost:3001/api/tasks/:id', async ({ params, request }) => {
+    const { id } = params;
+    const body = (await request.json()) as { text: string };
+
+    // Validate text field exists
+    if (!body.text || body.text.trim() === '') {
+      return HttpResponse.json({ error: 'Task text cannot be empty' }, { status: 400 });
+    }
+
+    // Return updated task
+    const updatedTask = createTestTask({
+      id: id as string,
+      text: body.text,
+      status: 'active',
+      createdAt: '2024-01-22T10:00:00Z',
+      completedAt: null,
+    });
+    return HttpResponse.json(updatedTask);
+  }),
+
+  // PATCH /api/tasks/:id/complete - successful task completion
+  http.patch('http://localhost:3001/api/tasks/:id/complete', ({ params }) => {
+    const { id } = params;
+    const completedTask = createTestTask({
+      id: id as string,
+      text: 'Test task',
+      status: 'completed',
+      createdAt: '2024-01-22T10:00:00Z',
+      completedAt: new Date().toISOString(),
+    });
+    return HttpResponse.json(completedTask);
+  }),
+
+  // DELETE /api/tasks/:id - successful task deletion
+  http.delete('http://localhost:3001/api/tasks/:id', () => {
+    return new HttpResponse(null, { status: 204 });
+  }),
 ];
 
 /**

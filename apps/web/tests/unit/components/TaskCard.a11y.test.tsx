@@ -1,6 +1,7 @@
 import type { Task } from '@simple-todo/shared/types';
 import { render } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TaskCard } from '../../../src/components/TaskCard';
 
@@ -21,12 +22,16 @@ describe('TaskCard Accessibility', () => {
   const mockOnComplete = vi.fn();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- Standard Vitest mock pattern
   const mockOnDelete = vi.fn();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- Standard Vitest mock pattern
+  const mockOnEdit = vi.fn();
 
   beforeEach(() => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- Standard Vitest mock pattern
     mockOnComplete.mockClear();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- Standard Vitest mock pattern
     mockOnDelete.mockClear();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- Standard Vitest mock pattern
+    mockOnEdit.mockClear();
   });
 
   it('should have no accessibility violations', async () => {
@@ -34,7 +39,7 @@ describe('TaskCard Accessibility', () => {
     const { container } = render(
       <ul>
         {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Standard Vitest mock pattern */}
-        <TaskCard task={task} onComplete={mockOnComplete} onDelete={mockOnDelete} />
+        <TaskCard task={task} onComplete={mockOnComplete} onDelete={mockOnDelete} onEdit={mockOnEdit} />
       </ul>
     );
 
@@ -49,7 +54,7 @@ describe('TaskCard Accessibility', () => {
     const { container } = render(
       <ul>
         {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Standard Vitest mock pattern */}
-        <TaskCard task={task} onComplete={mockOnComplete} onDelete={mockOnDelete} />
+        <TaskCard task={task} onComplete={mockOnComplete} onDelete={mockOnDelete} onEdit={mockOnEdit} />
       </ul>
     );
 
@@ -65,7 +70,7 @@ describe('TaskCard Accessibility', () => {
     const { container } = render(
       <ul>
         {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Standard Vitest mock pattern */}
-        <TaskCard task={task} onComplete={mockOnComplete} onDelete={mockOnDelete} />
+        <TaskCard task={task} onComplete={mockOnComplete} onDelete={mockOnDelete} onEdit={mockOnEdit} />
       </ul>
     );
 

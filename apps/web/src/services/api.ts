@@ -106,6 +106,38 @@ export async function apiPatch<T>(endpoint: string, body?: unknown): Promise<T> 
 }
 
 /**
+ * Base PUT request wrapper
+ *
+ * @param endpoint - API endpoint path
+ * @param body - Optional request body data
+ * @returns Parsed JSON response
+ * @throws {Error} If response status is not OK
+ */
+export async function apiPut<T>(endpoint: string, body?: unknown): Promise<T> {
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!response.ok) {
+      const errorMessage = await parseErrorResponse(response);
+      throw new Error(errorMessage);
+    }
+
+    return (await response.json()) as T;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Network request failed');
+  }
+}
+
+/**
  * Base DELETE request wrapper
  *
  * @param endpoint - API endpoint path

@@ -12,6 +12,8 @@ interface TaskListProps {
   error: string | null;
   onComplete: (id: string) => void;
   onDelete: (id: string) => void;
+  onEdit: (id: string, newText: string) => void;
+  editingTaskId?: string | null;
 }
 
 /**
@@ -31,6 +33,8 @@ interface TaskListProps {
  *   error={error}
  *   onComplete={handleComplete}
  *   onDelete={handleDelete}
+ *   onEdit={handleEdit}
+ *   editingTaskId={editingTaskId}
  * />
  */
 export const TaskList: React.FC<TaskListProps> = ({
@@ -39,6 +43,8 @@ export const TaskList: React.FC<TaskListProps> = ({
   error,
   onComplete,
   onDelete,
+  onEdit,
+  editingTaskId = null,
 }) => {
   // Sort tasks by createdAt timestamp (newest first)
   const sortedTasks = [...tasks].sort(
@@ -65,6 +71,8 @@ export const TaskList: React.FC<TaskListProps> = ({
           task={task}
           onComplete={onComplete}
           onDelete={onDelete}
+          onEdit={onEdit}
+          isEditingDisabled={editingTaskId !== null && editingTaskId !== task.id}
         />
       ))}
     </ul>

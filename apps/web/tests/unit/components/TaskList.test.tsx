@@ -7,6 +7,7 @@ import { createTestTask } from '../../helpers/factories';
 describe('TaskList', () => {
   const mockOnComplete = vi.fn();
   const mockOnDelete = vi.fn();
+  const mockOnEdit = vi.fn();
 
   it('should show loading state while fetching', () => {
     render(
@@ -16,6 +17,7 @@ describe('TaskList', () => {
         error={null}
         onComplete={mockOnComplete}
         onDelete={mockOnDelete}
+        onEdit={mockOnEdit}
       />
     );
 
@@ -36,6 +38,7 @@ describe('TaskList', () => {
         error={null}
         onComplete={mockOnComplete}
         onDelete={mockOnDelete}
+        onEdit={mockOnEdit}
       />
     );
 
@@ -59,6 +62,7 @@ describe('TaskList', () => {
         error={null}
         onComplete={mockOnComplete}
         onDelete={mockOnDelete}
+        onEdit={mockOnEdit}
       />
     );
 
@@ -80,6 +84,7 @@ describe('TaskList', () => {
         error="Failed to load tasks. Please refresh."
         onComplete={mockOnComplete}
         onDelete={mockOnDelete}
+        onEdit={mockOnEdit}
       />
     );
 
@@ -94,6 +99,7 @@ describe('TaskList', () => {
         error={null}
         onComplete={mockOnComplete}
         onDelete={mockOnDelete}
+        onEdit={mockOnEdit}
       />
     );
 
@@ -112,6 +118,7 @@ describe('TaskList', () => {
         error={null}
         onComplete={mockOnComplete}
         onDelete={mockOnDelete}
+        onEdit={mockOnEdit}
       />
     );
 
