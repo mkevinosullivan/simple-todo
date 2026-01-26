@@ -55,39 +55,86 @@ export interface UpdateTaskDto {
 
 /**
  * Helper functions for computed task properties
+ *
+ * Design Note: TaskHelpers provides on-demand computation of derived values
+ * from the minimal Task interface. These are NOT stored in the data model.
+ *
+ * Implementation Status:
+ * - ✅ Currently Implemented: getAge(), getAgeCategory(), getTextLength(), getDuration(), isValidISOTimestamp()
+ * - 📋 Future: formatDuration() and other display helpers as needed
  */
 export const TaskHelpers = {
   /**
-   * Calculate task lifetime duration (creation to completion)
-   * @returns Duration in milliseconds, or null if task not completed
-   */
-  getDuration(task: Task): number | null {
-    if (task.status === 'active' || !task.completedAt) {
-      return null;
-    }
-    return (
-      new Date(task.completedAt).getTime() - new Date(task.createdAt).getTime()
-    );
-  },
-
-  /**
    * Calculate task age (creation to now)
    * @returns Age in milliseconds
+   * @status Currently Implemented
    */
   getAge(task: Task): number {
     return Date.now() - new Date(task.createdAt).getTime();
   },
 
   /**
-   * Get task text length
-   * @returns Character count
+   * Get task age category for visual indicators
+   * @status Currently Implemented
    */
-  getTextLength(task: Task): number {
-    return task.text.length;
+  getAgeCategory(task: Task): 'fresh' | 'recent' | 'aging' | 'old' | 'stale' {
+    const ageMs = TaskHelpers.getAge(task);
+    const ageDays = ageMs / (1000 * 60 * 60 * 24);
+
+    if (ageDays < 1) return 'fresh';
+    if (ageDays < 3) return 'recent';
+    if (ageDays < 7) return 'aging';
+    if (ageDays < 14) return 'old';
+    return 'stale';
+  },
+
+  /**
+   * Calculate character count of task text
+   * @param text - The task text string
+   * @returns Character count including spaces
+   * @status Currently Implemented (Story 2.1)
+   */
+  getTextLength(text: string): number {
+    return text.length;
+  },
+
+  /**
+   * Calculate task lifetime duration (creation to completion)
+   * @param createdAt - ISO 8601 timestamp when task was created
+   * @param completedAt - ISO 8601 timestamp when completed, or null if active
+   * @returns Duration in milliseconds, or null if task not completed
+   * @status Currently Implemented (Story 2.1)
+   */
+  getDuration(
+    createdAt: string,
+    completedAt: string | null
+  ): number | null {
+    if (completedAt === null) {
+      return null;
+    }
+    return new Date(completedAt).getTime() - new Date(createdAt).getTime();
+  },
+
+  /**
+   * Validates timestamp string is in valid ISO 8601 format
+   * @param timestamp - The timestamp string to validate
+   * @returns True if valid ISO 8601 format, false otherwise
+   * @status Currently Implemented (Story 2.1)
+   */
+  isValidISOTimestamp(timestamp: string): boolean {
+    const parsed = Date.parse(timestamp);
+    if (isNaN(parsed)) {
+      return false;
+    }
+    const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+    return iso8601Regex.test(timestamp);
   },
 
   /**
    * Format duration for display (e.g., "2 days", "3 hours")
+   * @param milliseconds - Duration in milliseconds
+   * @returns Formatted duration string
+   * @status Future - To Be Implemented when display formatting needed
    */
   formatDuration(milliseconds: number): string {
     const seconds = Math.floor(milliseconds / 1000);
@@ -100,21 +147,50 @@ export const TaskHelpers = {
     if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
     return `${seconds} second${seconds !== 1 ? 's' : ''}`;
   },
-
-  /**
-   * Get task age category for visual indicators
-   */
-  getAgeCategory(task: Task): 'fresh' | 'recent' | 'aging' | 'old' | 'stale' {
-    const ageMs = TaskHelpers.getAge(task);
-    const ageDays = ageMs / (1000 * 60 * 60 * 24);
-
-    if (ageDays < 1) return 'fresh';
-    if (ageDays < 3) return 'recent';
-    if (ageDays < 7) return 'aging';
-    if (ageDays < 14) return 'old';
-    return 'stale';
-  },
 };
+
+**Usage Examples:**
+
+```typescript
+// Example 1: Get task text length (Story 2.1)
+const task: Task = { /* ... */ text: 'Buy groceries' };
+const length = TaskHelpers.getTextLength(task.text);
+console.log(length); // 14
+
+// Example 2: Calculate task duration (Story 2.1)
+const completedTask: Task = {
+  /* ... */
+  createdAt: '2026-01-20T10:00:00.000Z',
+  completedAt: '2026-01-21T15:30:00.000Z'
+};
+const duration = TaskHelpers.getDuration(
+  completedTask.createdAt,
+  completedTask.completedAt
+);
+console.log(duration); // 106200000 (milliseconds)
+
+// Example 3: Calculate age (Currently implemented)
+const activeTask: Task = { /* ... */ createdAt: '2026-01-20T10:00:00.000Z' };
+const age = TaskHelpers.getAge(activeTask);
+const category = TaskHelpers.getAgeCategory(activeTask);
+console.log(category); // 'fresh', 'recent', 'aging', 'old', or 'stale'
+
+// Example 4: Validate timestamp (Story 2.1)
+const isValid = TaskHelpers.isValidISOTimestamp('2026-01-20T10:00:00.000Z');
+console.log(isValid); // true
+```
+
+**Why Computed Properties?**
+
+The architecture uses computed properties instead of stored fields for derived values because:
+
+1. **Data Integrity**: Single source of truth (timestamps) prevents inconsistencies
+2. **Minimal Storage**: Only essential data is persisted to JSON files
+3. **No Migration**: Adding new computed properties doesn't require data migration
+4. **Always Accurate**: Calculated on-demand from current timestamps
+5. **Testable**: Pure functions with no side effects are easy to test
+
+This approach is suitable for the MVP scale (<10k tasks) where on-demand computation has negligible performance impact.
 ```
 
 ### Relationships

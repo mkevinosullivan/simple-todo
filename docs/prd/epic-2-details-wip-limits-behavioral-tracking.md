@@ -2,39 +2,34 @@
 
 **Epic Goal:** Implement the constraint-based productivity mechanism through WIP
 (Work In Progress) limit enforcement with encouraging, helpful messaging.
-Establish comprehensive data tracking infrastructure that captures task metadata
-(timestamps, text characteristics, lifetime duration) to serve as the foundation
-for all future intelligent features. By the end of this epic, users experience
-the proven psychological benefit of manageable task counts, and the system
-begins building a rich behavioral dataset.
+Establish comprehensive metadata calculation infrastructure that provides access to
+task metadata (timestamps, text characteristics, lifetime duration) to serve as the
+foundation for all future intelligent features. By the end of this epic, users
+experience the proven psychological benefit of manageable task counts, and the
+system provides rich behavioral data through computed properties.
 
-## Story 2.1: Enhanced Data Model with Metadata Tracking
+## Story 2.1: Task Metadata Calculation Infrastructure
 
-**As a** developer, **I want** the task data model extended to capture
-comprehensive metadata, **so that** we have the data foundation needed for WIP
-limits, analytics, and future intelligent features.
+**As a** developer, **I want** task metadata calculation infrastructure established
+through helper functions, **so that** we have the computational foundation needed
+for WIP limits, analytics, and future intelligent features without extending the
+stored data model.
 
 **Acceptance Criteria:**
 
-1. Task interface extended with additional fields: `textLength: number`,
-   `lifetimeDuration: number | null` (milliseconds from creation to completion)
-2. `createdAt` and `completedAt` fields verified as ISO 8601 timestamp strings
-   for consistency
-3. DataService automatically calculates `textLength` when saving tasks
-   (character count of task text)
-4. DataService automatically calculates `lifetimeDuration` when task is
-   completed (completedAt - createdAt)
-5. Migration utility created to add new fields to existing tasks in tasks.json
-   (sets defaults for missing fields)
-6. Data validation ensures all timestamps are valid date strings before saving
-7. Shared TypeScript types updated and exported for use across frontend and
-   backend
-8. Unit tests verify metadata calculations: textLength matches actual text,
-   lifetimeDuration calculated correctly
-9. Backward compatibility: Tasks without new fields can still be loaded (fields
-   added with defaults)
-10. Documentation updated showing complete Task data structure with all fields
-    and their purposes
+1. TaskHelpers utility includes `getTextLength(text: string): number` function
+   that calculates character count from task text
+2. TaskHelpers utility includes `getDuration(createdAt: string, completedAt: string | null): number | null`
+   function that calculates milliseconds from creation to completion (returns null if not completed)
+3. `createdAt` and `completedAt` timestamp fields verified as ISO 8601 strings
+   in documentation (existing fields, no changes to Task interface)
+4. Timestamp validation helper function created to ensure ISO 8601 format compliance
+5. Shared TaskHelpers utilities exported from `@simple-todo/shared/utils` for use
+   across frontend and backend
+6. Unit tests verify metadata calculations: `getTextLength()` returns correct character
+   count, `getDuration()` calculates correct milliseconds, handles null for active tasks
+7. Documentation updated showing complete TaskHelpers utility suite with usage examples
+   and clarifying these are computed properties, not stored fields
 
 ## Story 2.2: WIP Limit Service - Business Logic
 
