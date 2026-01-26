@@ -8,11 +8,11 @@ import type { Request, Response, NextFunction, RequestHandler } from 'express';
  * @returns Express RequestHandler
  */
 export const asyncHandler = <
-  P = any,
-  ResBody = any,
-  ReqBody = any,
-  ReqQuery = any,
-  Locals extends Record<string, any> = Record<string, any>,
+  P = unknown,
+  ResBody = unknown,
+  ReqBody = unknown,
+  ReqQuery = unknown,
+  Locals extends Record<string, unknown> = Record<string, unknown>,
 >(
   fn: (
     req: Request<P, ResBody, ReqBody, ReqQuery, Locals>,

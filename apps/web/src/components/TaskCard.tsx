@@ -41,12 +41,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onEdit,
   isEditingDisabled = false,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editText, setEditText] = useState(task.text);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [editText, setEditText] = useState<string>(task.text);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const ageCategory = TaskHelpers.getAgeCategory(task);
-  const ageMs = TaskHelpers.getAge(task);
+  const ageCategory: string = TaskHelpers.getAgeCategory(task);
+  const ageMs: number = TaskHelpers.getAge(task);
 
   // Convert age from milliseconds to friendly display
   const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));

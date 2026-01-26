@@ -47,8 +47,8 @@ export const TaskList: React.FC<TaskListProps> = ({
   editingTaskId = null,
 }) => {
   // Sort tasks by createdAt timestamp (newest first)
-  const sortedTasks = [...tasks].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  const sortedTasks: Task[] = [...tasks].sort(
+    (a: Task, b: Task) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   if (loading) {

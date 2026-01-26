@@ -60,8 +60,12 @@ export class DataService {
       // Read file contents
       const content = await fs.readFile(this.tasksFilePath, 'utf-8');
 
-      // Parse and return tasks
-      return JSON.parse(content) as Task[];
+      // Parse and return tasks (explicitly validate as array)
+      const parsed: unknown = JSON.parse(content);
+      if (!Array.isArray(parsed)) {
+        throw new Error('Invalid tasks data: expected array');
+      }
+      return parsed as Task[];
     } catch (error) {
       logger.error('Failed to load tasks', { error });
 

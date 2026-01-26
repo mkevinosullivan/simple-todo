@@ -58,8 +58,8 @@ export class TaskService {
       await this.dataService.saveTasks(tasks);
 
       return task;
-    } catch (error) {
-      logger.error('Failed to create task', { error, text });
+    } catch (err: unknown) {
+      logger.error('Failed to create task', { error: err, text });
       throw new Error('Failed to create task');
     }
   }
@@ -86,8 +86,8 @@ export class TaskService {
 
       // Return all tasks
       return tasks;
-    } catch (error) {
-      logger.error('Failed to get tasks', { error, status });
+    } catch (err: unknown) {
+      logger.error('Failed to get tasks', { error: err, status });
       throw new Error('Failed to get tasks');
     }
   }
@@ -113,9 +113,9 @@ export class TaskService {
       const task = tasks.find((t) => t.id === id);
 
       // Return found task or null
-      return task || null;
-    } catch (error) {
-      logger.error('Failed to get task by ID', { error, id });
+      return task ?? null;
+    } catch (err: unknown) {
+      logger.error('Failed to get task by ID', { error: err, id });
       throw new Error('Failed to get task by ID');
     }
   }
@@ -167,15 +167,15 @@ export class TaskService {
       await this.dataService.saveTasks(tasks);
 
       return task;
-    } catch (error) {
+    } catch (err: unknown) {
       // Re-throw validation errors with original message
       if (
-        error instanceof Error &&
-        (error.message === 'Task not found' || error.message === 'Cannot update completed tasks')
+        err instanceof Error &&
+        (err.message === 'Task not found' || err.message === 'Cannot update completed tasks')
       ) {
-        throw error;
+        throw err;
       }
-      logger.error('Failed to update task', { error, id, text });
+      logger.error('Failed to update task', { error: err, id, text });
       throw new Error('Failed to update task');
     }
   }
@@ -207,12 +207,12 @@ export class TaskService {
 
       // Save updated tasks
       await this.dataService.saveTasks(tasks);
-    } catch (error) {
+    } catch (err: unknown) {
       // Re-throw validation errors with original message
-      if (error instanceof Error && error.message === 'Task not found') {
-        throw error;
+      if (err instanceof Error && err.message === 'Task not found') {
+        throw err;
       }
-      logger.error('Failed to delete task', { error, id });
+      logger.error('Failed to delete task', { error: err, id });
       throw new Error('Failed to delete task');
     }
   }
@@ -255,15 +255,15 @@ export class TaskService {
       await this.dataService.saveTasks(tasks);
 
       return task;
-    } catch (error) {
+    } catch (err: unknown) {
       // Re-throw validation errors with original message
       if (
-        error instanceof Error &&
-        (error.message === 'Task not found' || error.message === 'Task is already completed')
+        err instanceof Error &&
+        (err.message === 'Task not found' || err.message === 'Task is already completed')
       ) {
-        throw error;
+        throw err;
       }
-      logger.error('Failed to complete task', { error, id });
+      logger.error('Failed to complete task', { error: err, id });
       throw new Error('Failed to complete task');
     }
   }
@@ -288,8 +288,8 @@ export class TaskService {
 
       // Return count
       return activeTasks.length;
-    } catch (error) {
-      logger.error('Failed to get active task count', { error });
+    } catch (err: unknown) {
+      logger.error('Failed to get active task count', { error: err });
       throw new Error('Failed to get active task count');
     }
   }

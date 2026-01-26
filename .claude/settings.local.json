@@ -12,7 +12,8 @@
       "Bash(npx tsc:*)",
       "Bash(npx eslint:*)",
       "Bash(echo:*)",
-      "Bash(time:*)"
+      "Bash(time:*)",
+      "mcp__ide__getDiagnostics"
     ]
   },
   "hooks": {

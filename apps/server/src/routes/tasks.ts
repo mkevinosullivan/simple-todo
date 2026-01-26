@@ -54,19 +54,19 @@ router.post(
 
         // Return created task
         res.status(201).json(task);
-      } catch (error) {
+      } catch (err: unknown) {
         // Handle service errors
-        if (error instanceof Error) {
+        if (err instanceof Error) {
           if (
-            error.message === 'Task text cannot be empty' ||
-            error.message.includes('maximum length')
+            err.message === 'Task text cannot be empty' ||
+            err.message.includes('maximum length')
           ) {
             res.status(400).json({
-              error: error.message,
+              error: err.message,
             });
             return;
           }
-          logger.error('Error creating task', { error: error.message });
+          logger.error('Error creating task', { error: err.message });
           res.status(500).json({
             error: 'Internal server error',
           });
@@ -74,7 +74,7 @@ router.post(
         }
 
         // Unexpected error
-        logger.error('Unexpected error creating task', { error });
+        logger.error('Unexpected error creating task', { error: err });
         res.status(500).json({
           error: 'Internal server error',
         });
@@ -118,10 +118,10 @@ router.get(
 
         // Return tasks array
         res.status(200).json(tasks);
-      } catch (error) {
+      } catch (err: unknown) {
         // Handle service errors
-        if (error instanceof Error) {
-          logger.error('Error getting tasks', { error: error.message });
+        if (err instanceof Error) {
+          logger.error('Error getting tasks', { error: err.message });
           res.status(500).json({
             error: 'Internal server error',
           });
@@ -129,7 +129,7 @@ router.get(
         }
 
         // Unexpected error
-        logger.error('Unexpected error getting tasks', { error });
+        logger.error('Unexpected error getting tasks', { error: err });
         res.status(500).json({
           error: 'Internal server error',
         });
@@ -174,10 +174,10 @@ router.get(
 
       // Return task
       res.status(200).json(task);
-    } catch (error) {
+    } catch (err: unknown) {
       // Handle service errors
-      if (error instanceof Error) {
-        logger.error('Error getting task by ID', { error: error.message });
+      if (err instanceof Error) {
+        logger.error('Error getting task by ID', { error: err.message });
         res.status(500).json({
           error: 'Internal server error',
         });
@@ -185,7 +185,7 @@ router.get(
       }
 
       // Unexpected error
-      logger.error('Unexpected error getting task by ID', { error });
+      logger.error('Unexpected error getting task by ID', { error: err });
       res.status(500).json({
         error: 'Internal server error',
       });
@@ -238,26 +238,26 @@ router.put(
 
         // Return updated task
         res.status(200).json(task);
-      } catch (error) {
+      } catch (err: unknown) {
         // Handle service errors
-        if (error instanceof Error) {
-          if (error.message === 'Task not found') {
+        if (err instanceof Error) {
+          if (err.message === 'Task not found') {
             res.status(404).json({
               error: 'Task not found',
             });
             return;
           }
           if (
-            error.message === 'Cannot update completed tasks' ||
-            error.message === 'Task text cannot be empty' ||
-            error.message.includes('maximum length')
+            err.message === 'Cannot update completed tasks' ||
+            err.message === 'Task text cannot be empty' ||
+            err.message.includes('maximum length')
           ) {
             res.status(400).json({
-              error: error.message,
+              error: err.message,
             });
             return;
           }
-          logger.error('Error updating task', { error: error.message });
+          logger.error('Error updating task', { error: err.message });
           res.status(500).json({
             error: 'Internal server error',
           });
@@ -265,7 +265,7 @@ router.put(
         }
 
         // Unexpected error
-        logger.error('Unexpected error updating task', { error });
+        logger.error('Unexpected error updating task', { error: err });
         res.status(500).json({
           error: 'Internal server error',
         });
@@ -302,24 +302,24 @@ router.delete(
 
       // Return 204 No Content
       res.status(204).send();
-    } catch (error) {
+    } catch (err: unknown) {
       // Handle service errors
-      if (error instanceof Error) {
-        if (error.message === 'Task not found') {
+      if (err instanceof Error) {
+        if (err.message === 'Task not found') {
           res.status(404).json({
             error: 'Task not found',
           });
           return;
         }
-        logger.error('Error deleting task', { error: error.message });
+        logger.error('Error deleting task', { error: err.message });
         res.status(500).json({
           error: 'Internal server error',
-        });
+          });
         return;
       }
 
       // Unexpected error
-      logger.error('Unexpected error deleting task', { error });
+      logger.error('Unexpected error deleting task', { error: err });
       res.status(500).json({
         error: 'Internal server error',
       });
@@ -355,22 +355,22 @@ router.patch(
 
       // Return completed task
       res.status(200).json(task);
-    } catch (error) {
+    } catch (err: unknown) {
       // Handle service errors
-      if (error instanceof Error) {
-        if (error.message === 'Task not found') {
+      if (err instanceof Error) {
+        if (err.message === 'Task not found') {
           res.status(404).json({
             error: 'Task not found',
           });
           return;
         }
-        if (error.message === 'Task is already completed') {
+        if (err.message === 'Task is already completed') {
           res.status(400).json({
             error: 'Task is already completed',
           });
           return;
         }
-        logger.error('Error completing task', { error: error.message });
+        logger.error('Error completing task', { error: err.message });
         res.status(500).json({
           error: 'Internal server error',
         });
@@ -378,7 +378,7 @@ router.patch(
       }
 
       // Unexpected error
-      logger.error('Unexpected error completing task', { error });
+      logger.error('Unexpected error completing task', { error: err });
       res.status(500).json({
         error: 'Internal server error',
       });

@@ -47,10 +47,10 @@ export const AddTaskInput: React.FC<AddTaskInputProps> = ({ onTaskCreated }) => 
     setLoading(true);
 
     try {
-      const newTask = await tasks.create(trimmedText);
+      const newTask: Task = await tasks.create(trimmedText);
       onTaskCreated(newTask);
       setText(''); // Clear input on success
-    } catch (err) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create task');
       // Keep text in input for user to retry
     } finally {

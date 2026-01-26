@@ -37,9 +37,9 @@ export const TaskListView: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await tasks.getAll('active');
+        const data: Task[] = await tasks.getAll('active');
         setTaskList(data);
-      } catch (err) {
+      } catch (err: unknown) {
         setError('Failed to load tasks. Please refresh.');
         console.error('Error fetching tasks:', err);
       } finally {
@@ -56,13 +56,13 @@ export const TaskListView: React.FC = () => {
 
   const handleComplete = async (id: string): Promise<void> => {
     // Find task for rollback and announcement
-    const task = taskList.find((t) => t.id === id);
+    const task: Task | undefined = taskList.find((t: Task) => t.id === id);
     if (!task) {
       return;
     }
 
     // Optimistic update: remove from list immediately
-    setTaskList((prev) => prev.filter((t) => t.id !== id));
+    setTaskList((prev: Task[]) => prev.filter((t: Task) => t.id !== id));
 
     try {
       // Call API to complete task
@@ -72,16 +72,15 @@ export const TaskListView: React.FC = () => {
       announceToScreenReader(`Task completed: ${task.text}`, 'polite');
 
       // Fetch celebration message
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- Celebration message typing
       const celebration: CelebrationMessage = await celebrations.getMessage();
-      // eslint-disable-next-line no-console, @typescript-eslint/no-unsafe-member-access -- Intentional logging until CelebrationOverlay is implemented (future story)
+      // eslint-disable-next-line no-console -- Intentional logging until CelebrationOverlay is implemented (future story)
       console.log('Celebration:', celebration.message);
       // TODO: Show CelebrationOverlay in future story
     } catch {
       // Rollback: restore task to list
-      setTaskList((prev) =>
+      setTaskList((prev: Task[]) =>
         [...prev, task].sort(
-          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          (a: Task, b: Task) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
       );
 
@@ -95,13 +94,13 @@ export const TaskListView: React.FC = () => {
 
   const handleDelete = async (id: string): Promise<void> => {
     // Find task for rollback and announcement
-    const task = taskList.find((t) => t.id === id);
+    const task: Task | undefined = taskList.find((t: Task) => t.id === id);
     if (!task) {
       return;
     }
 
     // Optimistic update: remove from list immediately
-    setTaskList((prev) => prev.filter((t) => t.id !== id));
+    setTaskList((prev: Task[]) => prev.filter((t: Task) => t.id !== id));
 
     try {
       // Call API to delete task
@@ -109,11 +108,11 @@ export const TaskListView: React.FC = () => {
 
       // Announce to screen reader
       announceToScreenReader(`Task deleted: ${task.text}`, 'polite');
-    } catch (err) {
+    } catch (err: unknown) {
       // Rollback: restore task to list
-      setTaskList((prev) =>
+      setTaskList((prev: Task[]) =>
         [...prev, task].sort(
-          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          (a: Task, b: Task) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
       );
 
@@ -127,7 +126,7 @@ export const TaskListView: React.FC = () => {
 
   const handleEdit = async (id: string, newText: string): Promise<void> => {
     // Validation
-    const trimmedText = newText.trim();
+    const trimmedText: string = newText.trim();
     if (trimmedText === '') {
       setToastError('Task cannot be empty');
       announceToScreenReader('Task cannot be empty', 'assertive');
@@ -135,15 +134,15 @@ export const TaskListView: React.FC = () => {
     }
 
     // Find task for rollback
-    const task = taskList.find((t) => t.id === id);
+    const task: Task | undefined = taskList.find((t: Task) => t.id === id);
     if (!task) {
       return;
     }
 
-    const originalText = task.text;
+    const originalText: string = task.text;
 
     // Optimistic update: change text immediately
-    setTaskList((prev) => prev.map((t) => (t.id === id ? { ...t, text: trimmedText } : t)));
+    setTaskList((prev: Task[]) => prev.map((t: Task) => (t.id === id ? { ...t, text: trimmedText } : t)));
 
     // Exit edit mode
     setEditingTaskId(null);
@@ -154,12 +153,12 @@ export const TaskListView: React.FC = () => {
 
       // Announce to screen reader
       announceToScreenReader(`Task updated: ${trimmedText}`, 'polite');
-    } catch (err) {
+    } catch (err: unknown) {
       // Rollback: restore original text
-      setTaskList((prev) => prev.map((t) => (t.id === id ? { ...t, text: originalText } : t)));
+      setTaskList((prev: Task[]) => prev.map((t: Task) => (t.id === id ? { ...t, text: originalText } : t)));
 
       // Determine error message based on error type
-      const errorMessage =
+      const errorMessage: string =
         err instanceof Error && err.message.includes('exceeds maximum length')
           ? 'Task text is too long (max 500 characters)'
           : err instanceof Error && err.message.includes('cannot be empty')
