@@ -38,6 +38,12 @@ logs/
 coverage/
 .nyc_output/
 
+# Compiled test files (TypeScript artifacts)
+**/*.test.js
+**/*.test.d.ts
+**/*.test.js.map
+**/*.test.d.ts.map
+
 # Temporary files
 tmp/
 temp/

@@ -1,7 +1,8 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-import type { Task } from '@simple-todo/shared/types';
+import type { Config, Task } from '@simple-todo/shared/types';
+import { DEFAULT_CONFIG } from '@simple-todo/shared/types';
 
 import { logger } from '../utils/logger.js';
 
@@ -12,15 +13,17 @@ import { logger } from '../utils/logger.js';
 export class DataService {
   private readonly dataDir: string;
   private readonly tasksFilePath: string;
+  private readonly configFilePath: string;
 
   constructor(dataDir?: string) {
     this.dataDir = dataDir || path.join(process.cwd(), 'data');
     this.tasksFilePath = path.join(this.dataDir, 'tasks.json');
+    this.configFilePath = path.join(this.dataDir, 'config.json');
   }
 
   /**
-   * Ensures the data directory and tasks.json file exist
-   * Creates them if missing with empty array as default content
+   * Ensures the data directory, tasks.json, and config.json files exist
+   * Creates them if missing with default content
    *
    * @throws {Error} If directory or file creation fails
    */
@@ -35,6 +38,15 @@ export class DataService {
       } catch {
         // File doesn't exist, create it with empty array
         await fs.writeFile(this.tasksFilePath, '[]', 'utf-8');
+      }
+
+      // Check if config.json exists
+      try {
+        await fs.access(this.configFilePath);
+      } catch {
+        // File doesn't exist, create it with DEFAULT_CONFIG
+        const content = JSON.stringify(DEFAULT_CONFIG, null, 2);
+        await fs.writeFile(this.configFilePath, content, 'utf-8');
       }
     } catch (error) {
       logger.error('Failed to ensure data file exists', { error });
@@ -110,6 +122,76 @@ export class DataService {
       });
       logger.error('Failed to save tasks', { error });
       throw new Error('Failed to save tasks');
+    }
+  }
+
+  /**
+   * Loads configuration from the JSON storage file
+   *
+   * @returns Config object, or DEFAULT_CONFIG if file doesn't exist
+   * @throws {Error} If JSON is corrupted or file system error occurs
+   *
+   * @example
+   * const config = await dataService.loadConfig();
+   * console.log(config.wipLimit); // 7 (default)
+   */
+  async loadConfig(): Promise<Config> {
+    try {
+      // Ensure file exists before reading
+      await this.ensureDataFileExists();
+
+      // Read file contents
+      const content = await fs.readFile(this.configFilePath, 'utf-8');
+
+      // Parse and return config
+      const parsed: unknown = JSON.parse(content);
+      // Type assertion is safe here as we trust the stored JSON format
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return parsed as Config;
+    } catch (error) {
+      logger.error('Failed to load config', { error });
+
+      if (error instanceof SyntaxError) {
+        throw new Error('Failed to load config: Corrupted JSON file');
+      }
+      throw new Error('Failed to load config: File system error');
+    }
+  }
+
+  /**
+   * Saves configuration to JSON file using atomic write pattern
+   *
+   * Uses temp file + rename strategy to prevent data corruption if process crashes
+   * during write. This ensures either old data or new data exists, never corrupted state.
+   *
+   * @param config - Configuration object to save
+   * @throws {Error} If file write operation fails
+   *
+   * @example
+   * await dataService.saveConfig(config);
+   */
+  async saveConfig(config: Config): Promise<void> {
+    const tempFile = `${this.configFilePath}.tmp`;
+
+    try {
+      // Ensure data directory exists
+      await fs.mkdir(this.dataDir, { recursive: true });
+
+      // Step 1: Write to temporary file first (2-space indentation)
+      const content = JSON.stringify(config, null, 2);
+      await fs.writeFile(tempFile, content, 'utf-8');
+
+      // Step 2: Atomic rename (POSIX guarantees atomicity)
+      await fs.rename(tempFile, this.configFilePath);
+
+      // If process crashes here, worst case: temp file remains, data file is intact
+    } catch (error) {
+      // Step 3: Clean up temp file on error
+      await fs.unlink(tempFile).catch(() => {
+        // Ignore cleanup errors
+      });
+      logger.error('Failed to save config', { error });
+      throw new Error('Failed to save config');
     }
   }
 }

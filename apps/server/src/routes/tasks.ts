@@ -314,7 +314,7 @@ router.delete(
         logger.error('Error deleting task', { error: err.message });
         res.status(500).json({
           error: 'Internal server error',
-          });
+        });
         return;
       }
 

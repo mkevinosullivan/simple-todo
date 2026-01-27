@@ -19,3 +19,6 @@ data
 
 # Ignore patterns
 **/*.min.js
+
+# Shared package tests (not included in tsconfig)
+packages/shared/tests/**
