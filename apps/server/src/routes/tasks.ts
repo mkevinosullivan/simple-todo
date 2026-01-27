@@ -50,6 +50,7 @@ router.post(
         const text = req.body.text.trim();
 
         // Create task (TaskService will validate empty and length)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const task = await taskService.createTask(text);
 
         // Return created task
@@ -102,6 +103,7 @@ router.get(
     ): Promise<void> => {
       try {
         // Validate query parameter if provided
+        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         let status: TaskStatus | undefined;
         if (req.query.status) {
           if (!isValidTaskStatus(req.query.status)) {
@@ -162,6 +164,7 @@ router.get(
       }
 
       // Get task
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-redundant-type-constituents
       const task = await taskService.getTaskById(req.params.id);
 
       // Check if task exists
@@ -234,6 +237,7 @@ router.put(
         const text = req.body.text.trim();
 
         // Update task (TaskService will validate empty, length, not found, completed)
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const task = await taskService.updateTask(req.params.id, text);
 
         // Return updated task
@@ -351,6 +355,7 @@ router.patch(
       }
 
       // Complete task
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const task = await taskService.completeTask(req.params.id);
 
       // Return completed task

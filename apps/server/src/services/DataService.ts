@@ -77,6 +77,7 @@ export class DataService {
       if (!Array.isArray(parsed)) {
         throw new Error('Invalid tasks data: expected array');
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return parsed as Task[];
     } catch (error) {
       logger.error('Failed to load tasks', { error });

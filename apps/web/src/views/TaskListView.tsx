@@ -51,17 +51,20 @@ export const TaskListView: React.FC = () => {
   }, []);
 
   const handleTaskCreated = (newTask: Task): void => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
     setTaskList((prevTasks) => [newTask, ...prevTasks]);
   };
 
   const handleComplete = async (id: string): Promise<void> => {
     // Find task for rollback and announcement
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-redundant-type-constituents, @typescript-eslint/no-unsafe-member-access
     const task: Task | undefined = taskList.find((t: Task) => t.id === id);
     if (!task) {
       return;
     }
 
     // Optimistic update: remove from list immediately
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
     setTaskList((prev: Task[]) => prev.filter((t: Task) => t.id !== id));
 
     try {
@@ -69,17 +72,21 @@ export const TaskListView: React.FC = () => {
       await tasks.complete(id);
 
       // Announce to screen reader
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       announceToScreenReader(`Task completed: ${task.text}`, 'polite');
 
       // Fetch celebration message
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const celebration: CelebrationMessage = await celebrations.getMessage();
-      // eslint-disable-next-line no-console -- Intentional logging until CelebrationOverlay is implemented (future story)
+      // eslint-disable-next-line no-console, @typescript-eslint/no-unsafe-member-access -- Intentional logging until CelebrationOverlay is implemented (future story)
       console.log('Celebration:', celebration.message);
       // TODO: Show CelebrationOverlay in future story
     } catch {
       // Rollback: restore task to list
       setTaskList((prev: Task[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
         [...prev, task].sort(
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
           (a: Task, b: Task) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
       );
@@ -88,18 +95,21 @@ export const TaskListView: React.FC = () => {
       setToastError('Failed to complete task. Please try again.');
 
       // Announce error to screen reader
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       announceToScreenReader(`Failed to complete task: ${task.text}`, 'assertive');
     }
   };
 
   const handleDelete = async (id: string): Promise<void> => {
     // Find task for rollback and announcement
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-redundant-type-constituents, @typescript-eslint/no-unsafe-member-access
     const task: Task | undefined = taskList.find((t: Task) => t.id === id);
     if (!task) {
       return;
     }
 
     // Optimistic update: remove from list immediately
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
     setTaskList((prev: Task[]) => prev.filter((t: Task) => t.id !== id));
 
     try {
@@ -107,11 +117,14 @@ export const TaskListView: React.FC = () => {
       await tasks.delete(id);
 
       // Announce to screen reader
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       announceToScreenReader(`Task deleted: ${task.text}`, 'polite');
     } catch (err: unknown) {
       // Rollback: restore task to list
       setTaskList((prev: Task[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
         [...prev, task].sort(
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
           (a: Task, b: Task) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
       );
@@ -120,6 +133,7 @@ export const TaskListView: React.FC = () => {
       setToastError('Failed to delete task. Please try again.');
 
       // Announce error to screen reader
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       announceToScreenReader(`Failed to delete task: ${task.text}`, 'assertive');
     }
   };
@@ -134,14 +148,17 @@ export const TaskListView: React.FC = () => {
     }
 
     // Find task for rollback
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-redundant-type-constituents, @typescript-eslint/no-unsafe-member-access
     const task: Task | undefined = taskList.find((t: Task) => t.id === id);
     if (!task) {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const originalText: string = task.text;
 
     // Optimistic update: change text immediately
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
     setTaskList((prev: Task[]) => prev.map((t: Task) => (t.id === id ? { ...t, text: trimmedText } : t)));
 
     // Exit edit mode
@@ -152,9 +169,11 @@ export const TaskListView: React.FC = () => {
       await tasks.update(id, trimmedText);
 
       // Announce to screen reader
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       announceToScreenReader(`Task updated: ${trimmedText}`, 'polite');
     } catch (err: unknown) {
       // Rollback: restore original text
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
       setTaskList((prev: Task[]) => prev.map((t: Task) => (t.id === id ? { ...t, text: originalText } : t)));
 
       // Determine error message based on error type

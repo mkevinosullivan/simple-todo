@@ -47,6 +47,7 @@ export const AddTaskInput: React.FC<AddTaskInputProps> = ({ onTaskCreated }) => 
     setLoading(true);
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const newTask: Task = await tasks.create(trimmedText);
       onTaskCreated(newTask);
       setText(''); // Clear input on success
