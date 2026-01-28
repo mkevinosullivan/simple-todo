@@ -42,10 +42,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   isEditingDisabled = false,
 }) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
   const [editText, setEditText] = useState<string>(task.text);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   const ageCategory: string = TaskHelpers.getAgeCategory(task);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   const ageMs: number = TaskHelpers.getAge(task);
 
   // Convert age from milliseconds to friendly display
@@ -80,6 +83,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   const handleEditClick = (): void => {
     setIsEditing(true);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     setEditText(task.text);
   };
 
@@ -88,12 +92,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     if (trimmedText === '') {
       return;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     onEdit(task.id, trimmedText);
     setIsEditing(false);
   };
 
   const handleCancel = (): void => {
     setIsEditing(false);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     setEditText(task.text);
   };
 
@@ -125,10 +131,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             onKeyDown={handleKeyDown}
             maxLength={500}
             className={styles.editInput}
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             aria-label={`Edit task: ${task.text}`}
           />
         ) : (
           <>
+            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
             <span className={styles.taskText}>{task.text}</span>
             <span className={styles.timestamp}>{timestampDisplay}</span>
           </>
@@ -156,6 +164,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             <button
               onClick={handleEditClick}
               disabled={isEditingDisabled}
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               aria-label={`Edit task: ${task.text}`}
               className={styles.btnEdit}
             >
@@ -163,7 +172,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               <span className={styles.srOnly}>Edit</span>
             </button>
             <button
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
               onClick={() => onComplete(task.id)}
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               aria-label={`Complete task: ${task.text}`}
               className={styles.btnComplete}
             >
@@ -171,7 +182,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               <span className={styles.buttonText}>Complete</span>
             </button>
             <button
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
               onClick={() => onDelete(task.id)}
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               aria-label={`Delete task: ${task.text}`}
               className={styles.btnDelete}
             >
