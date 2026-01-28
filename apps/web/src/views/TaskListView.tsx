@@ -158,8 +158,8 @@ export const TaskListView: React.FC = () => {
     const originalText: string = task.text;
 
     // Optimistic update: change text immediately
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
     setTaskList((prev: Task[]) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
       prev.map((t: Task) => (t.id === id ? { ...t, text: trimmedText } : t))
     );
 
@@ -175,8 +175,8 @@ export const TaskListView: React.FC = () => {
       announceToScreenReader(`Task updated: ${trimmedText}`, 'polite');
     } catch (err: unknown) {
       // Rollback: restore original text
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
       setTaskList((prev: Task[]) =>
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
         prev.map((t: Task) => (t.id === id ? { ...t, text: originalText } : t))
       );
 
