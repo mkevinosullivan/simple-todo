@@ -3,6 +3,7 @@ import { Router, type Request, type Response } from 'express';
 
 import { DataService } from '../services/DataService.js';
 import { TaskService } from '../services/TaskService.js';
+import { WIPLimitService } from '../services/WIPLimitService.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { logger } from '../utils/logger.js';
 
@@ -11,6 +12,7 @@ const router = Router();
 // Initialize services
 const dataService = new DataService(process.env.DATA_DIR);
 const taskService = new TaskService(dataService);
+const wipLimitService = new WIPLimitService(taskService, dataService);
 
 // Validation helpers
 const isValidUUID = (id: string): boolean => {
@@ -31,6 +33,7 @@ const isValidTaskStatus = (status: unknown): status is TaskStatus => {
  * @param {string} req.body.text - Task text (1-500 characters)
  * @returns {object} 201 - Created task
  * @returns {object} 400 - Validation error
+ * @returns {object} 409 - WIP limit reached
  * @returns {object} 500 - Internal server error
  */
 router.post(
@@ -48,6 +51,17 @@ router.post(
 
         // Trim whitespace
         const text = req.body.text.trim();
+
+        // Check WIP limit before creating task
+        const canAdd = await wipLimitService.canAddTask();
+        if (!canAdd) {
+          const wipLimitMessage = await wipLimitService.getWIPLimitMessage();
+          res.status(409).json({
+            error: 'WIP limit reached',
+            wipLimitMessage,
+          });
+          return;
+        }
 
         // Create task (TaskService will validate empty and length)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

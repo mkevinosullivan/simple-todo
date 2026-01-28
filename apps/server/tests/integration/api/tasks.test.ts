@@ -402,6 +402,162 @@ describe('Task API Integration Tests', () => {
     });
   });
 
+  describe('WIP Limit Enforcement', () => {
+    const testConfigFile = path.join(testDataDir, 'config.json');
+
+    beforeEach(async () => {
+      // Initialize config.json with default WIP limit of 7
+      const config = {
+        wipLimit: 7,
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+        celebrationsEnabled: true,
+        celebrationDurationSeconds: 7,
+        browserNotificationsEnabled: false,
+        hasCompletedSetup: false,
+        hasSeenPromptEducation: false,
+      };
+      await fs.writeFile(testConfigFile, JSON.stringify(config, null, 2), 'utf-8');
+    });
+
+    afterEach(async () => {
+      try {
+        await fs.unlink(testConfigFile);
+      } catch {
+        // Ignore if file doesn't exist
+      }
+    });
+
+    it('should allow task creation when under WIP limit', async () => {
+      // Create 3 active tasks (well under limit of 7)
+      const tasks = [
+        createTestTask({ text: 'Task 1' }),
+        createTestTask({ text: 'Task 2' }),
+        createTestTask({ text: 'Task 3' }),
+      ];
+      await fs.writeFile(testTasksFile, JSON.stringify(tasks), 'utf-8');
+
+      // Should be able to create another task
+      const response = await request(app).post('/api/tasks').send({ text: 'Task 4' }).expect(201);
+
+      expect(response.body).toHaveProperty('text', 'Task 4');
+      expect(response.body).toHaveProperty('status', 'active');
+    });
+
+    it('should block task creation when at WIP limit with 409 status', async () => {
+      // Create 7 active tasks (exactly at limit)
+      const tasks = Array.from({ length: 7 }, (_, i) => createTestTask({ text: `Task ${i + 1}` }));
+      await fs.writeFile(testTasksFile, JSON.stringify(tasks), 'utf-8');
+
+      // 8th task should be blocked with 409 Conflict
+      const response = await request(app).post('/api/tasks').send({ text: 'Task 8' }).expect(409);
+
+      expect(response.body).toHaveProperty('error', 'WIP limit reached');
+      expect(response.body).toHaveProperty('wipLimitMessage');
+
+      // Verify task was NOT created
+      const fileContent = await fs.readFile(testTasksFile, 'utf-8');
+      const persistedTasks = JSON.parse(fileContent);
+      expect(persistedTasks).toHaveLength(7); // Still only 7 tasks
+    });
+
+    it('should include encouraging wipLimitMessage in 409 response', async () => {
+      // Create 7 active tasks
+      const tasks = Array.from({ length: 7 }, (_, i) => createTestTask({ text: `Task ${i + 1}` }));
+      await fs.writeFile(testTasksFile, JSON.stringify(tasks), 'utf-8');
+
+      // Attempt to create 8th task
+      const response = await request(app).post('/api/tasks').send({ text: 'Task 8' }).expect(409);
+
+      expect(response.body.wipLimitMessage).toBeDefined();
+      expect(typeof response.body.wipLimitMessage).toBe('string');
+      expect(response.body.wipLimitMessage).toContain('7 active tasks');
+      expect(response.body.wipLimitMessage).toContain('complete one before adding more');
+      // Message should be encouraging, not punitive
+      expect(response.body.wipLimitMessage.toLowerCase()).toContain('focus');
+    });
+
+    it('should enforce updated limit immediately without restart', async () => {
+      // Create 5 active tasks
+      const tasks = Array.from({ length: 5 }, (_, i) => createTestTask({ text: `Task ${i + 1}` }));
+      await fs.writeFile(testTasksFile, JSON.stringify(tasks), 'utf-8');
+
+      // Task creation should succeed (5 < 7)
+      await request(app).post('/api/tasks').send({ text: 'Task 6' }).expect(201);
+
+      // Update WIP limit to 5
+      await request(app).put('/api/config/wip-limit').send({ limit: 5 }).expect(200);
+
+      // Task creation should now be blocked (6 >= 5) - no restart required
+      const response = await request(app).post('/api/tasks').send({ text: 'Task 7' }).expect(409);
+
+      expect(response.body).toHaveProperty('error', 'WIP limit reached');
+
+      // Increase limit to 10
+      await request(app).put('/api/config/wip-limit').send({ limit: 10 }).expect(200);
+
+      // Task creation should now succeed again (6 < 10)
+      await request(app).post('/api/tasks').send({ text: 'Task 7' }).expect(201);
+    });
+
+    it('should return 409 for WIP limit, distinct from 400 validation errors', async () => {
+      // Part 1: Test WIP limit error (409)
+      // Create tasks at WIP limit
+      const tasksAtLimit = Array.from({ length: 7 }, (_, i) =>
+        createTestTask({ text: `Task ${i + 1}` })
+      );
+      await fs.writeFile(testTasksFile, JSON.stringify(tasksAtLimit), 'utf-8');
+
+      // WIP limit error: 409 Conflict with wipLimitMessage
+      const wipLimitResponse = await request(app)
+        .post('/api/tasks')
+        .send({ text: 'Valid task text' })
+        .expect(409);
+
+      expect(wipLimitResponse.body).toEqual({
+        error: 'WIP limit reached',
+        wipLimitMessage: expect.any(String),
+      });
+
+      // Part 2: Test validation error (400)
+      // Reset to fewer tasks so we're not at WIP limit
+      const tasksUnderLimit = Array.from({ length: 3 }, (_, i) =>
+        createTestTask({ text: `Task ${i + 1}` })
+      );
+      await fs.writeFile(testTasksFile, JSON.stringify(tasksUnderLimit), 'utf-8');
+
+      // Validation error: 400 Bad Request without wipLimitMessage
+      const validationResponse = await request(app)
+        .post('/api/tasks')
+        .send({ text: '' })
+        .expect(400);
+
+      expect(validationResponse.body).toHaveProperty('error');
+      expect(validationResponse.body).not.toHaveProperty('wipLimitMessage');
+      expect(validationResponse.body.error).toContain('empty');
+    });
+
+    it('should not count completed tasks against WIP limit', async () => {
+      // Create 6 active tasks and 5 completed tasks (11 total)
+      const tasks = [
+        ...Array.from({ length: 6 }, (_, i) => createTestTask({ text: `Active ${i + 1}` })),
+        ...Array.from({ length: 5 }, (_, i) =>
+          createTestTask({
+            text: `Completed ${i + 1}`,
+            status: 'completed',
+            completedAt: new Date().toISOString(),
+          })
+        ),
+      ];
+      await fs.writeFile(testTasksFile, JSON.stringify(tasks), 'utf-8');
+
+      // Should be able to create one more task (6 active < 7 limit)
+      const response = await request(app).post('/api/tasks').send({ text: 'Task 12' }).expect(201);
+
+      expect(response.body).toHaveProperty('text', 'Task 12');
+    });
+  });
+
   describe('Error handling', () => {
     it('should return JSON error responses for all error cases', async () => {
       // Test various error cases and verify JSON error format

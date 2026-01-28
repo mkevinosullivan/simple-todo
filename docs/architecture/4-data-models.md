@@ -22,7 +22,7 @@
 
 ### TypeScript Interface
 
-```typescript
+````typescript
 /**
  * Task status type - single source of truth
  */
@@ -178,20 +178,25 @@ console.log(category); // 'fresh', 'recent', 'aging', 'old', or 'stale'
 // Example 4: Validate timestamp (Story 2.1)
 const isValid = TaskHelpers.isValidISOTimestamp('2026-01-20T10:00:00.000Z');
 console.log(isValid); // true
-```
+````
 
 **Why Computed Properties?**
 
-The architecture uses computed properties instead of stored fields for derived values because:
+The architecture uses computed properties instead of stored fields for derived
+values because:
 
-1. **Data Integrity**: Single source of truth (timestamps) prevents inconsistencies
+1. **Data Integrity**: Single source of truth (timestamps) prevents
+   inconsistencies
 2. **Minimal Storage**: Only essential data is persisted to JSON files
-3. **No Migration**: Adding new computed properties doesn't require data migration
+3. **No Migration**: Adding new computed properties doesn't require data
+   migration
 4. **Always Accurate**: Calculated on-demand from current timestamps
 5. **Testable**: Pure functions with no side effects are easy to test
 
-This approach is suitable for the MVP scale (<10k tasks) where on-demand computation has negligible performance impact.
-```
+This approach is suitable for the MVP scale (<10k tasks) where on-demand
+computation has negligible performance impact.
+
+````
 
 ### Relationships
 
@@ -260,7 +265,7 @@ export const DEFAULT_CONFIG: Config = {
   hasCompletedSetup: false,
   hasSeenPromptEducation: false,
 };
-```
+````
 
 ---
 

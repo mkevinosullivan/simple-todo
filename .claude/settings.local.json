@@ -15,7 +15,8 @@
       "Bash(time:*)",
       "mcp__ide__getDiagnostics",
       "Bash(npx jest:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(npx prettier:*)"
     ]
   },
   "hooks": {

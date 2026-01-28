@@ -159,7 +159,9 @@ export const TaskListView: React.FC = () => {
 
     // Optimistic update: change text immediately
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-    setTaskList((prev: Task[]) => prev.map((t: Task) => (t.id === id ? { ...t, text: trimmedText } : t)));
+    setTaskList((prev: Task[]) =>
+      prev.map((t: Task) => (t.id === id ? { ...t, text: trimmedText } : t))
+    );
 
     // Exit edit mode
     setEditingTaskId(null);
@@ -174,7 +176,9 @@ export const TaskListView: React.FC = () => {
     } catch (err: unknown) {
       // Rollback: restore original text
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-      setTaskList((prev: Task[]) => prev.map((t: Task) => (t.id === id ? { ...t, text: originalText } : t)));
+      setTaskList((prev: Task[]) =>
+        prev.map((t: Task) => (t.id === id ? { ...t, text: originalText } : t))
+      );
 
       // Determine error message based on error type
       const errorMessage: string =

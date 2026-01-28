@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express, { type Express } from 'express';
 
+import configRouter from './routes/config.js';
 import healthRouter from './routes/health.js';
 import tasksRouter from './routes/tasks.js';
 
@@ -18,6 +19,7 @@ app.use(
 app.use(express.json());
 
 // Routes
+app.use('/api/config', configRouter);
 app.use('/api/health', healthRouter);
 app.use('/api/tasks', tasksRouter);
 
