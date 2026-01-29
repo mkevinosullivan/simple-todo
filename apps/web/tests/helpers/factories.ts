@@ -1,5 +1,7 @@
 import type { Task, TaskStatus } from '@simple-todo/shared/types';
 
+import type { WipConfig } from '../../src/services/config';
+
 /**
  * Factory function to create test tasks
  */
@@ -24,4 +26,18 @@ export function createTestTaskWithAge(daysAgo: number): Task {
   return createTestTask({
     createdAt: date.toISOString(),
   });
+}
+
+/**
+ * Creates a test WIP config response object
+ * @param overrides - Partial config to override defaults
+ * @returns WIP config response object for testing
+ */
+export function createTestWipConfig(overrides?: Partial<WipConfig>): WipConfig {
+  return {
+    limit: 7,
+    currentCount: 5,
+    canAddTask: true,
+    ...overrides,
+  };
 }

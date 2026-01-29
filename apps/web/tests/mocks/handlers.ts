@@ -1,7 +1,7 @@
 import type { Task } from '@simple-todo/shared/types';
 import { http, HttpResponse, type HttpHandler } from 'msw';
 
-import { createTestTask } from '../helpers/factories';
+import { createTestTask, createTestWipConfig } from '../helpers/factories';
 
 /**
  * MSW request handlers for API mocking
@@ -74,6 +74,26 @@ export const handlers: HttpHandler[] = [
   // DELETE /api/tasks/:id - successful task deletion
   http.delete('http://localhost:3001/api/tasks/:id', () => {
     return new HttpResponse(null, { status: 204 });
+  }),
+
+  // GET /api/config/wip-limit - successful WIP config retrieval
+  http.get('http://localhost:3001/api/config/wip-limit', () => {
+    return HttpResponse.json(createTestWipConfig());
+  }),
+
+  // PUT /api/config/wip-limit - successful WIP limit update
+  http.put('http://localhost:3001/api/config/wip-limit', async ({ request }) => {
+    const body = (await request.json()) as { limit: number };
+
+    // Validate limit range
+    if (body.limit < 5 || body.limit > 10) {
+      return HttpResponse.json(
+        { error: 'WIP limit must be between 5 and 10' },
+        { status: 400 }
+      );
+    }
+
+    return HttpResponse.json(createTestWipConfig({ limit: body.limit }));
   }),
 ];
 
