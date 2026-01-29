@@ -19,6 +19,8 @@ export interface Config {
   hasCompletedSetup: boolean;
   /** Whether user has seen the prompt education screen */
   hasSeenPromptEducation: boolean;
+  /** Whether user has seen the WIP limit education message */
+  hasSeenWIPLimitEducation: boolean;
 }
 
 /**
@@ -34,4 +36,5 @@ export const DEFAULT_CONFIG: Config = {
   browserNotificationsEnabled: false,
   hasCompletedSetup: false,
   hasSeenPromptEducation: false,
+  hasSeenWIPLimitEducation: false,
 };

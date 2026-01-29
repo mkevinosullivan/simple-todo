@@ -1,11 +1,16 @@
 import type React from 'react';
 
-import { TaskListView } from './views/TaskListView';
+import { TaskProvider } from './context/TaskContext.js';
+import { TaskListView } from './views/TaskListView.js';
 
 import './styles/global.css';
 
 const App: React.FC = () => {
-  return <TaskListView />;
+  return (
+    <TaskProvider>
+      <TaskListView />
+    </TaskProvider>
+  );
 };
 
 export default App;

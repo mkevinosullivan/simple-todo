@@ -23,6 +23,12 @@
   margin: 0;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .settingsButton {
   width: 44px;
   height: 44px;
@@ -68,5 +74,16 @@
 
   .title {
     font-size: 1.5rem;
+  }
+
+  .header {
+    flex-wrap: wrap;
+  }
+
+  .headerActions {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 12px;
   }
 }

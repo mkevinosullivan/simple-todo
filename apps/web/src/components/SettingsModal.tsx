@@ -7,6 +7,7 @@ import { getWipConfig, updateWipLimit } from '../services/config.js';
 export interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onLimitUpdated?: () => void;
 }
 
 /**
@@ -26,7 +27,11 @@ export interface SettingsModalProps {
  *   onClose={() => setIsSettingsOpen(false)}
  * />
  */
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({
+  isOpen,
+  onClose,
+  onLimitUpdated,
+}) => {
   const [wipConfig, setWipConfig] = useState<WipConfig | null>(null);
   const [sliderValue, setSliderValue] = useState<number>(7);
   const [initialValue, setInitialValue] = useState<number>(7);
@@ -81,6 +86,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       setWipConfig(updated);
       setInitialValue(sliderValue);
       setShowSuccessToast(true);
+
+      // Notify parent to refresh WIP status
+      if (onLimitUpdated) {
+        onLimitUpdated();
+      }
 
       // Auto-hide success toast after 5 seconds
       setTimeout(() => {

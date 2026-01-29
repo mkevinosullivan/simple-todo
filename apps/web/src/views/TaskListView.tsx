@@ -1,15 +1,20 @@
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import type { CelebrationMessage, Task } from '@simple-todo/shared/types';
 
-import { AddTaskInput } from '../components/AddTaskInput';
-import { ErrorToast } from '../components/ErrorToast';
-import { SettingsModal } from '../components/SettingsModal';
-import { TaskList } from '../components/TaskList';
-import { celebrations } from '../services/celebrations';
-import { tasks } from '../services/tasks';
-import { announceToScreenReader } from '../utils/announceToScreenReader';
+import { AddTaskInput } from '../components/AddTaskInput.js';
+import { ErrorToast } from '../components/ErrorToast.js';
+import { SettingsModal } from '../components/SettingsModal.js';
+import { TaskList } from '../components/TaskList.js';
+import { WIPCountIndicator } from '../components/WIPCountIndicator.js';
+import { WIPLimitMessage } from '../components/WIPLimitMessage.js';
+import { useTaskContext } from '../context/TaskContext.js';
+import { useWipStatus } from '../hooks/useWipStatus.js';
+import { celebrations } from '../services/celebrations.js';
+import { updateEducationFlag } from '../services/config.js';
+import { tasks } from '../services/tasks.js';
+import { announceToScreenReader } from '../utils/announceToScreenReader.js';
 
 import styles from './TaskListView.module.css';
 
@@ -27,34 +32,45 @@ import styles from './TaskListView.module.css';
  * <TaskListView />
  */
 export const TaskListView: React.FC = () => {
-  const [taskList, setTaskList] = useState<Task[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { tasks: taskList, loading, error: contextError, addTask, removeTask, updateTask } = useTaskContext();
+  const { canAddTask, currentCount, limit, hasSeenWIPLimitEducation, refreshLimit } = useWipStatus();
   const [toastError, setToastError] = useState<string | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
-
-  useEffect(() => {
-    const fetchTasks = async (): Promise<void> => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data: Task[] = await tasks.getAll('active');
-        setTaskList(data);
-      } catch (err: unknown) {
-        setError('Failed to load tasks. Please refresh.');
-        console.error('Error fetching tasks:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void fetchTasks();
-  }, []);
+  const [wipLimitPulse, setWipLimitPulse] = useState<boolean>(false);
+  const error = contextError;
 
   const handleTaskCreated = (newTask: Task): void => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
-    setTaskList((prevTasks) => [newTask, ...prevTasks]);
+    addTask(newTask);
+  };
+
+  /**
+   * Handles WIP limit reached when user tries to add task
+   */
+  const handleWipLimitReached = (): void => {
+    setWipLimitPulse(true);
+    setTimeout(() => setWipLimitPulse(false), 300);
+  };
+
+  /**
+   * Handles settings modal limit update
+   */
+  const handleLimitUpdated = (): void => {
+    refreshLimit();
+  };
+
+  /**
+   * Handles education dismissal - persists flag to backend
+   */
+  const handleEducationDismissed = async (): Promise<void> => {
+    try {
+      await updateEducationFlag(true);
+      // Refresh to update local state
+      refreshLimit();
+    } catch (err) {
+      console.error('Failed to persist education dismissal:', err);
+      // Non-critical error - user can still use the app
+    }
   };
 
   const handleComplete = async (id: string): Promise<void> => {
@@ -66,8 +82,7 @@ export const TaskListView: React.FC = () => {
     }
 
     // Optimistic update: remove from list immediately
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-    setTaskList((prev: Task[]) => prev.filter((t: Task) => t.id !== id));
+    removeTask(id);
 
     try {
       // Call API to complete task
@@ -76,22 +91,9 @@ export const TaskListView: React.FC = () => {
       // Announce to screen reader
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       announceToScreenReader(`Task completed: ${task.text}`, 'polite');
-
-      // Fetch celebration message
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const celebration: CelebrationMessage = await celebrations.getMessage();
-      // eslint-disable-next-line no-console, @typescript-eslint/no-unsafe-member-access -- Intentional logging until CelebrationOverlay is implemented (future story)
-      console.log('Celebration:', celebration.message);
-      // TODO: Show CelebrationOverlay in future story
     } catch {
       // Rollback: restore task to list
-      setTaskList((prev: Task[]) =>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
-        [...prev, task].sort(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-          (a: Task, b: Task) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-      );
+      addTask(task);
 
       // Show error toast
       setToastError('Failed to complete task. Please try again.');
@@ -99,6 +101,20 @@ export const TaskListView: React.FC = () => {
       // Announce error to screen reader
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       announceToScreenReader(`Failed to complete task: ${task.text}`, 'assertive');
+      return;
+    }
+
+    // Fetch celebration message (non-critical - don't rollback on failure)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const celebration: CelebrationMessage = await celebrations.getMessage();
+      // eslint-disable-next-line no-console, @typescript-eslint/no-unsafe-member-access -- Intentional logging until CelebrationOverlay is implemented (future story)
+      console.log('Celebration:', celebration.message);
+      // TODO: Show CelebrationOverlay in future story
+    } catch (err) {
+      // Celebration fetch failed - log but don't show error to user
+      // Task was completed successfully, celebration is optional enhancement
+      console.error('Failed to fetch celebration message:', err);
     }
   };
 
@@ -111,8 +127,7 @@ export const TaskListView: React.FC = () => {
     }
 
     // Optimistic update: remove from list immediately
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-    setTaskList((prev: Task[]) => prev.filter((t: Task) => t.id !== id));
+    removeTask(id);
 
     try {
       // Call API to delete task
@@ -123,13 +138,7 @@ export const TaskListView: React.FC = () => {
       announceToScreenReader(`Task deleted: ${task.text}`, 'polite');
     } catch (err: unknown) {
       // Rollback: restore task to list
-      setTaskList((prev: Task[]) =>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
-        [...prev, task].sort(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-          (a: Task, b: Task) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-      );
+      addTask(task);
 
       // Show error toast
       setToastError('Failed to delete task. Please try again.');
@@ -160,10 +169,7 @@ export const TaskListView: React.FC = () => {
     const originalText: string = task.text;
 
     // Optimistic update: change text immediately
-    setTaskList((prev: Task[]) =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-      prev.map((t: Task) => (t.id === id ? { ...t, text: trimmedText } : t))
-    );
+    updateTask(id, { text: trimmedText });
 
     // Exit edit mode
     setEditingTaskId(null);
@@ -177,10 +183,7 @@ export const TaskListView: React.FC = () => {
       announceToScreenReader(`Task updated: ${trimmedText}`, 'polite');
     } catch (err: unknown) {
       // Rollback: restore original text
-      setTaskList((prev: Task[]) =>
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-        prev.map((t: Task) => (t.id === id ? { ...t, text: originalText } : t))
-      );
+      updateTask(id, { text: originalText });
 
       // Determine error message based on error type
       const errorMessage: string =
@@ -202,29 +205,41 @@ export const TaskListView: React.FC = () => {
     <div className={styles.container}>
       <header className={styles.header}>
         <h1 className={styles.title}>My Tasks</h1>
-        <button
-          type="button"
-          onClick={() => setIsSettingsOpen(true)}
-          className={styles.settingsButton}
-          aria-label="Open settings"
-          title="Settings"
-        >
-          <svg
-            className={styles.settingsIcon}
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div className={styles.headerActions}>
+          <WIPCountIndicator onOpenSettings={() => setIsSettingsOpen(true)} />
+          <button
+            type="button"
+            onClick={() => setIsSettingsOpen(true)}
+            className={styles.settingsButton}
+            aria-label="Open settings"
+            title="Settings"
           >
-            <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-          </svg>
-        </button>
+            <svg
+              className={styles.settingsIcon}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </button>
+        </div>
       </header>
       <main className={styles.main}>
-        <AddTaskInput onTaskCreated={handleTaskCreated} />
+        <AddTaskInput onTaskCreated={handleTaskCreated} onWipLimitReached={handleWipLimitReached} />
+        <WIPLimitMessage
+          canAddTask={canAddTask}
+          currentCount={currentCount}
+          limit={limit}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          shouldPulse={wipLimitPulse}
+          hasSeenEducation={hasSeenWIPLimitEducation}
+          onEducationDismissed={() => void handleEducationDismissed()}
+        />
         <TaskList
           tasks={taskList}
           loading={loading}
@@ -236,7 +251,11 @@ export const TaskListView: React.FC = () => {
         />
       </main>
       {toastError && <ErrorToast message={toastError} onDismiss={() => setToastError(null)} />}
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onLimitUpdated={handleLimitUpdated}
+      />
     </div>
   );
 };

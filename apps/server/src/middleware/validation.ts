@@ -35,6 +35,32 @@ export const UpdateWipLimitSchema = z.object({
 export type UpdateWipLimitDto = z.infer<typeof UpdateWipLimitSchema>;
 
 /**
+ * Zod schema for updating education flags
+ * Validates that hasSeenWIPLimitEducation is a boolean
+ *
+ * @example
+ * // Valid request bodies:
+ * { hasSeenWIPLimitEducation: true }
+ * { hasSeenWIPLimitEducation: false }
+ *
+ * // Invalid request bodies (will return 400):
+ * { hasSeenWIPLimitEducation: "true" }  // String instead of boolean
+ * {}                                     // Missing field
+ */
+export const UpdateEducationFlagSchema = z.object({
+  hasSeenWIPLimitEducation: z.boolean({
+    required_error: 'hasSeenWIPLimitEducation is required',
+    invalid_type_error: 'hasSeenWIPLimitEducation must be a boolean',
+  }),
+});
+
+/**
+ * Type inference for UpdateEducationFlagSchema
+ * Use this type for type-safe access to validated request body
+ */
+export type UpdateEducationFlagDto = z.infer<typeof UpdateEducationFlagSchema>;
+
+/**
  * Creates Express middleware that validates request body against a Zod schema
  *
  * @param schema - Zod schema to validate against

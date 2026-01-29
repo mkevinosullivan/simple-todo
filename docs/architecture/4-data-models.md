@@ -227,6 +227,7 @@ export interface Config {
   browserNotificationsEnabled: boolean;
   hasCompletedSetup: boolean;
   hasSeenPromptEducation: boolean;
+  hasSeenWIPLimitEducation: boolean; // Track if user has seen WIP limit education
 }
 
 /**
@@ -264,6 +265,7 @@ export const DEFAULT_CONFIG: Config = {
   browserNotificationsEnabled: false,
   hasCompletedSetup: false,
   hasSeenPromptEducation: false,
+  hasSeenWIPLimitEducation: false,
 };
 ````
 

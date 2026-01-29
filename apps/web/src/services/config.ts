@@ -1,4 +1,4 @@
-import { apiGet, apiPut } from './api.js';
+import { apiGet, apiPatch, apiPut } from './api.js';
 
 /**
  * WIP Config response from API
@@ -7,6 +7,7 @@ export interface WipConfig {
   limit: number;
   currentCount: number;
   canAddTask: boolean;
+  hasSeenWIPLimitEducation: boolean;
 }
 
 /**
@@ -22,7 +23,7 @@ export interface WipConfig {
  * console.log(config.canAddTask); // true
  */
 export async function getWipConfig(): Promise<WipConfig> {
-  return await apiGet<WipConfig>('/config/wip-limit');
+  return await apiGet<WipConfig>('/api/config/wip-limit');
 }
 
 /**
@@ -37,5 +38,30 @@ export async function getWipConfig(): Promise<WipConfig> {
  * console.log(updated.limit); // 8
  */
 export async function updateWipLimit(limit: number): Promise<WipConfig> {
-  return await apiPut<WipConfig>('/config/wip-limit', { limit });
+  return await apiPut<WipConfig>('/api/config/wip-limit', { limit });
+}
+
+/**
+ * Education flag response from API
+ */
+export interface EducationFlagResponse {
+  hasSeenWIPLimitEducation: boolean;
+}
+
+/**
+ * Update education flag to mark that user has seen WIP limit education
+ *
+ * @param hasSeenWIPLimitEducation - Whether user has seen the education message
+ * @returns Promise resolving to updated education flag
+ * @throws {Error} If API request fails
+ *
+ * @example
+ * await updateEducationFlag(true);
+ */
+export async function updateEducationFlag(
+  hasSeenWIPLimitEducation: boolean
+): Promise<EducationFlagResponse> {
+  return await apiPatch<EducationFlagResponse>('/api/config/education', {
+    hasSeenWIPLimitEducation,
+  });
 }

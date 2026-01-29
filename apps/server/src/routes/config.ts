@@ -1,7 +1,11 @@
 import { Router, type Request, type Response } from 'express';
 
-import type { UpdateWipLimitDto } from '../middleware/validation.js';
-import { UpdateWipLimitSchema, validateRequest } from '../middleware/validation.js';
+import type { UpdateEducationFlagDto, UpdateWipLimitDto } from '../middleware/validation.js';
+import {
+  UpdateEducationFlagSchema,
+  UpdateWipLimitSchema,
+  validateRequest,
+} from '../middleware/validation.js';
 import { DataService } from '../services/DataService.js';
 import { TaskService } from '../services/TaskService.js';
 import { WIPLimitService } from '../services/WIPLimitService.js';
@@ -46,11 +50,17 @@ router.get(
       const currentCount = await wipLimitService.getCurrentWIPCount();
       const canAddTask = await wipLimitService.canAddTask();
 
+      // Load full config to get education flag
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const config = await dataService.loadConfig();
+
       // Return configuration with metadata
       res.status(200).json({
         limit,
         currentCount,
         canAddTask,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        hasSeenWIPLimitEducation: config.hasSeenWIPLimitEducation ?? false,
       });
     } catch (error) {
       logger.error('Failed to get WIP limit configuration', { error });
@@ -145,6 +155,82 @@ router.put(
         logger.error('Failed to update WIP limit configuration', { error });
         res.status(500).json({
           error: 'Failed to update WIP limit configuration',
+        });
+      }
+    }
+  )
+);
+
+/**
+ * PATCH /api/config/education
+ * Update education flag configuration (e.g., hasSeenWIPLimitEducation)
+ *
+ * @route PATCH /api/config/education
+ * @param {object} req.body - Request body
+ * @param {boolean} req.body.hasSeenWIPLimitEducation - Whether user has seen WIP limit education
+ * @returns {object} 200 - Success response
+ * @returns {boolean} 200.hasSeenWIPLimitEducation - Updated flag value
+ * @returns {object} 400 - Validation error (invalid type)
+ * @returns {object} 500 - Internal server error
+ *
+ * @throws {Error} Returns 400 if hasSeenWIPLimitEducation is not a boolean
+ * @throws {Error} Returns 500 if unable to persist configuration
+ *
+ * @example
+ * // Request:
+ * PATCH /api/config/education
+ * {
+ *   "hasSeenWIPLimitEducation": true
+ * }
+ *
+ * // Response (200):
+ * {
+ *   "hasSeenWIPLimitEducation": true
+ * }
+ *
+ * // Error response (400 - invalid type):
+ * {
+ *   "error": "Validation failed",
+ *   "details": [
+ *     {
+ *       "field": "hasSeenWIPLimitEducation",
+ *       "message": "hasSeenWIPLimitEducation must be a boolean"
+ *     }
+ *   ]
+ * }
+ */
+router.patch(
+  '/education',
+  validateRequest(UpdateEducationFlagSchema),
+  asyncHandler(
+    async (
+      req: Request<object, object, UpdateEducationFlagDto>,
+      res: Response
+    ): Promise<void> => {
+      try {
+        // Request body is validated by middleware
+        const { hasSeenWIPLimitEducation } = req.body;
+
+        // Load current config
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const config = await dataService.loadConfig();
+
+        // Update education flag
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        config.hasSeenWIPLimitEducation = hasSeenWIPLimitEducation;
+
+        // Persist to file
+        await dataService.saveConfig(config);
+
+        // Return success response
+        res.status(200).json({
+          hasSeenWIPLimitEducation,
+        });
+      } catch (error) {
+        // Generic server error (file system, etc.)
+        logger.error('Failed to update education flag configuration', { error });
+        res.status(500).json({
+          error: 'Failed to update education flag configuration',
         });
       }
     }

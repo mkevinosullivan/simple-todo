@@ -1,0 +1,57 @@
+# Quality Gate: Story 2.5 - WIP Limit Enforcement in Task Creation UI
+
+schema: 1
+story: '2.5'
+story_title: 'WIP Limit Enforcement in Task Creation UI'
+gate: CONCERNS
+status_reason: 'Excellent implementation with comprehensive testing, but missing backend persistence for first-time education flag (AC8). Non-blocking - can be addressed in follow-up.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2026-01-29T00:00:00.000Z'
+
+waiver: { active: false }
+
+top_issues:
+  - id: 'IMPL-001'
+    severity: medium
+    finding: 'hasSeenWIPLimitEducation flag not persisted to backend (Config model has field but no API endpoint to update it)'
+    suggested_action: 'Add PUT /api/config/education endpoint or extend existing config endpoint to persist education flags'
+    suggested_owner: dev
+  - id: 'TECH-DEBT-001'
+    severity: low
+    finding: 'TaskListView.tsx has multiple ESLint disable comments suggesting type safety could be improved'
+    suggested_action: 'Refactor to eliminate need for type assertion disables (lines 63-71, 102-109, 141-148)'
+    suggested_owner: dev
+
+quality_score: 80
+expires: '2026-02-12T00:00:00.000Z'
+
+evidence:
+  tests_reviewed: 23
+  risks_identified: 2
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'No security-sensitive operations. Client-side validation only, server validation already exists from previous stories.'
+  performance:
+    status: PASS
+    notes: 'Excellent performance optimization: no polling (saves 720+ requests/hour), local filtering O(n) acceptable for MVP scale, optimistic updates reduce latency.'
+  reliability:
+    status: PASS
+    notes: 'Comprehensive error handling with rollback mechanisms. Loading states prevent duplicate operations.'
+  maintainability:
+    status: PASS
+    notes: 'Well-documented code with JSDoc, clear component boundaries, comprehensive tests enable safe refactoring, CSS modules prevent style conflicts.'
+
+recommendations:
+  immediate:
+    - action: 'Implement backend persistence for hasSeenWIPLimitEducation flag to fully satisfy AC8'
+      refs: ['apps/web/src/components/WIPLimitMessage.tsx:48-63', 'apps/server/src/routes/config.ts']
+  future:
+    - action: 'Refactor TaskListView.tsx to eliminate ESLint disable comments and improve type safety'
+      refs: ['apps/web/src/views/TaskListView.tsx:63-96']
+    - action: 'Consider extracting WIP limit logic to a dedicated WIPLimitService for better separation of concerns'
+      refs: ['apps/web/src/hooks/useWipStatus.ts']

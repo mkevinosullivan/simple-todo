@@ -1,14 +1,17 @@
 import type React from 'react';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 
 import type { Task } from '@simple-todo/shared/types';
 
-import { tasks } from '../services/tasks';
+import { tasks } from '../services/tasks.js';
+import { useWipStatus } from '../hooks/useWipStatus.js';
+import { announceToScreenReader } from '../utils/announceToScreenReader.js';
 
 import styles from './AddTaskInput.module.css';
 
 interface AddTaskInputProps {
   onTaskCreated: (task: Task) => void;
+  onWipLimitReached?: () => void;
 }
 
 /**
@@ -16,20 +19,48 @@ interface AddTaskInputProps {
  *
  * Features:
  * - Client-side validation (empty, whitespace, 500 char limit)
+ * - WIP limit enforcement (disables when limit reached)
  * - Keyboard accessible (Tab, Enter, Space)
  * - Screen reader compatible with ARIA labels
  * - Error handling with user-friendly messages
  *
  * @example
- * <AddTaskInput onTaskCreated={(task) => handleNewTask(task)} />
+ * <AddTaskInput
+ *   onTaskCreated={(task) => handleNewTask(task)}
+ *   onWipLimitReached={() => showWipMessage()}
+ * />
  */
-export const AddTaskInput: React.FC<AddTaskInputProps> = ({ onTaskCreated }) => {
+export const AddTaskInput: React.FC<AddTaskInputProps> = ({
+  onTaskCreated,
+  onWipLimitReached,
+}) => {
   const [text, setText] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { canAddTask, currentCount, limit } = useWipStatus();
+  const prevCanAddTask = useRef<boolean>(canAddTask);
+
+  /**
+   * Announce when space becomes available after being at limit
+   */
+  useEffect(() => {
+    if (prevCanAddTask.current === false && canAddTask === true) {
+      announceToScreenReader('Space available. You can now add a task.', 'polite');
+    }
+    prevCanAddTask.current = canAddTask;
+  }, [canAddTask]);
 
   const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
+
+    // WIP limit validation
+    if (!canAddTask) {
+      // Trigger WIP limit message with pulse animation
+      if (onWipLimitReached) {
+        onWipLimitReached();
+      }
+      return;
+    }
 
     // Client-side validation
     const trimmedText = text.trim();
@@ -72,14 +103,31 @@ export const AddTaskInput: React.FC<AddTaskInputProps> = ({ onTaskCreated }) => 
         onChange={(e) => setText(e.target.value)}
         placeholder="What needs to be done?"
         className={`${styles.input} ${error ? styles.inputError : ''}`}
-        disabled={loading}
+        disabled={loading || !canAddTask}
         aria-label="New task description"
         aria-invalid={!!error}
-        aria-describedby={error ? 'task-input-error' : undefined}
+        aria-describedby={error ? 'task-input-error' : !canAddTask ? 'wip-limit-info' : undefined}
       />
-      <button type="submit" className={styles.addButton} disabled={loading} aria-label="Add task">
+      <button
+        type="submit"
+        className={styles.addButton}
+        disabled={loading || !canAddTask}
+        aria-label={
+          canAddTask
+            ? 'Add task'
+            : `Cannot add task - ${currentCount} of ${limit} active tasks. Complete a task first.`
+        }
+        aria-disabled={!canAddTask}
+      >
+        {!canAddTask && '🔒 '}
         {loading ? 'Adding...' : 'Add Task'}
       </button>
+      {!canAddTask && (
+        <span id="wip-limit-info" className="sr-only">
+          Cannot add task. You have {currentCount} active tasks. Complete a task before adding
+          more.
+        </span>
+      )}
       {error && (
         <div id="task-input-error" className={styles.errorMessage} role="alert">
           {error}
