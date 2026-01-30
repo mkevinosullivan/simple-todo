@@ -48,6 +48,14 @@ export const WIPLimitMessage: React.FC<WIPLimitMessageProps> = ({
 }) => {
   const [showEducation, setShowEducation] = useState(!hasSeenEducation);
 
+  /**
+   * Synchronize local state with hasSeenEducation prop
+   * Fixes bug where education message reappears after dismissal when component re-renders
+   */
+  useEffect(() => {
+    setShowEducation(!hasSeenEducation);
+  }, [hasSeenEducation]);
+
   // Don't render if user can add tasks
   if (canAddTask) {
     return null;

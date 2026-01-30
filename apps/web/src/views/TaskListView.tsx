@@ -206,7 +206,11 @@ export const TaskListView: React.FC = () => {
       <header className={styles.header}>
         <h1 className={styles.title}>My Tasks</h1>
         <div className={styles.headerActions}>
-          <WIPCountIndicator onOpenSettings={() => setIsSettingsOpen(true)} />
+          <WIPCountIndicator
+            currentCount={currentCount}
+            limit={limit}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+          />
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
@@ -230,7 +234,13 @@ export const TaskListView: React.FC = () => {
         </div>
       </header>
       <main className={styles.main}>
-        <AddTaskInput onTaskCreated={handleTaskCreated} onWipLimitReached={handleWipLimitReached} />
+        <AddTaskInput
+          onTaskCreated={handleTaskCreated}
+          onWipLimitReached={handleWipLimitReached}
+          canAddTask={canAddTask}
+          currentCount={currentCount}
+          limit={limit}
+        />
         <WIPLimitMessage
           canAddTask={canAddTask}
           currentCount={currentCount}

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { Task } from '@simple-todo/shared/types';
 
 import { tasks } from '../services/tasks.js';
-import { useWipStatus } from '../hooks/useWipStatus.js';
 import { announceToScreenReader } from '../utils/announceToScreenReader.js';
 
 import styles from './AddTaskInput.module.css';
@@ -12,6 +11,9 @@ import styles from './AddTaskInput.module.css';
 interface AddTaskInputProps {
   onTaskCreated: (task: Task) => void;
   onWipLimitReached?: () => void;
+  canAddTask: boolean;
+  currentCount: number;
+  limit: number;
 }
 
 /**
@@ -33,11 +35,13 @@ interface AddTaskInputProps {
 export const AddTaskInput: React.FC<AddTaskInputProps> = ({
   onTaskCreated,
   onWipLimitReached,
+  canAddTask,
+  currentCount,
+  limit,
 }) => {
   const [text, setText] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { canAddTask, currentCount, limit } = useWipStatus();
   const prevCanAddTask = useRef<boolean>(canAddTask);
 
   /**

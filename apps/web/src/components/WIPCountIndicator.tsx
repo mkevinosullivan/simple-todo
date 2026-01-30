@@ -1,10 +1,10 @@
 import type React from 'react';
 
-import { useWipStatus } from '../hooks/useWipStatus.js';
-
 import styles from './WIPCountIndicator.module.css';
 
 export interface WIPCountIndicatorProps {
+  currentCount: number;
+  limit: number;
   onOpenSettings: () => void;
 }
 
@@ -16,15 +16,22 @@ export interface WIPCountIndicatorProps {
  * - Color-coded by percentage: green (0-60%), yellow (60-90%), orange (90-100%)
  * - Tooltip on hover explaining WIP limit purpose
  * - Clickable to open settings modal
- * - Real-time updates via useWipStatus hook
+ * - Real-time updates when props change
  * - Fully keyboard accessible
  * - Screen reader compatible
  *
  * @example
- * <WIPCountIndicator onOpenSettings={() => setIsSettingsOpen(true)} />
+ * <WIPCountIndicator
+ *   currentCount={5}
+ *   limit={7}
+ *   onOpenSettings={() => setIsSettingsOpen(true)}
+ * />
  */
-export const WIPCountIndicator: React.FC<WIPCountIndicatorProps> = ({ onOpenSettings }) => {
-  const { currentCount, limit } = useWipStatus();
+export const WIPCountIndicator: React.FC<WIPCountIndicatorProps> = ({
+  currentCount,
+  limit,
+  onOpenSettings,
+}) => {
 
   /**
    * Calculate percentage and determine status level

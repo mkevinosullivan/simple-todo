@@ -6,6 +6,12 @@ TypeScript, and Express.
 ## Features
 
 - **Task Management**: Add, view, edit, delete, and complete tasks
+- **WIP Limit Enforcement**: Configurable Work In Progress limit (5-10 tasks) helps maintain focus with encouraging, non-punitive messaging
+- **First-Launch Configuration**: Welcome screen guides new users through initial WIP limit setup
+- **Real-Time WIP Indicator**: Visual progress indicator shows active task count with color-coded status
+- **Settings Management**: Adjust WIP limit and view current active task count with immediate effect
+- **Behavioral Analytics**: Track completion rate, average task lifetime, task counts by status, and oldest active tasks
+- **Task Metadata**: Automatic tracking of creation and completion timestamps for all tasks
 - **Modern Tech Stack**: Built with React 18, TypeScript 5, and Express
 - **Type Safety**: Full TypeScript support across frontend and backend
 - **Code Quality**: ESLint and Prettier configured for consistent code style
@@ -112,6 +118,9 @@ The project maintains the following minimum coverage thresholds:
 
 - **DataService**: 85%+ (critical for data integrity)
 - **TaskService**: 80%+ (core business logic)
+- **WIPLimitService**: 75%+ (WIP limit enforcement logic) - **Currently: 100%**
+- **AnalyticsService**: 70%+ (behavioral metrics calculations) - **Currently: 95%**
+- **Frontend Components**: 70%+ (UI components and flows)
 - **Overall**: 70%+ for lines, functions, branches, and statements
 
 Coverage reports are generated in:
@@ -225,6 +234,81 @@ simple-todo/
 ├── package.json          # Root workspace configuration
 └── tsconfig.json         # Root TypeScript configuration
 ```
+
+## WIP Limit Feature
+
+The Work In Progress (WIP) limit feature helps you maintain focus by limiting the number of active tasks you can work on simultaneously.
+
+### Purpose
+
+Research shows that limiting work in progress reduces context switching, improves focus, and increases completion rates. The WIP limit encourages finishing tasks before starting new ones.
+
+### How to Configure
+
+- **First Launch**: When you first open the app, you'll see a welcome screen where you can set your initial WIP limit (5-10 tasks)
+- **Settings Modal**: Click the WIP count indicator or access Settings to adjust your limit at any time
+- **Default Value**: 7 active tasks (recommended for optimal focus)
+
+### Range
+
+WIP limits are configurable between **5 and 10 active tasks**. This range is based on productivity research suggesting optimal focus occurs with 5-9 concurrent tasks.
+
+### Helpful Messaging
+
+When you reach your WIP limit:
+- **Encouraging Tone**: Messages use supportive language like "maintain focus" instead of punitive phrases
+- **Calming Design**: Soft colors and friendly icons (💡) create a positive experience
+- **Guidance**: Messages include helpful context and a link to adjust your limit in Settings
+
+### WIP Count Indicator
+
+The real-time indicator in the UI header shows:
+- **Current Status**: "X of Y active tasks" (e.g., "6 of 7 active tasks")
+- **Color Coding**: Green when well below limit, yellow/orange when approaching limit, orange at limit
+- **Interactive**: Click to open Settings and adjust your limit
+- **Tooltip**: Hover for helpful context about WIP limits
+
+## Analytics Capabilities
+
+The analytics system provides rich behavioral data to help you understand your productivity patterns.
+
+### Available Metrics
+
+**Completion Rate**
+- Percentage of tasks completed out of total tasks created
+- Formula: (completed tasks / total tasks) × 100
+- Helps track overall productivity trends
+
+**Average Task Lifetime**
+- Average time from task creation to completion
+- Measured in milliseconds, can be formatted to hours/days
+- Identifies if tasks are being completed promptly or aging
+
+**Task Count by Status**
+- Breakdown of active vs. completed tasks
+- Format: `{ active: number, completed: number }`
+- Quick snapshot of current workload
+
+**Oldest Active Task**
+- Identifies the task that has been active the longest
+- Helps surface potentially forgotten or stuck tasks
+- Useful for prioritization and cleanup
+
+### How to Access
+
+**For Epic 2 (MVP)**: Analytics are implemented as backend services but not yet exposed via API endpoints. The AnalyticsService provides all metrics with comprehensive test coverage (95%+).
+
+**Phase 2**: Analytics API endpoints will be added:
+- `GET /api/analytics/tasks` - Comprehensive task analytics (planned)
+
+**Future Enhancement**: Visual dashboard with charts and trend analysis (planned for Epic 3+)
+
+### Use Cases
+
+- **Track Productivity**: Monitor completion rates over time
+- **Identify Bottlenecks**: Find tasks aging without completion
+- **Optimize Workflow**: Adjust WIP limits based on completion patterns
+- **Data-Driven Insights**: Foundation for future intelligent prompting features
 
 ## Available Scripts
 

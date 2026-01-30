@@ -8,18 +8,6 @@ import { TaskProvider } from '../../../src/context/TaskContext';
 import { createTestTask } from '../../helpers/factories';
 import { server } from '../../helpers/testSetup';
 
-// Mock useWipStatus hook
-vi.mock('../../../src/hooks/useWipStatus', () => ({
-  useWipStatus: vi.fn(() => ({
-    limit: 7,
-    currentCount: 5,
-    canAddTask: true,
-    loading: false,
-    error: null,
-    refreshLimit: vi.fn(),
-  })),
-}));
-
 // Mock announceToScreenReader
 vi.mock('../../../src/utils/announceToScreenReader', () => ({
   announceToScreenReader: vi.fn(),
@@ -28,6 +16,14 @@ vi.mock('../../../src/utils/announceToScreenReader', () => ({
 describe('AddTaskInput', () => {
   const mockOnTaskCreated = vi.fn();
   const mockOnWipLimitReached = vi.fn();
+
+  // Default props for tests
+  const defaultProps = {
+    onTaskCreated: mockOnTaskCreated,
+    canAddTask: true,
+    currentCount: 5,
+    limit: 7,
+  };
 
   beforeEach(() => {
     mockOnTaskCreated.mockClear();
@@ -39,7 +35,7 @@ describe('AddTaskInput', () => {
   };
 
   it('should render input field with placeholder text', () => {
-    renderWithProvider(<AddTaskInput onTaskCreated={mockOnTaskCreated} />);
+    renderWithProvider(<AddTaskInput {...defaultProps} />);
 
     expect(screen.getByPlaceholderText('What needs to be done?')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /add task/i })).toBeInTheDocument();
@@ -47,7 +43,7 @@ describe('AddTaskInput', () => {
 
   it('should update input value when typing', async () => {
     const user = userEvent.setup();
-    render(<AddTaskInput onTaskCreated={mockOnTaskCreated} />);
+    render(<AddTaskInput {...defaultProps} />);
 
     const input = screen.getByPlaceholderText('What needs to be done?');
     await user.type(input, 'Buy groceries');
@@ -71,7 +67,7 @@ describe('AddTaskInput', () => {
     );
 
     const user = userEvent.setup();
-    render(<AddTaskInput onTaskCreated={mockOnTaskCreated} />);
+    render(<AddTaskInput {...defaultProps} />);
 
     const input = screen.getByPlaceholderText('What needs to be done?');
     const button = screen.getByRole('button', { name: /add task/i });
@@ -105,7 +101,7 @@ describe('AddTaskInput', () => {
     );
 
     const user = userEvent.setup();
-    render(<AddTaskInput onTaskCreated={mockOnTaskCreated} />);
+    render(<AddTaskInput {...defaultProps} />);
 
     const input = screen.getByPlaceholderText('What needs to be done?');
     await user.type(input, 'Test task{Enter}');
@@ -120,7 +116,7 @@ describe('AddTaskInput', () => {
 
   it('should show error for empty input', async () => {
     const user = userEvent.setup();
-    render(<AddTaskInput onTaskCreated={mockOnTaskCreated} />);
+    render(<AddTaskInput {...defaultProps} />);
 
     const button = screen.getByRole('button', { name: /add task/i });
     await user.click(button);
@@ -131,7 +127,7 @@ describe('AddTaskInput', () => {
 
   it('should show error for whitespace-only input', async () => {
     const user = userEvent.setup();
-    render(<AddTaskInput onTaskCreated={mockOnTaskCreated} />);
+    render(<AddTaskInput {...defaultProps} />);
 
     const input = screen.getByPlaceholderText('What needs to be done?');
     await user.type(input, '   ');
@@ -143,7 +139,7 @@ describe('AddTaskInput', () => {
 
   it('should show error for text exceeding 500 characters', async () => {
     const user = userEvent.setup();
-    render(<AddTaskInput onTaskCreated={mockOnTaskCreated} />);
+    render(<AddTaskInput {...defaultProps} />);
 
     const longText = 'a'.repeat(501);
     const input = screen.getByPlaceholderText('What needs to be done?');
@@ -174,7 +170,7 @@ describe('AddTaskInput', () => {
     );
 
     const user = userEvent.setup();
-    render(<AddTaskInput onTaskCreated={mockOnTaskCreated} />);
+    render(<AddTaskInput {...defaultProps} />);
 
     const input = screen.getByPlaceholderText('What needs to be done?');
     const button = screen.getByRole('button', { name: /add task/i });
@@ -192,7 +188,7 @@ describe('AddTaskInput', () => {
 
   it('should be keyboard accessible', async () => {
     const user = userEvent.setup();
-    render(<AddTaskInput onTaskCreated={mockOnTaskCreated} />);
+    render(<AddTaskInput {...defaultProps} />);
 
     const input = screen.getByPlaceholderText('What needs to be done?');
     const button = screen.getByRole('button', { name: /add task/i });
@@ -207,7 +203,7 @@ describe('AddTaskInput', () => {
   });
 
   it('should have proper ARIA labels', () => {
-    render(<AddTaskInput onTaskCreated={mockOnTaskCreated} />);
+    render(<AddTaskInput {...defaultProps} />);
 
     const input = screen.getByPlaceholderText('What needs to be done?');
     const button = screen.getByRole('button', { name: /add task/i });
@@ -218,7 +214,7 @@ describe('AddTaskInput', () => {
 
   it('should mark input as invalid when error is shown', async () => {
     const user = userEvent.setup();
-    render(<AddTaskInput onTaskCreated={mockOnTaskCreated} />);
+    render(<AddTaskInput {...defaultProps} />);
 
     const input = screen.getByPlaceholderText('What needs to be done?');
     const button = screen.getByRole('button', { name: /add task/i });
@@ -236,7 +232,7 @@ describe('AddTaskInput', () => {
 
   it('should display error message with role="alert" for screen readers', async () => {
     const user = userEvent.setup();
-    renderWithProvider(<AddTaskInput onTaskCreated={mockOnTaskCreated} />);
+    renderWithProvider(<AddTaskInput {...defaultProps} />);
 
     const button = screen.getByRole('button', { name: /add task/i });
     await user.click(button);
@@ -250,51 +246,24 @@ describe('AddTaskInput', () => {
   // WIP Limit Enforcement Tests
   describe('WIP limit enforcement', () => {
     it('should disable button when at WIP limit', () => {
-      const { useWipStatus } = require('../../../src/hooks/useWipStatus');
-      useWipStatus.mockReturnValue({
-        limit: 7,
-        currentCount: 7,
-        canAddTask: false,
-        loading: false,
-        error: null,
-        refreshLimit: vi.fn(),
-      });
-
-      renderWithProvider(<AddTaskInput onTaskCreated={mockOnTaskCreated} onWipLimitReached={mockOnWipLimitReached} />);
+      const atLimitProps = { ...defaultProps, canAddTask: false, currentCount: 7, limit: 7, onWipLimitReached: mockOnWipLimitReached };
+      renderWithProvider(<AddTaskInput {...atLimitProps} />);
       const button = screen.getByRole('button');
       expect(button).toBeDisabled();
       expect(button).toHaveTextContent(/🔒/);
     });
 
     it('should disable input field when at WIP limit', () => {
-      const { useWipStatus } = require('../../../src/hooks/useWipStatus');
-      useWipStatus.mockReturnValue({
-        limit: 7,
-        currentCount: 7,
-        canAddTask: false,
-        loading: false,
-        error: null,
-        refreshLimit: vi.fn(),
-      });
-
-      renderWithProvider(<AddTaskInput onTaskCreated={mockOnTaskCreated} onWipLimitReached={mockOnWipLimitReached} />);
+      const atLimitProps = { ...defaultProps, canAddTask: false, currentCount: 7, limit: 7, onWipLimitReached: mockOnWipLimitReached };
+      renderWithProvider(<AddTaskInput {...atLimitProps} />);
       const input = screen.getByPlaceholderText('What needs to be done?');
       expect(input).toBeDisabled();
     });
 
     it('should block form submission when at WIP limit', async () => {
-      const { useWipStatus } = require('../../../src/hooks/useWipStatus');
-      useWipStatus.mockReturnValue({
-        limit: 7,
-        currentCount: 7,
-        canAddTask: false,
-        loading: false,
-        error: null,
-        refreshLimit: vi.fn(),
-      });
-
+      const atLimitProps = { ...defaultProps, canAddTask: false, currentCount: 7, limit: 7, onWipLimitReached: mockOnWipLimitReached };
       const user = userEvent.setup();
-      renderWithProvider(<AddTaskInput onTaskCreated={mockOnTaskCreated} onWipLimitReached={mockOnWipLimitReached} />);
+      renderWithProvider(<AddTaskInput {...atLimitProps} />);
 
       const input = screen.getByPlaceholderText('What needs to be done?');
       await user.type(input, 'New task{Enter}');
@@ -304,18 +273,9 @@ describe('AddTaskInput', () => {
     });
 
     it('should trigger onWipLimitReached when Enter pressed at limit', async () => {
-      const { useWipStatus } = require('../../../src/hooks/useWipStatus');
-      useWipStatus.mockReturnValue({
-        limit: 7,
-        currentCount: 7,
-        canAddTask: false,
-        loading: false,
-        error: null,
-        refreshLimit: vi.fn(),
-      });
-
+      const atLimitProps = { ...defaultProps, canAddTask: false, currentCount: 7, limit: 7, onWipLimitReached: mockOnWipLimitReached };
       const user = userEvent.setup();
-      renderWithProvider(<AddTaskInput onTaskCreated={mockOnTaskCreated} onWipLimitReached={mockOnWipLimitReached} />);
+      renderWithProvider(<AddTaskInput {...atLimitProps} />);
 
       const input = screen.getByPlaceholderText('What needs to be done?');
       await user.type(input, 'New task{Enter}');
@@ -324,34 +284,16 @@ describe('AddTaskInput', () => {
     });
 
     it('should re-enable button when space becomes available', () => {
-      const { useWipStatus } = require('../../../src/hooks/useWipStatus');
-      useWipStatus.mockReturnValue({
-        limit: 7,
-        currentCount: 5,
-        canAddTask: true,
-        loading: false,
-        error: null,
-        refreshLimit: vi.fn(),
-      });
-
-      renderWithProvider(<AddTaskInput onTaskCreated={mockOnTaskCreated} onWipLimitReached={mockOnWipLimitReached} />);
+      const belowLimitProps = { ...defaultProps, canAddTask: true, currentCount: 5, limit: 7, onWipLimitReached: mockOnWipLimitReached };
+      renderWithProvider(<AddTaskInput {...belowLimitProps} />);
       const button = screen.getByRole('button');
       expect(button).not.toBeDisabled();
       expect(button).not.toHaveTextContent(/🔒/);
     });
 
     it('should have descriptive aria-label when disabled', () => {
-      const { useWipStatus } = require('../../../src/hooks/useWipStatus');
-      useWipStatus.mockReturnValue({
-        limit: 7,
-        currentCount: 7,
-        canAddTask: false,
-        loading: false,
-        error: null,
-        refreshLimit: vi.fn(),
-      });
-
-      renderWithProvider(<AddTaskInput onTaskCreated={mockOnTaskCreated} onWipLimitReached={mockOnWipLimitReached} />);
+      const atLimitProps = { ...defaultProps, canAddTask: false, currentCount: 7, limit: 7, onWipLimitReached: mockOnWipLimitReached };
+      renderWithProvider(<AddTaskInput {...atLimitProps} />);
       const button = screen.getByRole('button');
       expect(button).toHaveAttribute('aria-label', 'Cannot add task - 7 of 7 active tasks. Complete a task first.');
     });
