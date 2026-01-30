@@ -1,3 +1,5 @@
+import type { Config } from '@simple-todo/shared/types';
+
 import { apiGet, apiPatch, apiPut } from './api.js';
 
 /**
@@ -8,6 +10,22 @@ export interface WipConfig {
   currentCount: number;
   canAddTask: boolean;
   hasSeenWIPLimitEducation: boolean;
+  hasCompletedSetup?: boolean; // Added for first-launch flow
+}
+
+/**
+ * Get full application configuration
+ *
+ * @returns Promise resolving to full Config object
+ * @throws {Error} If API request fails
+ *
+ * @example
+ * const config = await getConfig();
+ * console.log(config.wipLimit); // 7
+ * console.log(config.hasCompletedSetup); // false
+ */
+export async function getConfig(): Promise<Config> {
+  return await apiGet<Config>('/api/config');
 }
 
 /**

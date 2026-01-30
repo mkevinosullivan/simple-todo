@@ -1,0 +1,233 @@
+/* Container - Full viewport with centered content */
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f5f7fa; /* Neutral light gray background */
+  padding: 1rem;
+}
+
+/* Card - Elevated white card */
+.card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Heading */
+.heading {
+  font-size: 2rem; /* 32px */
+  font-weight: 600; /* Semi-bold */
+  color: #1f2937; /* Dark gray */
+  margin: 0 0 1.5rem 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Features Section */
+.features {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon {
+  font-size: 2rem;
+}
+
+.featureText {
+  font-size: 0.875rem; /* 14px */
+  color: #6b7280; /* Medium gray */
+}
+
+/* Divider */
+.divider {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 1.5rem 0;
+}
+
+/* Explanation */
+.explanation {
+  font-size: 1rem; /* 16px */
+  color: #6b7280; /* Medium gray */
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+}
+
+/* Selector Section */
+.selectorSection {
+  margin-bottom: 2rem;
+}
+
+.prompt {
+  display: block;
+  font-size: 1rem; /* 16px */
+  font-weight: 500;
+  color: #1f2937; /* Dark gray */
+  margin-bottom: 1rem;
+}
+
+/* Limit Buttons */
+.limitButtons {
+  border: none;
+  padding: 0;
+  margin: 0 0 0.75rem 0;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem; /* 8px spacing */
+  flex-wrap: wrap;
+}
+
+.limitButton {
+  min-width: 44px;
+  min-height: 44px;
+  width: 60px;
+  height: 60px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #1f2937;
+  font-size: 1.25rem; /* 20px */
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.limitButton:hover:not(:disabled) {
+  border-color: #3b82f6; /* Blue accent */
+  background-color: #eff6ff;
+}
+
+.limitButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); /* Blue focus ring */
+}
+
+.limitButton.default {
+  border-color: #3b82f6; /* Blue accent - default highlight */
+}
+
+.limitButton.selected {
+  border-color: #3b82f6; /* Blue accent */
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.limitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Helper Text */
+.helperText {
+  font-size: 0.875rem; /* 14px */
+  color: #9ca3af; /* Light gray */
+  margin: 0;
+}
+
+/* Error Message */
+.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+/* Primary Button */
+.primaryButton {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background-color: #3b82f6; /* Blue accent */
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem; /* 16px */
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background-color: #2563eb; /* Darker blue */
+}
+
+.primaryButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Secondary Button */
+.secondaryButton {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background-color: transparent;
+  color: #6b7280; /* Medium gray */
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem; /* 14px */
+  font-weight: 400;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  text-decoration: underline;
+  margin-bottom: 1.5rem;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  color: #3b82f6; /* Blue accent */
+}
+
+.secondaryButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.secondaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Pilot Message */
+.pilotMessage {
+  font-size: 0.75rem; /* 12px */
+  color: #9ca3af; /* Light gray */
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+  .card {
+    padding: 2rem 1.5rem;
+  }
+
+  .heading {
+    font-size: 1.75rem; /* 28px on mobile */
+  }
+
+  .limitButton {
+    width: 50px;
+    height: 50px;
+    font-size: 1.125rem;
+  }
+}

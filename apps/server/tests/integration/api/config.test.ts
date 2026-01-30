@@ -48,6 +48,53 @@ describe('Config API Integration Tests', () => {
     delete process.env.DATA_DIR;
   });
 
+  describe('GET /api/config', () => {
+    it('should return full configuration object', async () => {
+      const response = await request(app).get('/api/config').expect(200);
+
+      expect(response.body).toMatchObject({
+        wipLimit: 7,
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+        celebrationsEnabled: true,
+        celebrationDurationSeconds: 7,
+        browserNotificationsEnabled: false,
+        hasCompletedSetup: false,
+        hasSeenPromptEducation: false,
+        hasSeenWIPLimitEducation: false,
+      });
+    });
+
+    it('should return hasCompletedSetup false on first launch', async () => {
+      const response = await request(app).get('/api/config').expect(200);
+
+      expect(response.body.hasCompletedSetup).toBe(false);
+    });
+
+    it('should return hasCompletedSetup true after setup completed', async () => {
+      // Set hasCompletedSetup to true
+      const config: Config = { ...DEFAULT_CONFIG, hasCompletedSetup: true };
+      await fs.writeFile(testConfigFile, JSON.stringify(config, null, 2), 'utf-8');
+
+      const response = await request(app).get('/api/config').expect(200);
+
+      expect(response.body.hasCompletedSetup).toBe(true);
+    });
+
+    it('should handle missing config.json by returning DEFAULT_CONFIG', async () => {
+      // Delete config.json
+      await fs.unlink(testConfigFile);
+
+      const response = await request(app).get('/api/config').expect(200);
+
+      // Should return DEFAULT_CONFIG values
+      expect(response.body).toMatchObject({
+        wipLimit: 7,
+        hasCompletedSetup: false,
+      });
+    });
+  });
+
   describe('GET /api/config/wip-limit', () => {
     it('should return current WIP limit configuration with metadata', async () => {
       const response = await request(app).get('/api/config/wip-limit').expect(200);
@@ -253,6 +300,45 @@ describe('Config API Integration Tests', () => {
       expect(response.body).toHaveProperty('error');
       expect(response.body.error).toBe('Validation failed');
     });
+
+    it('should set hasCompletedSetup to true after updating WIP limit', async () => {
+      // Ensure hasCompletedSetup starts as false
+      const initialConfig: Config = { ...DEFAULT_CONFIG, hasCompletedSetup: false };
+      await fs.writeFile(testConfigFile, JSON.stringify(initialConfig, null, 2), 'utf-8');
+
+      // Update WIP limit
+      const response = await request(app)
+        .put('/api/config/wip-limit')
+        .send({ limit: 8 })
+        .expect(200);
+
+      // Verify response includes hasCompletedSetup: true
+      expect(response.body.hasCompletedSetup).toBe(true);
+
+      // Verify persistence in config.json
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+      expect(config.hasCompletedSetup).toBe(true);
+      expect(config.wipLimit).toBe(8);
+    });
+
+    it('should persist hasCompletedSetup across app restarts', async () => {
+      // Set hasCompletedSetup to false initially
+      const initialConfig: Config = { ...DEFAULT_CONFIG, hasCompletedSetup: false };
+      await fs.writeFile(testConfigFile, JSON.stringify(initialConfig, null, 2), 'utf-8');
+
+      // Update WIP limit (sets hasCompletedSetup to true)
+      await request(app).put('/api/config/wip-limit').send({ limit: 7 }).expect(200);
+
+      // Verify hasCompletedSetup persists in file
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+      expect(config.hasCompletedSetup).toBe(true);
+
+      // Verify GET /api/config returns hasCompletedSetup: true
+      const response = await request(app).get('/api/config').expect(200);
+      expect(response.body.hasCompletedSetup).toBe(true);
+    });
   });
 
   describe('Config Persistence', () => {
@@ -282,7 +368,8 @@ describe('Config API Integration Tests', () => {
       expect(config.wipLimit).toBe(6);
       expect(config.promptingEnabled).toBe(DEFAULT_CONFIG.promptingEnabled);
       expect(config.celebrationsEnabled).toBe(DEFAULT_CONFIG.celebrationsEnabled);
-      expect(config.hasCompletedSetup).toBe(DEFAULT_CONFIG.hasCompletedSetup);
+      // hasCompletedSetup should now be true (set by the endpoint)
+      expect(config.hasCompletedSetup).toBe(true);
     });
   });
 });
