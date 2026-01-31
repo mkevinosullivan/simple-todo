@@ -24,6 +24,10 @@ Edit(file_path: "D:\repos\project\file.tsx", ...)
 MultiEdit(file_path: "D:\repos\project\file.tsx", ...)
 ```
 
+## Location of python3
+
+**When using `python3`, you MUST use `python` as the command. The version of `python` in the `PATH` is version 3.**
+
 ## Development Commands
 
 ### Creating a git commit message

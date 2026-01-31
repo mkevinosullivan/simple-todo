@@ -21,5 +21,6 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./tests/helpers/testSetup.ts'],
     css: true,
+    testTimeout: 10000, // Increase timeout for async operations with HeadlessUI
   },
 });
