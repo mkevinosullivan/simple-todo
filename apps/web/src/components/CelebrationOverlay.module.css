@@ -1,0 +1,84 @@
+/* Celebration Overlay Backdrop */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Non-blocking: allow clicks to pass through to elements below */
+  pointer-events: none;
+}
+
+/* Celebration Card */
+.celebrationCard {
+  max-width: 500px;
+  padding: 40px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f97316 0%, #fcd34d 100%);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  /* Card is clickable for dismissal */
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Celebration Icon */
+.icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+/* Celebration Message Text */
+.message {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+/* Entrance Animation */
+@keyframes celebration-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.celebrationEnter {
+  animation: celebration-enter 500ms ease-out;
+}
+
+/* Exit Animation */
+@keyframes celebration-exit {
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.celebrationExit {
+  animation: celebration-exit 300ms ease-in forwards;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .celebrationEnter,
+  .celebrationExit {
+    animation: none;
+  }
+}

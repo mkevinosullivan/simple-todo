@@ -30,7 +30,8 @@
       "Bash(node --version:*)",
       "Bash(npm:*)",
       "Bash(node:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(npx vitest:*)"
     ]
   },
   "hooks": {
