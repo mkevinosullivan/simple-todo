@@ -93,7 +93,8 @@ describe('WIPCountIndicator', () => {
       <WIPCountIndicator currentCount={5} limit={7} onOpenSettings={mockOnOpenSettings} />
     );
     const indicator = screen.getByRole('status');
-    expect(indicator).toHaveAttribute('aria-label', '5 of 7 active tasks, below limit');
+    // 5/7 = 71.4% which is in the "approaching limit" range (60-90%)
+    expect(indicator).toHaveAttribute('aria-label', '5 of 7 active tasks, approaching limit');
   });
 
   it('should be keyboard focusable', () => {
