@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import type { CelebrationMessage, CelebrationVariant } from '@simple-todo/shared/types';
+import type { CelebrationVariant } from '@simple-todo/shared/types';
 
 import { announceToScreenReader } from '../utils/announceToScreenReader';
 import styles from './CelebrationOverlay.module.css';
@@ -62,30 +62,32 @@ export const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
     // Check for reduced motion preference
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    if (!prefersReducedMotion) {
-      // Delay confetti by 100ms after entrance animation starts for better visual impact
-      const confettiTimeout = setTimeout(async () => {
-        try {
-          // Lazy-load canvas-confetti library
-          const confettiModule = await import('canvas-confetti');
-          const confetti = confettiModule.default;
-
-          confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#F97316', '#FCD34D', '#10B981', '#3B82F6'],
-            ticks: 200,
-            gravity: 1.2,
-            scalar: 1.0,
-          });
-        } catch (error) {
-          console.error('Failed to load confetti library:', error);
-        }
-      }, 100);
-
-      return () => clearTimeout(confettiTimeout);
+    if (prefersReducedMotion) {
+      return; // Skip confetti if user prefers reduced motion
     }
+
+    // Delay confetti by 100ms after entrance animation starts for better visual impact
+    const confettiTimeout = setTimeout(async () => {
+      try {
+        // Lazy-load canvas-confetti library
+        const confettiModule = await import('canvas-confetti');
+        const confetti = confettiModule.default;
+
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#F97316', '#FCD34D', '#10B981', '#3B82F6'],
+          ticks: 200,
+          gravity: 1.2,
+          scalar: 1.0,
+        });
+      } catch (error) {
+        console.error('Failed to load confetti library:', error);
+      }
+    }, 100);
+
+    return () => clearTimeout(confettiTimeout);
   }, []);
 
   // Handle Escape key dismissal

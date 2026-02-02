@@ -1,7 +1,4 @@
-import type {
-  CelebrationMessage,
-  CelebrationVariant,
-} from '@simple-todo/shared/types';
+import type { CelebrationMessage } from '@simple-todo/shared/types';
 
 import type { TaskService } from './TaskService.js';
 
@@ -36,7 +33,7 @@ export class CelebrationService {
         variant: 'supportive',
       },
       {
-        message: 'Great work! That's progress!',
+        message: "Great work! That's progress!",
         variant: 'supportive',
       },
       {
@@ -62,7 +59,7 @@ export class CelebrationService {
       },
       // Data-driven (1 message - will be dynamically populated)
       {
-        message: 'Task completed! That's [N] this week!',
+        message: "Task completed! That's [N] this week!",
         variant: 'data-driven',
       },
     ];
@@ -80,7 +77,7 @@ export class CelebrationService {
    * console.log(celebration.message); // "Amazing! You crushed it! 🎉"
    * console.log(celebration.variant); // "enthusiastic"
    */
-  async getCelebrationMessage(taskId?: string): Promise<CelebrationMessage> {
+  async getCelebrationMessage(_taskId?: string): Promise<CelebrationMessage> {
     // Filter out recently used messages to avoid repetition
     const availableMessages = this.messagePool.filter(
       (msg) => !this.recentMessages.includes(msg.message),
