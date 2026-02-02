@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { CelebrationMessage, Task } from '@simple-todo/shared/types';
 
@@ -42,7 +42,17 @@ export const TaskListView: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [wipLimitPulse, setWipLimitPulse] = useState<boolean>(false);
   const [isFirstCompletion, setIsFirstCompletion] = useState<boolean>(true);
+  const [, setForceRender] = useState<number>(0);
   const error = contextError;
+
+  // Force re-render every 60 seconds to update age indicators
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setForceRender((prev) => prev + 1);
+    }, 60000); // 60 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, []);
 
   const handleTaskCreated = (newTask: Task): void => {
     addTask(newTask);

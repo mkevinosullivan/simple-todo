@@ -5,6 +5,8 @@ import { CheckIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import type { Task } from '@simple-todo/shared/types';
 import { TaskHelpers } from '@simple-todo/shared/utils';
 
+import { AgeIndicator } from './AgeIndicator.js';
+import { formatRelativeTime } from '../utils/formatRelativeTime.js';
 import styles from './TaskCard.module.css';
 
 interface TaskCardProps {
@@ -46,33 +48,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const [editText, setEditText] = useState<string>(task.text);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Calculate age category and display text
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  const ageCategory: string = TaskHelpers.getAgeCategory(task);
+  const ageCategory = TaskHelpers.getAgeCategory(task);
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   const ageMs: number = TaskHelpers.getAge(task);
 
-  // Convert age from milliseconds to friendly display
-  const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
-  const ageHours = Math.floor(ageMs / (1000 * 60 * 60));
-  const ageMinutes = Math.floor(ageMs / (1000 * 60));
-
-  // Timestamp display (e.g., "Created 2 days ago")
-  let timestampDisplay = '';
-  let tooltipText = '';
-
-  if (ageDays > 0) {
-    timestampDisplay = `Created ${ageDays} day${ageDays > 1 ? 's' : ''} ago`;
-    tooltipText = `Created ${ageDays} day${ageDays > 1 ? 's' : ''} ago`;
-  } else if (ageHours > 0) {
-    timestampDisplay = `Created ${ageHours} hour${ageHours > 1 ? 's' : ''} ago`;
-    tooltipText = `Created ${ageHours} hour${ageHours > 1 ? 's' : ''} ago`;
-  } else if (ageMinutes > 0) {
-    timestampDisplay = `Created ${ageMinutes} minute${ageMinutes > 1 ? 's' : ''} ago`;
-    tooltipText = `Created ${ageMinutes} minute${ageMinutes > 1 ? 's' : ''} ago`;
-  } else {
-    timestampDisplay = 'Created just now';
-    tooltipText = 'Created just now';
-  }
+  // Timestamp display using formatRelativeTime utility
+  const timestampDisplay = `Created ${formatRelativeTime(ageMs)}`;
 
   // Auto-focus input when entering edit mode
   useEffect(() => {
@@ -113,12 +96,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <li className={styles.taskCard}>
-      {/* 12px circular age indicator on left */}
-      <span
-        className={`${styles.ageIndicator} ${styles[`age-${ageCategory}`]}`}
-        title={tooltipText}
-        aria-hidden="true"
-      />
+      {/* Age indicator badge */}
+      {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
+      <AgeIndicator ageCategory={ageCategory} createdAt={task.createdAt} />
+
+      {/* Screen reader only text for age announcement */}
+      <span className={styles.srOnly}>{timestampDisplay}</span>
 
       {/* Task content: text and timestamp OR edit input */}
       <div className={styles.taskContent}>
