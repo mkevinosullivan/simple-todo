@@ -4,12 +4,14 @@ import { useState } from 'react';
 import type { CelebrationMessage, Task } from '@simple-todo/shared/types';
 
 import { AddTaskInput } from '../components/AddTaskInput.js';
+import { CelebrationOverlay } from '../components/CelebrationOverlay.js';
 import { ErrorToast } from '../components/ErrorToast.js';
 import { SettingsModal } from '../components/SettingsModal.js';
 import { TaskList } from '../components/TaskList.js';
 import { WIPCountIndicator } from '../components/WIPCountIndicator.js';
 import { WIPLimitMessage } from '../components/WIPLimitMessage.js';
 import { useTaskContext } from '../context/TaskContext.js';
+import { useCelebrationQueue } from '../hooks/useCelebrationQueue.js';
 import { useWipStatus } from '../hooks/useWipStatus.js';
 import { celebrations } from '../services/celebrations.js';
 import { updateEducationFlag } from '../services/config.js';
@@ -34,10 +36,12 @@ import styles from './TaskListView.module.css';
 export const TaskListView: React.FC = () => {
   const { tasks: taskList, loading, error: contextError, addTask, removeTask, updateTask } = useTaskContext();
   const { canAddTask, currentCount, limit, hasSeenWIPLimitEducation, refreshLimit } = useWipStatus();
+  const { currentCelebration, queueCelebration, dismissCelebration } = useCelebrationQueue();
   const [toastError, setToastError] = useState<string | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [wipLimitPulse, setWipLimitPulse] = useState<boolean>(false);
+  const [isFirstCompletion, setIsFirstCompletion] = useState<boolean>(true);
   const error = contextError;
 
   const handleTaskCreated = (newTask: Task): void => {
@@ -101,21 +105,56 @@ export const TaskListView: React.FC = () => {
       // Announce error to screen reader
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       announceToScreenReader(`Failed to complete task: ${task.text}`, 'assertive');
-      return;
+      return; // Exit early - no celebration on failure
     }
 
-    // Fetch celebration message (non-critical - don't rollback on failure)
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const celebration: CelebrationMessage = await celebrations.getMessage();
-      // eslint-disable-next-line no-console, @typescript-eslint/no-unsafe-member-access -- Intentional logging until CelebrationOverlay is implemented (future story)
-      console.log('Celebration:', celebration.message);
-      // TODO: Show CelebrationOverlay in future story
-    } catch (err) {
-      // Celebration fetch failed - log but don't show error to user
-      // Task was completed successfully, celebration is optional enhancement
-      console.error('Failed to fetch celebration message:', err);
-    }
+    // Add natural timing delay (300ms) for better UX feel
+    setTimeout(() => {
+      // Handle first completion special case
+      if (isFirstCompletion) {
+        queueCelebration({
+          message: 'First task done! Keep it up!',
+          variant: 'enthusiastic',
+          duration: 7000,
+        });
+        setIsFirstCompletion(false);
+        return;
+      }
+
+      // Fetch celebration message (non-critical)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const truncatedTaskText: string = task.text.length > 50 ? `${task.text.substring(0, 47)}...` : task.text;
+
+      void (async () => {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const celebration: CelebrationMessage = await celebrations.getMessage();
+
+          // Enhance message with task context if not already included
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          const enhancedMessage: string = celebration.message.includes(task.text)
+            ? // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              celebration.message
+            : `You completed '${truncatedTaskText}'!`;
+
+          // Queue celebration
+          queueCelebration({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            ...celebration,
+            message: enhancedMessage,
+          });
+        } catch (err) {
+          // Fallback celebration if API fails
+          console.error('Failed to fetch celebration message:', err);
+
+          queueCelebration({
+            message: 'Great job! Task completed.',
+            variant: 'supportive',
+            duration: 5000,
+          });
+        }
+      })();
+    }, 300); // Natural pause before celebration
   };
 
   const handleDelete = async (id: string): Promise<void> => {
@@ -266,6 +305,14 @@ export const TaskListView: React.FC = () => {
         onClose={() => setIsSettingsOpen(false)}
         onLimitUpdated={handleLimitUpdated}
       />
+      {currentCelebration && (
+        <CelebrationOverlay
+          message={currentCelebration.message}
+          variant={currentCelebration.variant}
+          duration={currentCelebration.duration}
+          onDismiss={dismissCelebration}
+        />
+      )}
     </div>
   );
 };
