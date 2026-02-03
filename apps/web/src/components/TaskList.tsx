@@ -2,8 +2,6 @@ import type React from 'react';
 
 import type { Task } from '@simple-todo/shared/types';
 
-import { useConfig } from '../context/ConfigContext.js';
-
 import { EmptyState } from './EmptyState';
 import { TaskCard } from './TaskCard';
 import styles from './TaskList.module.css';
@@ -48,8 +46,6 @@ export const TaskList: React.FC<TaskListProps> = ({
   onEdit,
   editingTaskId = null,
 }) => {
-  const { config, updateConfig } = useConfig();
-
   // Sort tasks by createdAt timestamp (newest first)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const sortedTasks: Task[] = [...tasks].sort(
@@ -66,7 +62,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   }
 
   if (sortedTasks.length === 0) {
-    return <EmptyState config={config} onConfigUpdate={updateConfig} />;
+    return <EmptyState />;
   }
 
   return (

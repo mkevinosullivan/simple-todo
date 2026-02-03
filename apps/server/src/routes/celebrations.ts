@@ -1,6 +1,6 @@
+import type { CelebrationMessage } from '@simple-todo/shared/types';
 import { Router, type Request, type Response } from 'express';
 
-import type { CelebrationMessage } from '@simple-todo/shared/types';
 
 import { CelebrationService } from '../services/CelebrationService.js';
 import { asyncHandler } from '../utils/asyncHandler.js';

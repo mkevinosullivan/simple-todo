@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express, { type Express } from 'express';
 
+import analyticsRouter from './routes/analytics.js';
 import celebrationsRouter from './routes/celebrations.js';
 import configRouter from './routes/config.js';
 import healthRouter from './routes/health.js';
@@ -20,6 +21,7 @@ app.use(
 app.use(express.json());
 
 // Routes
+app.use('/api/analytics', analyticsRouter);
 app.use('/api/celebrations', celebrationsRouter);
 app.use('/api/config', configRouter);
 app.use('/api/health', healthRouter);

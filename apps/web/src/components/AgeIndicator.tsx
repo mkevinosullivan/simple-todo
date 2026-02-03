@@ -4,6 +4,7 @@ import type { AgeCategory } from '@simple-todo/shared/utils';
 import { TaskHelpers } from '@simple-todo/shared/utils';
 
 import { formatRelativeTime } from '../utils/formatRelativeTime.js';
+
 import styles from './AgeIndicator.module.css';
 
 interface AgeIndicatorProps {

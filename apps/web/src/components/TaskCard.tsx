@@ -5,8 +5,9 @@ import { CheckIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import type { Task } from '@simple-todo/shared/types';
 import { TaskHelpers } from '@simple-todo/shared/utils';
 
-import { AgeIndicator } from './AgeIndicator.js';
 import { formatRelativeTime } from '../utils/formatRelativeTime.js';
+
+import { AgeIndicator } from './AgeIndicator.js';
 import styles from './TaskCard.module.css';
 
 interface TaskCardProps {

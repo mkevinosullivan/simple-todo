@@ -4,8 +4,8 @@ import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SettingsModal } from '../../../src/components/SettingsModal';
-import { server } from '../../helpers/testSetup';
 import { createTestWipConfig } from '../../helpers/factories';
+import { server } from '../../helpers/testSetup';
 
 describe('SettingsModal', () => {
   const mockOnClose = vi.fn();

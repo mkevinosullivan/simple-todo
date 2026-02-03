@@ -1,8 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import type { CelebrationVariant } from '@simple-todo/shared/types';
 
 import { announceToScreenReader } from '../utils/announceToScreenReader';
+
 import styles from './CelebrationOverlay.module.css';
 
 // Icon mapping for celebration variants

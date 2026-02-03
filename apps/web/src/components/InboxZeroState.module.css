@@ -1,0 +1,150 @@
+/* InboxZeroState Component Styles */
+
+/* Entrance animation: fade + gentle scale (400ms ease-out) */
+@keyframes inbox-zero-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Main container */
+.inboxZeroState {
+  /* Layout */
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 40px;
+
+  /* Visual design - vibrant gradient background */
+  background: linear-gradient(135deg, #f97316 0%, #fcd34d 100%);
+  border-radius: 16px;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+
+  /* Typography */
+  text-align: center;
+  color: white;
+
+  /* Animation */
+  animation: inbox-zero-enter 400ms ease-out;
+}
+
+/* Celebration heading */
+.heading {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  color: white;
+  line-height: 1.2;
+}
+
+/* Statistics section */
+.stats {
+  font-size: 18px;
+  font-weight: 400;
+  margin: 0 0 32px 0;
+  color: white;
+  line-height: 1.5;
+}
+
+/* Statistics count (number) */
+.count {
+  font-size: 36px;
+  font-weight: 700;
+  display: inline-block;
+  margin: 0 4px;
+}
+
+/* CTA button */
+.ctaButton {
+  /* Layout */
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+
+  /* Typography */
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+
+  /* Colors */
+  background-color: white;
+  color: #111827;
+
+  /* Interaction */
+  transition: all 200ms ease-in-out;
+}
+
+.ctaButton:hover {
+  background-color: #f3f4f6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ctaButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Focus indicator for accessibility */
+.ctaButton:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Responsive design */
+
+/* Large (>1024px) - Default styles above */
+
+/* Medium (768-1024px) - No changes needed, same as large */
+
+/* Small (480-768px) */
+@media (max-width: 768px) {
+  .inboxZeroState {
+    max-width: 90%;
+    padding: 32px;
+  }
+
+  .heading {
+    font-size: 28px;
+  }
+
+  .stats {
+    font-size: 16px;
+  }
+
+  .count {
+    font-size: 32px;
+  }
+}
+
+/* XSmall (<480px) */
+@media (max-width: 480px) {
+  .inboxZeroState {
+    max-width: 95%;
+    padding: 24px;
+  }
+
+  .heading {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .stats {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .count {
+    font-size: 28px;
+  }
+
+  .ctaButton {
+    width: 100%;
+    padding: 14px 24px;
+  }
+}

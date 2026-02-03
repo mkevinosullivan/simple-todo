@@ -1,7 +1,7 @@
+import type { CelebrationMessage } from '@simple-todo/shared/types';
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 
-import type { CelebrationMessage } from '@simple-todo/shared/types';
 
 import { useCelebrationQueue } from '../../../src/hooks/useCelebrationQueue';
 

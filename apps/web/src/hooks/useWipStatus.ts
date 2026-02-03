@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
-import { getWipConfig } from '../services/config.js';
 import { useTaskContext } from '../context/TaskContext.js';
+import { getWipConfig } from '../services/config.js';
 
 /**
  * WIP Status Hook Return Type

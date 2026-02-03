@@ -1,8 +1,11 @@
+import type React from 'react';
+import { Fragment, useEffect, useState } from 'react';
+
 import { Dialog, Transition } from '@headlessui/react';
-import React, { Fragment, useEffect, useState } from 'react';
 
 import type { WipConfig } from '../services/config.js';
 import { getWipConfig, updateWipLimit } from '../services/config.js';
+
 import styles from './SettingsModal.module.css';
 
 export interface SettingsModalProps {
