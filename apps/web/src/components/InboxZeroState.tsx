@@ -57,7 +57,7 @@ export const InboxZeroState: React.FC<InboxZeroStateProps> = ({
             spread: 70,
             origin: { y: 0.6 },
             colors: ['#F97316', '#FCD34D', '#10B981', '#3B82F6'],
-            duration: 1000,
+            ticks: 1000,
             gravity: 1.2,
           });
         }, 100); // Delay 100ms after component appears

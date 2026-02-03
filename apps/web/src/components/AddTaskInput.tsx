@@ -102,6 +102,7 @@ export const AddTaskInput: React.FC<AddTaskInputProps> = ({
       className={styles.addTaskForm}
     >
       <input
+        id="task-input"
         type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
