@@ -83,3 +83,18 @@ export async function updateEducationFlag(
     hasSeenWIPLimitEducation,
   });
 }
+
+/**
+ * Mark user setup as completed (dismiss QuickStartGuide)
+ * Updates hasCompletedSetup flag to true
+ *
+ * @returns Promise resolving to updated full Config object
+ * @throws {Error} If API request fails
+ *
+ * @example
+ * const updatedConfig = await markSetupCompleted();
+ * console.log(updatedConfig.hasCompletedSetup); // true
+ */
+export async function markSetupCompleted(): Promise<Config> {
+  return await apiPatch<Config>('/api/config', { hasCompletedSetup: true });
+}

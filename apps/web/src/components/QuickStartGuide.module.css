@@ -1,0 +1,191 @@
+/**
+ * QuickStartGuide Component Styles
+ *
+ * First-time user quick start guide with inviting, educational design
+ */
+
+.quickStartGuide {
+  /* Card Container */
+  max-width: 480px;
+  padding: 32px;
+  margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  /* Center in viewport */
+  margin-top: 48px;
+}
+
+/* Heading - Welcome! */
+.heading {
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 12px 0;
+  text-align: center;
+}
+
+/* Subheading - App description */
+.subheading {
+  font-size: 16px;
+  font-weight: 400;
+  color: #111827;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+/* Section containers */
+.section {
+  margin-top: 24px;
+}
+
+/* Section headings (h2) */
+.sectionHeading {
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+/* Feature list */
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.featureItem:last-child {
+  margin-bottom: 0;
+}
+
+.featureIcon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.featureTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.featureDescription {
+  font-size: 16px;
+  font-weight: 400;
+  color: #111827;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Steps list */
+.stepsList {
+  margin: 0;
+  padding-left: 24px;
+}
+
+.step {
+  font-size: 16px;
+  font-weight: 400;
+  color: #111827;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.step:last-child {
+  margin-bottom: 0;
+}
+
+/* Dismiss button */
+.dismissButton {
+  width: 100%;
+  margin-top: 32px;
+  padding: 12px 24px;
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dismissButton:hover {
+  background: #1e40af;
+}
+
+.dismissButton:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.dismissButton:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.dismissButton:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+
+/* Medium screens (768-1024px) */
+@media (max-width: 1024px) {
+  .quickStartGuide {
+    max-width: 480px;
+    padding: 32px;
+  }
+}
+
+/* Small screens (480-768px) */
+@media (max-width: 768px) {
+  .quickStartGuide {
+    max-width: 90%;
+    padding: 24px;
+  }
+}
+
+/* XSmall screens (<480px) */
+@media (max-width: 480px) {
+  .quickStartGuide {
+    max-width: 95%;
+    padding: 16px;
+    margin-top: 24px;
+  }
+
+  .heading {
+    font-size: 28px;
+  }
+
+  .sectionHeading {
+    font-size: 20px;
+  }
+
+  .featureTitle {
+    font-size: 15px;
+  }
+
+  .featureDescription,
+  .step {
+    font-size: 14px;
+  }
+
+  .dismissButton {
+    padding: 10px 20px;
+    font-size: 15px;
+  }
+}

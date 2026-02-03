@@ -372,4 +372,131 @@ describe('Config API Integration Tests', () => {
       expect(config.hasCompletedSetup).toBe(true);
     });
   });
+
+  describe('PATCH /api/config - Partial Config Updates', () => {
+    it('should update hasCompletedSetup flag to true', async () => {
+      // Ensure hasCompletedSetup starts as false
+      const initialConfig: Config = { ...DEFAULT_CONFIG, hasCompletedSetup: false };
+      await fs.writeFile(testConfigFile, JSON.stringify(initialConfig, null, 2), 'utf-8');
+
+      // Update hasCompletedSetup via PATCH
+      const response = await request(app)
+        .patch('/api/config')
+        .send({ hasCompletedSetup: true })
+        .expect(200);
+
+      // Verify response includes updated flag
+      expect(response.body.hasCompletedSetup).toBe(true);
+
+      // Verify full config is returned
+      expect(response.body).toMatchObject({
+        wipLimit: 7,
+        promptingEnabled: true,
+        hasCompletedSetup: true,
+      });
+
+      // Verify persistence to file
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+      expect(config.hasCompletedSetup).toBe(true);
+    });
+
+    it('should be idempotent (calling twice has same result)', async () => {
+      // First PATCH
+      const response1 = await request(app)
+        .patch('/api/config')
+        .send({ hasCompletedSetup: true })
+        .expect(200);
+
+      expect(response1.body.hasCompletedSetup).toBe(true);
+
+      // Second PATCH (should succeed with same result)
+      const response2 = await request(app)
+        .patch('/api/config')
+        .send({ hasCompletedSetup: true })
+        .expect(200);
+
+      expect(response2.body.hasCompletedSetup).toBe(true);
+    });
+
+    it('should update multiple config fields in single request', async () => {
+      const response = await request(app)
+        .patch('/api/config')
+        .send({
+          hasCompletedSetup: true,
+          wipLimit: 5,
+          celebrationsEnabled: false,
+        })
+        .expect(200);
+
+      expect(response.body).toMatchObject({
+        hasCompletedSetup: true,
+        wipLimit: 5,
+        celebrationsEnabled: false,
+      });
+
+      // Verify persistence
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+      expect(config.hasCompletedSetup).toBe(true);
+      expect(config.wipLimit).toBe(5);
+      expect(config.celebrationsEnabled).toBe(false);
+    });
+
+    it('should preserve other fields when updating single field', async () => {
+      // Update only hasCompletedSetup
+      await request(app).patch('/api/config').send({ hasCompletedSetup: true }).expect(200);
+
+      // Verify other fields are unchanged
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+
+      expect(config.hasCompletedSetup).toBe(true);
+      expect(config.wipLimit).toBe(DEFAULT_CONFIG.wipLimit);
+      expect(config.promptingEnabled).toBe(DEFAULT_CONFIG.promptingEnabled);
+      expect(config.celebrationsEnabled).toBe(DEFAULT_CONFIG.celebrationsEnabled);
+    });
+
+    it('should reject empty body with 400 status', async () => {
+      const response = await request(app).patch('/api/config').send({}).expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should reject invalid wipLimit value', async () => {
+      const response = await request(app)
+        .patch('/api/config')
+        .send({ wipLimit: 3 })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details[0].message).toContain('at least 5');
+    });
+
+    it('should reject invalid boolean type for hasCompletedSetup', async () => {
+      const response = await request(app)
+        .patch('/api/config')
+        .send({ hasCompletedSetup: 'true' })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should update hasSeenPromptEducation flag', async () => {
+      const response = await request(app)
+        .patch('/api/config')
+        .send({ hasSeenPromptEducation: true })
+        .expect(200);
+
+      expect(response.body.hasSeenPromptEducation).toBe(true);
+
+      // Verify persistence
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+      expect(config.hasSeenPromptEducation).toBe(true);
+    });
+  });
 });

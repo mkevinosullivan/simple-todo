@@ -5,6 +5,7 @@ import type { Config } from '@simple-todo/shared/types';
 import { DEFAULT_CONFIG } from '@simple-todo/shared/types';
 
 import { FirstLaunchScreen } from './components/FirstLaunchScreen.js';
+import { ConfigProvider } from './context/ConfigContext.js';
 import { TaskProvider } from './context/TaskContext.js';
 import { getConfig, updateWipLimit } from './services/config.js';
 import { TaskListView } from './views/TaskListView.js';
@@ -113,12 +114,16 @@ const App: React.FC = () => {
     );
   }
 
-  return config?.hasCompletedSetup ? (
-    <TaskProvider>
-      <TaskListView />
-    </TaskProvider>
-  ) : (
-    <FirstLaunchScreen onComplete={handleSetupComplete} />
+  return (
+    <ConfigProvider initialConfig={config || undefined}>
+      {config?.hasCompletedSetup ? (
+        <TaskProvider>
+          <TaskListView />
+        </TaskProvider>
+      ) : (
+        <FirstLaunchScreen onComplete={handleSetupComplete} />
+      )}
+    </ConfigProvider>
   );
 };
 

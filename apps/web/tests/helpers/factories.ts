@@ -1,4 +1,5 @@
-import type { Task, TaskStatus } from '@simple-todo/shared/types';
+import type { Config, Task, TaskStatus } from '@simple-todo/shared/types';
+import { DEFAULT_CONFIG } from '@simple-todo/shared/types';
 
 import type { WipConfig } from '../../src/services/config';
 
@@ -38,6 +39,18 @@ export function createTestWipConfig(overrides?: Partial<WipConfig>): WipConfig {
     limit: 7,
     currentCount: 5,
     canAddTask: true,
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a test Config object
+ * @param overrides - Partial config to override defaults
+ * @returns Config object for testing
+ */
+export function createTestConfig(overrides?: Partial<Config>): Config {
+  return {
+    ...DEFAULT_CONFIG,
     ...overrides,
   };
 }

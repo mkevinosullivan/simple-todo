@@ -61,6 +61,58 @@ export const UpdateEducationFlagSchema = z.object({
 export type UpdateEducationFlagDto = z.infer<typeof UpdateEducationFlagSchema>;
 
 /**
+ * Zod schema for partial config updates
+ * Allows updating any config field with validation
+ *
+ * @example
+ * // Valid request bodies:
+ * { hasCompletedSetup: true }
+ * { wipLimit: 8 }
+ * { celebrationsEnabled: false }
+ * { hasCompletedSetup: true, wipLimit: 7 }
+ *
+ * // Invalid request bodies (will return 400):
+ * { wipLimit: 3 }                    // Out of range
+ * { hasCompletedSetup: "true" }     // Wrong type
+ * {}                                 // Empty body
+ */
+export const UpdateConfigSchema = z
+  .object({
+    wipLimit: z
+      .number()
+      .int({ message: 'WIP limit must be an integer' })
+      .min(5, { message: 'WIP limit must be at least 5' })
+      .max(10, { message: 'WIP limit must be at most 10' })
+      .optional(),
+    promptingEnabled: z.boolean().optional(),
+    promptingFrequencyHours: z
+      .number()
+      .min(1, { message: 'Prompting frequency must be at least 1 hour' })
+      .max(6, { message: 'Prompting frequency must be at most 6 hours' })
+      .optional(),
+    celebrationsEnabled: z.boolean().optional(),
+    celebrationDurationSeconds: z
+      .number()
+      .int()
+      .min(3, { message: 'Celebration duration must be at least 3 seconds' })
+      .max(10, { message: 'Celebration duration must be at most 10 seconds' })
+      .optional(),
+    browserNotificationsEnabled: z.boolean().optional(),
+    hasCompletedSetup: z.boolean().optional(),
+    hasSeenPromptEducation: z.boolean().optional(),
+    hasSeenWIPLimitEducation: z.boolean().optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'At least one field must be provided for update',
+  });
+
+/**
+ * Type inference for UpdateConfigSchema
+ * Use this type for type-safe access to validated request body
+ */
+export type UpdateConfigDto = z.infer<typeof UpdateConfigSchema>;
+
+/**
  * Creates Express middleware that validates request body against a Zod schema
  *
  * @param schema - Zod schema to validate against

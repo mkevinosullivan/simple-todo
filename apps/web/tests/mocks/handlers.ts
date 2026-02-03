@@ -1,7 +1,7 @@
-import type { Task } from '@simple-todo/shared/types';
+import type { Config, Task } from '@simple-todo/shared/types';
 import { http, HttpResponse, type HttpHandler } from 'msw';
 
-import { createTestTask, createTestWipConfig } from '../helpers/factories';
+import { createTestConfig, createTestTask, createTestWipConfig } from '../helpers/factories';
 
 /**
  * MSW request handlers for API mocking
@@ -94,6 +94,18 @@ export const handlers: HttpHandler[] = [
     }
 
     return HttpResponse.json(createTestWipConfig({ limit: body.limit }));
+  }),
+
+  // GET /api/config - successful full config retrieval
+  http.get('http://localhost:3001/api/config', () => {
+    return HttpResponse.json(createTestConfig());
+  }),
+
+  // PATCH /api/config - successful partial config update
+  http.patch('http://localhost:3001/api/config', async ({ request }) => {
+    const body = (await request.json()) as Partial<Config>;
+    const updatedConfig = createTestConfig(body);
+    return HttpResponse.json(updatedConfig);
   }),
 ];
 

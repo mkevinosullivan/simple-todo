@@ -1,7 +1,8 @@
 import { Router, type Request, type Response } from 'express';
 
-import type { UpdateEducationFlagDto, UpdateWipLimitDto } from '../middleware/validation.js';
+import type { UpdateConfigDto, UpdateEducationFlagDto, UpdateWipLimitDto } from '../middleware/validation.js';
 import {
+  UpdateConfigSchema,
   UpdateEducationFlagSchema,
   UpdateWipLimitSchema,
   validateRequest,
@@ -60,6 +61,63 @@ router.get(
       });
     }
   })
+);
+
+/**
+ * PATCH /api/config
+ * Update application configuration (partial update)
+ *
+ * @route PATCH /api/config
+ * @param {object} req.body - Partial configuration object (at least one field required)
+ * @returns {object} 200 - Full updated configuration object
+ * @returns {object} 400 - Validation error
+ * @returns {object} 500 - Internal server error
+ *
+ * @example
+ * // Request:
+ * PATCH /api/config
+ * {
+ *   "hasCompletedSetup": true
+ * }
+ *
+ * // Response (200):
+ * {
+ *   "wipLimit": 7,
+ *   "promptingEnabled": true,
+ *   "promptingFrequencyHours": 2.5,
+ *   "celebrationsEnabled": true,
+ *   "celebrationDurationSeconds": 7,
+ *   "browserNotificationsEnabled": false,
+ *   "hasCompletedSetup": true,
+ *   "hasSeenPromptEducation": false,
+ *   "hasSeenWIPLimitEducation": false
+ * }
+ */
+router.patch(
+  '/',
+  validateRequest(UpdateConfigSchema),
+  asyncHandler(
+    async (req: Request<object, object, UpdateConfigDto>, res: Response): Promise<void> => {
+      try {
+        // Load current config
+        const config = await dataService.loadConfig();
+
+        // Apply partial updates (only update provided fields)
+        Object.assign(config, req.body);
+
+        // Persist updated config to file
+        await dataService.saveConfig(config);
+
+        // Return full updated configuration
+        res.status(200).json(config);
+      } catch (error) {
+        logger.error('Failed to update configuration', { error });
+        res.status(500).json({
+          error: 'Failed to update configuration',
+        });
+      }
+    }
+  )
 );
 
 /**
