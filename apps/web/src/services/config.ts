@@ -98,3 +98,49 @@ export async function updateEducationFlag(
 export async function markSetupCompleted(): Promise<Config> {
   return await apiPatch<Config>('/api/config', { hasCompletedSetup: true });
 }
+
+/**
+ * Celebration config response from API
+ */
+export interface CelebrationConfig {
+  celebrationsEnabled: boolean;
+  celebrationDurationSeconds: number;
+}
+
+/**
+ * Get celebration configuration
+ *
+ * @returns Promise resolving to celebration config with enabled flag and duration
+ * @throws {Error} If API request fails
+ *
+ * @example
+ * const config = await getCelebrationConfig();
+ * console.log(config.celebrationsEnabled); // true
+ * console.log(config.celebrationDurationSeconds); // 7
+ */
+export async function getCelebrationConfig(): Promise<CelebrationConfig> {
+  return await apiGet<CelebrationConfig>('/api/config/celebrations');
+}
+
+/**
+ * Update celebration configuration
+ *
+ * @param celebrationsEnabled - Whether to enable celebrations
+ * @param celebrationDurationSeconds - Duration in seconds (3-10)
+ * @returns Promise resolving to updated full Config object
+ * @throws {Error} If duration is out of range or API request fails
+ *
+ * @example
+ * const updated = await updateCelebrationConfig(false, 5);
+ * console.log(updated.celebrationsEnabled); // false
+ * console.log(updated.celebrationDurationSeconds); // 5
+ */
+export async function updateCelebrationConfig(
+  celebrationsEnabled: boolean,
+  celebrationDurationSeconds: number
+): Promise<Config> {
+  return await apiPut<Config>('/api/config/celebrations', {
+    celebrationsEnabled,
+    celebrationDurationSeconds,
+  });
+}

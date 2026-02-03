@@ -3,9 +3,18 @@ import { Fragment, useEffect, useState } from 'react';
 
 import { Dialog, Transition } from '@headlessui/react';
 
-import type { WipConfig } from '../services/config.js';
-import { getWipConfig, updateWipLimit } from '../services/config.js';
+import { useConfig } from '../context/ConfigContext.js';
+import { useCelebrationQueue } from '../hooks/useCelebrationQueue.js';
+import type { CelebrationConfig as CelebrationConfigType, WipConfig } from '../services/config.js';
+import {
+  getCelebrationConfig,
+  getWipConfig,
+  updateCelebrationConfig,
+  updateWipLimit,
+} from '../services/config.js';
 
+import { CelebrationConfig } from './CelebrationConfig.js';
+import { CelebrationOverlay } from './CelebrationOverlay.js';
 import styles from './SettingsModal.module.css';
 
 export interface SettingsModalProps {
@@ -36,32 +45,49 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   onLimitUpdated,
 }) => {
+  const { config: globalConfig, updateConfig: updateGlobalConfig } = useConfig();
+  const { currentCelebration, queueCelebration, dismissCelebration } = useCelebrationQueue();
   const [wipConfig, setWipConfig] = useState<WipConfig | null>(null);
   const [sliderValue, setSliderValue] = useState<number>(7);
   const [initialValue, setInitialValue] = useState<number>(7);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [celebrationConfig, setCelebrationConfig] = useState<CelebrationConfigType>({
+    celebrationsEnabled: true,
+    celebrationDurationSeconds: 7,
+  });
+  const [initialCelebrationConfig, setInitialCelebrationConfig] = useState<CelebrationConfigType>({
+    celebrationsEnabled: true,
+    celebrationDurationSeconds: 7,
+  });
 
-  // Load WIP config when modal opens
+  // Load configs when modal opens
   useEffect(() => {
     if (isOpen) {
-      loadWipConfig();
+      void loadConfigs();
     }
   }, [isOpen]);
 
   /**
-   * Loads current WIP configuration from API
+   * Loads current configurations from API
    */
-  const loadWipConfig = async (): Promise<void> => {
+  const loadConfigs = async (): Promise<void> => {
     try {
-      const config = await getWipConfig();
-      setWipConfig(config);
-      setSliderValue(config.limit);
-      setInitialValue(config.limit);
+      // Load WIP config
+      const wipConfigData = await getWipConfig();
+      setWipConfig(wipConfigData);
+      setSliderValue(wipConfigData.limit);
+      setInitialValue(wipConfigData.limit);
+
+      // Load celebration config
+      const celebrationConfigData = await getCelebrationConfig();
+      setCelebrationConfig(celebrationConfigData);
+      setInitialCelebrationConfig(celebrationConfigData);
+
       setErrorMessage(null);
     } catch (error) {
-      console.error('Failed to load WIP config:', error);
+      console.error('Failed to load configs:', error);
       setErrorMessage('Failed to load settings');
     }
   };
@@ -76,7 +102,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   /**
    * Checks if form has unsaved changes
    */
-  const isDirty = sliderValue !== initialValue;
+  const isDirty =
+    sliderValue !== initialValue ||
+    celebrationConfig.celebrationsEnabled !== initialCelebrationConfig.celebrationsEnabled ||
+    celebrationConfig.celebrationDurationSeconds !== initialCelebrationConfig.celebrationDurationSeconds;
 
   /**
    * Handles save button click
@@ -86,23 +115,45 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setErrorMessage(null);
 
     try {
-      const updated = await updateWipLimit(sliderValue);
-      setWipConfig(updated);
-      setInitialValue(sliderValue);
-      setShowSuccessToast(true);
+      // Save WIP limit if changed
+      if (sliderValue !== initialValue) {
+        const updated = await updateWipLimit(sliderValue);
+        setWipConfig(updated);
+        setInitialValue(sliderValue);
 
-      // Notify parent to refresh WIP status
-      if (onLimitUpdated) {
-        onLimitUpdated();
+        // Notify parent to refresh WIP status
+        if (onLimitUpdated) {
+          onLimitUpdated();
+        }
       }
+
+      // Save celebration config if changed
+      if (
+        celebrationConfig.celebrationsEnabled !== initialCelebrationConfig.celebrationsEnabled ||
+        celebrationConfig.celebrationDurationSeconds !== initialCelebrationConfig.celebrationDurationSeconds
+      ) {
+        const updatedConfig = await updateCelebrationConfig(
+          celebrationConfig.celebrationsEnabled,
+          celebrationConfig.celebrationDurationSeconds
+        );
+
+        // Update global config context so changes take effect immediately (AC: 8)
+        updateGlobalConfig(updatedConfig);
+        setInitialCelebrationConfig({
+          celebrationsEnabled: updatedConfig.celebrationsEnabled,
+          celebrationDurationSeconds: updatedConfig.celebrationDurationSeconds,
+        });
+      }
+
+      setShowSuccessToast(true);
 
       // Auto-hide success toast after 5 seconds
       setTimeout(() => {
         setShowSuccessToast(false);
       }, 5000);
     } catch (error) {
-      console.error('Failed to update WIP limit:', error);
-      setErrorMessage('Please choose a limit between 5 and 10');
+      console.error('Failed to update settings:', error);
+      setErrorMessage('Failed to save settings. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -112,8 +163,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
    * Handles cancel button click
    */
   const handleCancel = (): void => {
-    // Reset to initial value
+    // Reset to initial values
     setSliderValue(initialValue);
+    setCelebrationConfig(initialCelebrationConfig);
     setErrorMessage(null);
     setShowSuccessToast(false);
     onClose();
@@ -124,6 +176,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
    */
   const handleClose = (): void => {
     handleCancel();
+  };
+
+  /**
+   * Handles celebration config update (local state only, saved on Save button click)
+   */
+  const handleUpdateCelebrationConfig = (enabled: boolean, duration: number): void => {
+    setCelebrationConfig({
+      celebrationsEnabled: enabled,
+      celebrationDurationSeconds: duration,
+    });
+  };
+
+  /**
+   * Handles preview celebration button click
+   */
+  const handlePreviewCelebration = (): void => {
+    queueCelebration({
+      message: 'This is a preview celebration! 🎉',
+      variant: 'enthusiastic',
+      duration: celebrationConfig.celebrationDurationSeconds * 1000,
+    });
   };
 
   return (
@@ -229,6 +302,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {errorMessage && <div className={styles.errorMessage}>{errorMessage}</div>}
                 </div>
 
+                {/* Celebration Configuration Section */}
+                <CelebrationConfig
+                  celebrationsEnabled={celebrationConfig.celebrationsEnabled}
+                  celebrationDurationSeconds={celebrationConfig.celebrationDurationSeconds}
+                  onUpdate={handleUpdateCelebrationConfig}
+                  onPreview={handlePreviewCelebration}
+                />
+
                 {/* Footer buttons */}
                 <div className={styles.footer}>
                   <button type="button" onClick={handleCancel} className={styles.btnCancel}>
@@ -254,6 +335,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className={styles.successToast} role="alert" aria-live="polite">
           Settings saved!
         </div>
+      )}
+
+      {/* Preview Celebration Overlay */}
+      {currentCelebration && (
+        <CelebrationOverlay
+          message={currentCelebration.message}
+          variant={currentCelebration.variant}
+          duration={currentCelebration.duration}
+          onDismiss={dismissCelebration}
+        />
       )}
     </>
   );

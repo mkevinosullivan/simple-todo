@@ -1,7 +1,13 @@
 import { Router, type Request, type Response } from 'express';
 
-import type { UpdateConfigDto, UpdateEducationFlagDto, UpdateWipLimitDto } from '../middleware/validation.js';
+import type {
+  UpdateCelebrationConfigDto,
+  UpdateConfigDto,
+  UpdateEducationFlagDto,
+  UpdateWipLimitDto,
+} from '../middleware/validation.js';
 import {
+  UpdateCelebrationConfigSchema,
   UpdateConfigSchema,
   UpdateEducationFlagSchema,
   UpdateWipLimitSchema,
@@ -340,6 +346,130 @@ router.patch(
         logger.error('Failed to update education flag configuration', { error });
         res.status(500).json({
           error: 'Failed to update education flag configuration',
+        });
+      }
+    }
+  )
+);
+
+/**
+ * GET /api/config/celebrations
+ * Get celebration configuration settings
+ *
+ * @route GET /api/config/celebrations
+ * @returns {object} 200 - Celebration configuration
+ * @returns {boolean} 200.celebrationsEnabled - Whether celebrations are enabled
+ * @returns {number} 200.celebrationDurationSeconds - Duration in seconds (3-10)
+ * @returns {object} 500 - Internal server error
+ *
+ * @example
+ * // Request:
+ * GET /api/config/celebrations
+ *
+ * // Response (200):
+ * {
+ *   "celebrationsEnabled": true,
+ *   "celebrationDurationSeconds": 7
+ * }
+ */
+router.get(
+  '/celebrations',
+  asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+    try {
+      // Load full configuration
+      const config = await dataService.loadConfig();
+
+      // Return celebration-specific fields
+      res.status(200).json({
+        celebrationsEnabled: config.celebrationsEnabled,
+        celebrationDurationSeconds: config.celebrationDurationSeconds,
+      });
+    } catch (error) {
+      logger.error('Failed to get celebration configuration', { error });
+      res.status(500).json({
+        error: 'Failed to retrieve celebration configuration',
+      });
+    }
+  })
+);
+
+/**
+ * PUT /api/config/celebrations
+ * Update celebration configuration settings
+ *
+ * @route PUT /api/config/celebrations
+ * @param {object} req.body - Request body
+ * @param {boolean} req.body.celebrationsEnabled - Whether to enable celebrations
+ * @param {number} req.body.celebrationDurationSeconds - Duration in seconds (3-10)
+ * @returns {object} 200 - Full updated configuration object
+ * @returns {object} 400 - Validation error (invalid parameters)
+ * @returns {object} 500 - Internal server error
+ *
+ * @throws {Error} Returns 400 if celebrationDurationSeconds is outside 3-10 range
+ * @throws {Error} Returns 400 if celebrationsEnabled is not a boolean
+ * @throws {Error} Returns 500 if unable to persist configuration
+ *
+ * @example
+ * // Request:
+ * PUT /api/config/celebrations
+ * {
+ *   "celebrationsEnabled": false,
+ *   "celebrationDurationSeconds": 5
+ * }
+ *
+ * // Response (200):
+ * {
+ *   "wipLimit": 7,
+ *   "promptingEnabled": true,
+ *   "promptingFrequencyHours": 2.5,
+ *   "celebrationsEnabled": false,
+ *   "celebrationDurationSeconds": 5,
+ *   "browserNotificationsEnabled": false,
+ *   "hasCompletedSetup": true,
+ *   "hasSeenPromptEducation": false,
+ *   "hasSeenWIPLimitEducation": false
+ * }
+ *
+ * // Error response (400 - duration too low):
+ * {
+ *   "error": "Validation failed",
+ *   "details": [
+ *     {
+ *       "field": "celebrationDurationSeconds",
+ *       "message": "Celebration duration must be at least 3 seconds"
+ *     }
+ *   ]
+ * }
+ */
+router.put(
+  '/celebrations',
+  validateRequest(UpdateCelebrationConfigSchema),
+  asyncHandler(
+    async (
+      req: Request<object, object, UpdateCelebrationConfigDto>,
+      res: Response
+    ): Promise<void> => {
+      try {
+        // Request body is validated by middleware
+        const { celebrationsEnabled, celebrationDurationSeconds } = req.body;
+
+        // Load current config
+        const config = await dataService.loadConfig();
+
+        // Update celebration fields
+        config.celebrationsEnabled = celebrationsEnabled;
+        config.celebrationDurationSeconds = celebrationDurationSeconds;
+
+        // Persist updated config to file
+        await dataService.saveConfig(config);
+
+        // Return full updated configuration
+        res.status(200).json(config);
+      } catch (error) {
+        // Generic server error (file system, etc.)
+        logger.error('Failed to update celebration configuration', { error });
+        res.status(500).json({
+          error: 'Failed to update celebration configuration',
         });
       }
     }

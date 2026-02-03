@@ -61,6 +61,42 @@ export const UpdateEducationFlagSchema = z.object({
 export type UpdateEducationFlagDto = z.infer<typeof UpdateEducationFlagSchema>;
 
 /**
+ * Zod schema for updating celebration configuration
+ * Validates that celebrationsEnabled is a boolean and celebrationDurationSeconds is between 3-10
+ *
+ * @example
+ * // Valid request bodies:
+ * { celebrationsEnabled: true, celebrationDurationSeconds: 7 }
+ * { celebrationsEnabled: false, celebrationDurationSeconds: 3 }
+ *
+ * // Invalid request bodies (will return 400):
+ * { celebrationsEnabled: true, celebrationDurationSeconds: 2 }  // Below minimum
+ * { celebrationsEnabled: true, celebrationDurationSeconds: 11 } // Above maximum
+ * { celebrationsEnabled: "true", celebrationDurationSeconds: 7 } // Wrong type
+ * { celebrationsEnabled: true }                                  // Missing duration
+ */
+export const UpdateCelebrationConfigSchema = z.object({
+  celebrationsEnabled: z.boolean({
+    required_error: 'celebrationsEnabled is required',
+    invalid_type_error: 'celebrationsEnabled must be a boolean',
+  }),
+  celebrationDurationSeconds: z
+    .number({
+      required_error: 'celebrationDurationSeconds is required',
+      invalid_type_error: 'celebrationDurationSeconds must be a number',
+    })
+    .int({ message: 'celebrationDurationSeconds must be an integer' })
+    .min(3, { message: 'Celebration duration must be at least 3 seconds' })
+    .max(10, { message: 'Celebration duration must be at most 10 seconds' }),
+});
+
+/**
+ * Type inference for UpdateCelebrationConfigSchema
+ * Use this type for type-safe access to validated request body
+ */
+export type UpdateCelebrationConfigDto = z.infer<typeof UpdateCelebrationConfigSchema>;
+
+/**
  * Zod schema for partial config updates
  * Allows updating any config field with validation
  *

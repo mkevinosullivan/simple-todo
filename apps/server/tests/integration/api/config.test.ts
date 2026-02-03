@@ -499,4 +499,188 @@ describe('Config API Integration Tests', () => {
       expect(config.hasSeenPromptEducation).toBe(true);
     });
   });
+
+  describe('GET /api/config/celebrations', () => {
+    it('should return celebration configuration', async () => {
+      const response = await request(app).get('/api/config/celebrations').expect(200);
+
+      expect(response.body).toMatchObject({
+        celebrationsEnabled: true,
+        celebrationDurationSeconds: 7,
+      });
+    });
+
+    it('should return updated celebration configuration', async () => {
+      // Update config to have celebrations disabled and different duration
+      const config: Config = {
+        ...DEFAULT_CONFIG,
+        celebrationsEnabled: false,
+        celebrationDurationSeconds: 5,
+      };
+      await fs.writeFile(testConfigFile, JSON.stringify(config, null, 2), 'utf-8');
+
+      const response = await request(app).get('/api/config/celebrations').expect(200);
+
+      expect(response.body).toMatchObject({
+        celebrationsEnabled: false,
+        celebrationDurationSeconds: 5,
+      });
+    });
+  });
+
+  describe('PUT /api/config/celebrations', () => {
+    it('should update celebration configuration', async () => {
+      const response = await request(app)
+        .put('/api/config/celebrations')
+        .send({
+          celebrationsEnabled: false,
+          celebrationDurationSeconds: 5,
+        })
+        .expect(200);
+
+      // Should return full config object
+      expect(response.body.celebrationsEnabled).toBe(false);
+      expect(response.body.celebrationDurationSeconds).toBe(5);
+
+      // Verify persistence to file
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+      expect(config.celebrationsEnabled).toBe(false);
+      expect(config.celebrationDurationSeconds).toBe(5);
+    });
+
+    it('should accept duration at minimum boundary (3)', async () => {
+      const response = await request(app)
+        .put('/api/config/celebrations')
+        .send({
+          celebrationsEnabled: true,
+          celebrationDurationSeconds: 3,
+        })
+        .expect(200);
+
+      expect(response.body.celebrationDurationSeconds).toBe(3);
+    });
+
+    it('should accept duration at maximum boundary (10)', async () => {
+      const response = await request(app)
+        .put('/api/config/celebrations')
+        .send({
+          celebrationsEnabled: true,
+          celebrationDurationSeconds: 10,
+        })
+        .expect(200);
+
+      expect(response.body.celebrationDurationSeconds).toBe(10);
+    });
+
+    it('should reject duration below minimum (2) with 400 status', async () => {
+      const response = await request(app)
+        .put('/api/config/celebrations')
+        .send({
+          celebrationsEnabled: true,
+          celebrationDurationSeconds: 2,
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details).toBeDefined();
+      expect(response.body.details[0].message).toContain('at least 3 seconds');
+    });
+
+    it('should reject duration above maximum (11) with 400 status', async () => {
+      const response = await request(app)
+        .put('/api/config/celebrations')
+        .send({
+          celebrationsEnabled: true,
+          celebrationDurationSeconds: 11,
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details).toBeDefined();
+      expect(response.body.details[0].message).toContain('at most 10 seconds');
+    });
+
+    it('should reject non-integer duration with 400 status', async () => {
+      const response = await request(app)
+        .put('/api/config/celebrations')
+        .send({
+          celebrationsEnabled: true,
+          celebrationDurationSeconds: 5.5,
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.details).toBeDefined();
+      expect(response.body.details[0].message).toContain('integer');
+    });
+
+    it('should reject invalid boolean type for celebrationsEnabled', async () => {
+      const response = await request(app)
+        .put('/api/config/celebrations')
+        .send({
+          celebrationsEnabled: 'true',
+          celebrationDurationSeconds: 7,
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should reject missing celebrationsEnabled field', async () => {
+      const response = await request(app)
+        .put('/api/config/celebrations')
+        .send({
+          celebrationDurationSeconds: 7,
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should reject missing celebrationDurationSeconds field', async () => {
+      const response = await request(app)
+        .put('/api/config/celebrations')
+        .send({
+          celebrationsEnabled: true,
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should preserve other config fields when updating celebrations', async () => {
+      // Set initial config with specific values
+      const initialConfig: Config = {
+        ...DEFAULT_CONFIG,
+        wipLimit: 8,
+        hasCompletedSetup: true,
+      };
+      await fs.writeFile(testConfigFile, JSON.stringify(initialConfig, null, 2), 'utf-8');
+
+      // Update celebration config
+      await request(app)
+        .put('/api/config/celebrations')
+        .send({
+          celebrationsEnabled: false,
+          celebrationDurationSeconds: 4,
+        })
+        .expect(200);
+
+      // Verify other fields are unchanged
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+
+      expect(config.celebrationsEnabled).toBe(false);
+      expect(config.celebrationDurationSeconds).toBe(4);
+      expect(config.wipLimit).toBe(8);
+      expect(config.hasCompletedSetup).toBe(true);
+      expect(config.promptingEnabled).toBe(DEFAULT_CONFIG.promptingEnabled);
+    });
+  });
 });

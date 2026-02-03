@@ -10,6 +10,7 @@ import { SettingsModal } from '../components/SettingsModal.js';
 import { TaskList } from '../components/TaskList.js';
 import { WIPCountIndicator } from '../components/WIPCountIndicator.js';
 import { WIPLimitMessage } from '../components/WIPLimitMessage.js';
+import { useConfig } from '../context/ConfigContext.js';
 import { useTaskContext } from '../context/TaskContext.js';
 import { useCelebrationQueue } from '../hooks/useCelebrationQueue.js';
 import { useWipStatus } from '../hooks/useWipStatus.js';
@@ -34,6 +35,7 @@ import styles from './TaskListView.module.css';
  * <TaskListView />
  */
 export const TaskListView: React.FC = () => {
+  const { config } = useConfig();
   const { tasks: taskList, loading, error: contextError, addTask, removeTask, updateTask } = useTaskContext();
   const { canAddTask, currentCount, limit, hasSeenWIPLimitEducation, refreshLimit } = useWipStatus();
   const { currentCelebration, queueCelebration, dismissCelebration } = useCelebrationQueue();
@@ -120,12 +122,17 @@ export const TaskListView: React.FC = () => {
 
     // Add natural timing delay (300ms) for better UX feel
     setTimeout(() => {
+      // Only show celebration if enabled in config (AC: 6)
+      if (!config.celebrationsEnabled) {
+        return; // Skip celebration if disabled
+      }
+
       // Handle first completion special case
       if (isFirstCompletion) {
         queueCelebration({
           message: 'First task done! Keep it up!',
           variant: 'enthusiastic',
-          duration: 7000,
+          duration: config.celebrationDurationSeconds * 1000,
         });
         setIsFirstCompletion(false);
         return;
@@ -147,11 +154,12 @@ export const TaskListView: React.FC = () => {
               celebration.message
             : `You completed '${truncatedTaskText}'!`;
 
-          // Queue celebration
+          // Queue celebration with duration from config (AC: 3, 8)
           queueCelebration({
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             ...celebration,
             message: enhancedMessage,
+            duration: config.celebrationDurationSeconds * 1000,
           });
         } catch (err) {
           // Fallback celebration if API fails
@@ -160,7 +168,7 @@ export const TaskListView: React.FC = () => {
           queueCelebration({
             message: 'Great job! Task completed.',
             variant: 'supportive',
-            duration: 5000,
+            duration: config.celebrationDurationSeconds * 1000,
           });
         }
       })();
