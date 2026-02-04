@@ -3,10 +3,13 @@ import { useEffect } from 'react';
 
 import styles from './ErrorToast.module.css';
 
+type ToastSeverity = 'error' | 'warning' | 'info' | 'success';
+
 interface ErrorToastProps {
   message: string;
   onDismiss: () => void;
   autoDismissMs?: number;
+  severity?: ToastSeverity;
 }
 
 /**
@@ -28,6 +31,7 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
   message,
   onDismiss,
   autoDismissMs = 5000,
+  severity = 'error',
 }) => {
   useEffect(() => {
     if (autoDismissMs > 0) {
@@ -37,10 +41,12 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
     return undefined;
   }, [autoDismissMs, onDismiss]);
 
+  const toastClassName = `${styles.errorToast} ${styles[severity]}`;
+
   return (
-    <div role="alert" aria-live="assertive" aria-atomic="true" className={styles.errorToast}>
+    <div role="alert" aria-live="assertive" aria-atomic="true" className={toastClassName}>
       <p className={styles.message}>{message}</p>
-      <button onClick={onDismiss} aria-label="Dismiss error" className={styles.dismissButton}>
+      <button onClick={onDismiss} aria-label="Dismiss message" className={styles.dismissButton}>
         ✕
       </button>
     </div>

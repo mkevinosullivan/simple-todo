@@ -9,7 +9,7 @@
 }
 
 .ageIndicator:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--color-accent-blue);
   outline-offset: 2px;
 }
 
@@ -17,7 +17,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  transition: transform 200ms ease-out;
+  transition: transform var(--duration-base) var(--easing-ease-out);
 }
 
 /* Age pulse animation - triggered when category changes */

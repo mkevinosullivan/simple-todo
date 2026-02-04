@@ -1,22 +1,32 @@
 .taskCard {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
-  padding: 16px 20px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  margin-bottom: 24px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  gap: var(--spacing-md);
+  padding: var(--spacing-base) var(--spacing-lg);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-subtle);
   transition:
-    box-shadow 200ms ease-out,
-    background-color 200ms ease-out;
-  animation: task-enter 300ms ease-out;
+    box-shadow var(--duration-base) var(--easing-ease-out),
+    background-color var(--duration-base) var(--easing-ease-out);
+  animation: task-enter var(--duration-slow) var(--easing-ease-out);
 }
 
-.taskCard:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  background-color: #fafbfc;
+/* Small+ screens: Horizontal card layout */
+@media (min-width: 480px) {
+  .taskCard {
+    flex-direction: row;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .taskCard:hover {
+    box-shadow: var(--shadow-raised);
+    background-color: var(--color-bg-primary);
+  }
 }
 
 /* Age indicator - 12px circular dot */
@@ -25,29 +35,29 @@
   height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
-  margin-top: 4px;
+  margin-top: var(--spacing-xs);
   cursor: help;
 }
 
 /* Age category colors */
 .age-fresh {
-  background-color: #10b981;
+  background-color: var(--color-age-fresh);
 }
 
 .age-recent {
-  background-color: #3b82f6;
+  background-color: var(--color-age-recent);
 }
 
 .age-aging {
-  background-color: #f59e0b;
+  background-color: var(--color-age-aging);
 }
 
 .age-old {
-  background-color: #f97316;
+  background-color: var(--color-age-old);
 }
 
 .age-stale {
-  background-color: #ef4444;
+  background-color: var(--color-age-stale);
 }
 
 /* Task content container */
@@ -55,23 +65,23 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--spacing-xs);
 }
 
 /* Task text styling */
 .taskText {
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #111827;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
 }
 
 /* Timestamp styling */
 .timestamp {
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #6b7280;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
 }
 
 /* Task card entrance animation */
@@ -121,33 +131,49 @@
 /* Task actions container */
 .taskActions {
   display: flex;
-  gap: 8px; /* Exact spacing from spec */
-  margin-left: 12px; /* Space from task content */
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  margin-left: 0;
+  margin-top: var(--spacing-sm);
+  width: 100%;
+}
+
+/* Small+ screens: Horizontal action buttons */
+@media (min-width: 480px) {
+  .taskActions {
+    flex-direction: row;
+    margin-left: var(--spacing-md);
+    margin-top: 0;
+    width: auto;
+  }
 }
 
 /* Complete button - green styling */
 .btnComplete {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px; /* Creates 44px touch target (32px + 12px) */
-  min-width: 44px;
-  min-height: 44px;
-  background-color: #10b981; /* Success green */
+  gap: var(--spacing-sm);
+  padding: 6px var(--spacing-md);
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  background-color: var(--color-success);
   color: #ffffff;
   border: none;
-  border-radius: 8px; /* Updated from 0.375rem */
-  font-size: 14px; /* 0.875rem */
-  font-weight: 500;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition:
-    background-color 100ms ease-out,
-    transform 100ms ease-out;
+    background-color var(--duration-fast) var(--easing-ease-out),
+    transform var(--duration-fast) var(--easing-ease-out);
 }
 
-.btnComplete:hover {
-  background-color: #059669; /* Darken by ~10% */
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .btnComplete:hover {
+    background-color: var(--color-success-dark);
+    transform: translateY(-1px);
+  }
 }
 
 .btnComplete:active {
@@ -155,7 +181,7 @@
 }
 
 .btnComplete:focus-visible {
-  outline: 2px solid #10b981;
+  outline: 2px solid var(--color-success);
   outline-offset: 2px;
 }
 
@@ -164,22 +190,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px; /* Creates 44px touch target */
-  min-width: 44px;
-  min-height: 44px;
-  background-color: #ef4444; /* Error red */
+  padding: 6px;
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  background-color: var(--color-error);
   color: #ffffff;
   border: none;
-  border-radius: 8px; /* Updated from 0.375rem */
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition:
-    background-color 100ms ease-out,
-    transform 100ms ease-out;
+    background-color var(--duration-fast) var(--easing-ease-out),
+    transform var(--duration-fast) var(--easing-ease-out);
 }
 
-.btnDelete:hover {
-  background-color: #dc2626; /* Darken by ~10% */
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .btnDelete:hover {
+    background-color: var(--color-error-dark);
+    transform: translateY(-1px);
+  }
 }
 
 .btnDelete:active {
@@ -187,7 +215,7 @@
 }
 
 .btnDelete:focus-visible {
-  outline: 2px solid #ef4444;
+  outline: 2px solid var(--color-error);
   outline-offset: 2px;
 }
 
@@ -195,14 +223,14 @@
 .icon {
   width: 20px;
   height: 20px;
-  stroke-width: 2px; /* Heroicons outlined style */
+  stroke-width: 2px;
 }
 
 /* Button text visible on Complete, hidden on Delete */
 .buttonText {
   display: inline;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
 }
 
 .srOnly {
@@ -223,21 +251,23 @@
   align-items: center;
   justify-content: center;
   padding: 6px;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
   background-color: transparent;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition:
-    background-color 100ms ease-out,
-    transform 100ms ease-out;
+    background-color var(--duration-fast) var(--easing-ease-out),
+    transform var(--duration-fast) var(--easing-ease-out);
 }
 
-.btnEdit:hover:not(:disabled) {
-  background-color: #f3f4f6;
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .btnEdit:hover:not(:disabled) {
+    background-color: var(--color-bg-secondary);
+    transform: translateY(-1px);
+  }
 }
 
 .btnEdit:active:not(:disabled) {
@@ -250,28 +280,28 @@
 }
 
 .btnEdit:focus-visible {
-  outline: 2px solid #6b7280;
+  outline: 2px solid var(--color-text-secondary);
   outline-offset: 2px;
 }
 
 /* Edit input field */
 .editInput {
   width: 100%;
-  height: 44px;
-  padding: 12px 16px;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #111827;
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  transition: border-color 200ms ease-out;
+  height: var(--touch-target-min);
+  padding: var(--spacing-md) var(--spacing-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-md);
+  transition: border-color var(--duration-base) var(--easing-ease-out);
 }
 
 .editInput:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--color-accent-blue);
   border-width: 2px;
   padding: 11px 15px;
 }
@@ -280,25 +310,27 @@
 .btnSave {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  min-width: 44px;
-  min-height: 44px;
-  background-color: #10b981;
+  gap: var(--spacing-sm);
+  padding: 6px var(--spacing-md);
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  background-color: var(--color-success);
   color: #ffffff;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition:
-    background-color 100ms ease-out,
-    transform 100ms ease-out;
+    background-color var(--duration-fast) var(--easing-ease-out),
+    transform var(--duration-fast) var(--easing-ease-out);
 }
 
-.btnSave:hover:not(:disabled) {
-  background-color: #059669;
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .btnSave:hover:not(:disabled) {
+    background-color: var(--color-success-dark);
+    transform: translateY(-1px);
+  }
 }
 
 .btnSave:active:not(:disabled) {
@@ -311,7 +343,7 @@
 }
 
 .btnSave:focus-visible {
-  outline: 2px solid #10b981;
+  outline: 2px solid var(--color-success);
   outline-offset: 2px;
 }
 
@@ -319,25 +351,27 @@
 .btnCancel {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  min-width: 44px;
-  min-height: 44px;
+  gap: var(--spacing-sm);
+  padding: 6px var(--spacing-md);
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
   background-color: transparent;
-  color: #6b7280;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition:
-    background-color 100ms ease-out,
-    transform 100ms ease-out;
+    background-color var(--duration-fast) var(--easing-ease-out),
+    transform var(--duration-fast) var(--easing-ease-out);
 }
 
-.btnCancel:hover {
-  background-color: #f3f4f6;
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .btnCancel:hover {
+    background-color: var(--color-bg-secondary);
+    transform: translateY(-1px);
+  }
 }
 
 .btnCancel:active {
@@ -345,18 +379,6 @@
 }
 
 .btnCancel:focus-visible {
-  outline: 2px solid #6b7280;
+  outline: 2px solid var(--color-text-secondary);
   outline-offset: 2px;
-}
-
-/* Reduced motion support for buttons */
-@media (prefers-reduced-motion: reduce) {
-  .btnComplete,
-  .btnDelete,
-  .btnEdit,
-  .btnSave,
-  .btnCancel {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
 }

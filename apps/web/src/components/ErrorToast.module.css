@@ -1,20 +1,56 @@
 /* apps/web/src/components/ErrorToast.module.css */
 .errorToast {
   position: fixed;
-  top: 16px; /* CORRECTED: top-right for error toasts, not bottom-right */
-  right: 16px;
+  top: var(--spacing-base);
+  right: var(--spacing-base);
   width: 320px;
   max-width: 400px;
-  padding: 12px 16px; /* Exact padding from spec */
-  background-color: #fee2e2; /* Light red */
-  border-left: 4px solid #ef4444; /* Error red */
-  border-radius: 8px; /* Updated from 0.5rem */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Spec shadow */
+  padding: var(--spacing-md) var(--spacing-base);
+  border-left: 4px solid;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: start;
-  gap: 16px;
+  gap: var(--spacing-base);
   z-index: 1000;
-  animation: toast-enter 300ms ease-out;
+  animation: toast-enter var(--duration-slow) var(--easing-ease-out);
+}
+
+/* Severity Variants */
+.error {
+  background-color: var(--color-error-light);
+  border-left-color: var(--color-error);
+}
+
+.error .message {
+  color: #991b1b;
+}
+
+.warning {
+  background-color: #FEF3C7;
+  border-left-color: #F97316;
+}
+
+.warning .message {
+  color: #92400e;
+}
+
+.info {
+  background-color: var(--color-accent-blue-light);
+  border-left-color: var(--color-accent-blue);
+}
+
+.info .message {
+  color: #1e40af;
+}
+
+.success {
+  background-color: var(--color-success-light);
+  border-left-color: var(--color-success);
+}
+
+.success .message {
+  color: #065f46;
 }
 
 @keyframes toast-enter {
@@ -47,10 +83,9 @@
 .message {
   flex: 1;
   margin: 0;
-  color: #991b1b; /* Red-800, darker for contrast */
-  font-size: 14px; /* 0.875rem, exact spec */
-  font-weight: 400;
-  line-height: 1.5;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
 }
 
 .dismissButton {
@@ -60,22 +95,57 @@
   padding: 0;
   background: none;
   border: none;
-  color: #991b1b;
-  font-size: 20px; /* 1.25rem */
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
   opacity: 0.7;
-  transition: opacity 200ms ease-out;
+  transition: opacity var(--duration-base) var(--easing-ease-out);
 }
 
-.dismissButton:hover {
-  opacity: 1;
+.error .dismissButton {
+  color: #991b1b;
 }
 
-.dismissButton:focus-visible {
-  outline: 2px solid #ef4444; /* Error red */
+.warning .dismissButton {
+  color: #92400e;
+}
+
+.info .dismissButton {
+  color: #1e40af;
+}
+
+.success .dismissButton {
+  color: #065f46;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dismissButton:hover {
+    opacity: 1;
+  }
+}
+
+.error .dismissButton:focus-visible {
+  outline: 2px solid var(--color-error);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.warning .dismissButton:focus-visible {
+  outline: 2px solid #F97316;
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.info .dismissButton:focus-visible {
+  outline: 2px solid var(--color-accent-blue);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.success .dismissButton:focus-visible {
+  outline: 2px solid var(--color-success);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* Reduced motion support */

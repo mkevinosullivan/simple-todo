@@ -1,0 +1,92 @@
+:root {
+  /* Base/Neutral Colors (Calming Foundation) */
+  --color-bg-primary: #F9FAFB;
+  --color-bg-card: #FFFFFF;
+  --color-bg-secondary: #F3F4F6;
+  --color-border-primary: #E5E7EB;
+  --color-border-secondary: #D1D5DB;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+  --color-text-tertiary: #9CA3AF;
+
+  /* Accent Colors (Vibrant Highlights) */
+  --color-accent-blue: #2563EB;
+  --color-accent-blue-light: #DBEAFE;
+  --color-accent-blue-dark: #1D4ED8;
+
+  /* Status Colors */
+  --color-success: #047857;
+  --color-success-light: #D1FAE5;
+  --color-success-dark: #065F46;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-error: #EF4444;
+  --color-error-light: #FEE2E2;
+  --color-error-dark: #DC2626;
+
+  /* Task Age Colors */
+  --color-age-fresh: #047857;
+  --color-age-recent: #2563EB;
+  --color-age-aging: #F59E0B;
+  --color-age-old: #F97316;
+  --color-age-stale: #EF4444;
+
+  /* Spacing Scale (4px base) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-base: 16px;
+  --spacing-lg: 20px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 40px;
+  --spacing-4xl: 48px;
+
+  /* Typography */
+  --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.6;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 9999px;
+
+  /* Shadows (Elevation) */
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-raised: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-floating: 0 10px 15px rgba(0, 0, 0, 0.15);
+  --shadow-prominent: 0 20px 25px rgba(0, 0, 0, 0.25);
+  --shadow-dramatic: 0 25px 50px rgba(0, 0, 0, 0.3);
+
+  /* Animation Timing */
+  --duration-fast: 100ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+  --easing-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --easing-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --easing-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Touch Targets */
+  --touch-target-min: 44px;
+
+  /* Responsive Breakpoints (for reference in media queries) */
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+}

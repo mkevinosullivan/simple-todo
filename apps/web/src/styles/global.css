@@ -1,28 +1,14 @@
 /* Global styles */
 
-/* CSS Variables - Exact Color Palette from Front-End Spec */
+/* Import Design System Foundation */
+@import './variables.css';
+@import './typography.css';
+@import './animations.css';
+@import './accessibility.css';
+
+/* Legacy Color Variables - Kept for backwards compatibility */
 :root {
-  /* Base/Neutral Colors */
-  --color-bg-primary: #f9fafb;
-  --color-bg-card: #ffffff;
-  --color-border-primary: #e5e7eb;
-  --color-border-secondary: #d1d5db;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-tertiary: #9ca3af;
-
-  /* Age Indicator Colors */
-  --color-age-fresh: #10b981;
-  --color-age-aging: #f59e0b;
-  --color-age-old: #f97316;
-  --color-age-stale: #ef4444;
-
-  /* Action Colors */
-  --color-accent-blue: #3b82f6;
-  --color-success-green: #10b981;
-  --color-error-red: #ef4444;
-
-  /* Soft blues (legacy - kept for backwards compatibility) */
+  /* Soft blues (legacy) */
   --color-blue-50: #e0f2fe;
   --color-blue-100: #dbeafe;
   --color-blue-500: #3b82f6;
@@ -39,17 +25,21 @@
   --color-gray-600: #6b7280;
   --color-gray-900: #111827;
 
-  /* Amber/Yellow */
+  /* Amber/Yellow (legacy) */
   --color-amber-100: #fef3c7;
   --color-amber-500: #f59e0b;
 
-  /* Orange */
+  /* Orange (legacy) */
   --color-orange-500: #f97316;
 
-  /* Red */
+  /* Red (legacy) */
   --color-red-100: #fee2e2;
   --color-red-500: #ef4444;
   --color-red-600: #dc2626;
+
+  /* Action Colors (legacy - use --color-success, --color-error, etc. instead) */
+  --color-success-green: #10b981;
+  --color-error-red: #ef4444;
 }
 
 * {
@@ -58,46 +48,15 @@
   box-sizing: border-box;
 }
 
-html,
-body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
-    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  line-height: 1.5;
-  color: var(--color-text-primary);
-  background: var(--color-bg-primary);
-}
-
 #root {
   min-height: 100vh;
   overflow-x: hidden;
-}
-
-h1 {
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
 }
 
 /* Ensure no horizontal scroll on narrow windows */
 body {
   overflow-x: hidden;
   width: 100%;
-}
-
-/* Screen reader only utility class - hides visually but accessible to screen readers */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
 }
 
 /* Slider styling for WIP limit control */
@@ -131,7 +90,7 @@ input[type='range'].slider-track::-moz-range-thumb:hover {
   transform: scale(1.1);
 }
 
-/* Toast slide-in animation */
+/* Toast slide-in animation (legacy - kept for backwards compatibility) */
 @keyframes slide-in {
   from {
     transform: translateX(100%);
@@ -145,15 +104,4 @@ input[type='range'].slider-track::-moz-range-thumb:hover {
 
 .animate-slide-in {
   animation: slide-in 300ms ease-out;
-}
-
-/* Reduced motion support for accessibility */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
 }

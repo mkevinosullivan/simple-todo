@@ -1,0 +1,88 @@
+/* Accessibility Utilities */
+
+/* Screen Reader Only - Visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus Visible Styles - Modern focus indicators */
+*:focus-visible {
+  outline: 2px solid var(--color-accent-blue);
+  outline-offset: 2px;
+}
+
+/* Enhanced focus for interactive elements */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-accent-blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Remove default outline for focus-visible supporting browsers */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip to Main Content Link */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-accent-blue);
+  color: white;
+  padding: var(--spacing-sm) var(--spacing-base);
+  text-decoration: none;
+  z-index: 10000;
+  border-radius: 0 0 var(--radius-md) 0;
+}
+
+.skip-to-main:focus {
+  top: 0;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border-primary: #000000;
+    --color-text-primary: #000000;
+  }
+}
+
+/* Reduced Transparency for Accessibility */
+@media (prefers-reduced-transparency: reduce) {
+  * {
+    background-color: opaque !important;
+  }
+}
+
+/* Touch Target Helpers */
+.touch-target {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Keyboard Navigation Helpers */
+[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* ARIA Live Regions - These should NOT be visually hidden */
+/* Screen readers need these to be in the normal DOM flow to announce updates */
+/* Only apply sr-only styling if you specifically want a visually-hidden live region */

@@ -7,6 +7,7 @@ import { tasks } from '../services/tasks.js';
 import { announceToScreenReader } from '../utils/announceToScreenReader.js';
 
 import styles from './AddTaskInput.module.css';
+import { Spinner } from './Spinner.js';
 
 interface AddTaskInputProps {
   onTaskCreated: (task: Task) => void;
@@ -124,8 +125,17 @@ export const AddTaskInput: React.FC<AddTaskInputProps> = ({
         }
         aria-disabled={!canAddTask}
       >
-        {!canAddTask && '🔒 '}
-        {loading ? 'Adding...' : 'Add Task'}
+        {loading ? (
+          <>
+            <Spinner size="small" color="white" />
+            <span className="sr-only">Adding task...</span>
+          </>
+        ) : (
+          <>
+            {!canAddTask && '🔒 '}
+            Add Task
+          </>
+        )}
       </button>
       {!canAddTask && (
         <span id="wip-limit-info" className="sr-only">

@@ -1,25 +1,32 @@
 .taskList {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 0 var(--spacing-md);
   width: 100%;
   max-width: 800px;
 }
 
+/* Medium+ screens: Standard spacing */
+@media (min-width: 768px) {
+  .taskList {
+    margin: 0 var(--spacing-xl);
+  }
+}
+
 .loadingState,
 .errorState {
-  padding: 2rem;
+  padding: var(--spacing-2xl);
   text-align: center;
-  font-size: 16px;
-  font-weight: 400;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
 }
 
 .loadingState {
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .errorState {
-  color: #ef4444;
-  background: #fee2e2;
-  border-radius: 8px;
+  color: var(--color-error);
+  background: var(--color-error-light);
+  border-radius: var(--radius-md);
 }

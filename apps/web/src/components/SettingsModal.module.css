@@ -43,20 +43,48 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 0;
+}
+
+/* Mobile: Full-screen modal */
+@media (max-width: 767px) {
+  .modalContainer {
+    padding: 0;
+  }
+}
+
+/* Medium+ screens: Padded container */
+@media (min-width: 768px) {
+  .modalContainer {
+    padding: var(--spacing-base);
+  }
 }
 
 /* Modal panel */
 .modalPanel {
   margin: 0 auto;
   width: 100%;
-  max-width: 600px;
-  background-color: #ffffff;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  height: 100vh;
+  max-width: 100%;
+  background-color: var(--color-bg-card);
+  border-radius: 0;
+  padding: var(--spacing-base);
+  box-shadow: none;
+  overflow-y: auto;
+}
+
+/* Medium+ screens: Centered panel with max-width */
+@media (min-width: 768px) {
+  .modalPanel {
+    height: auto;
+    max-width: 600px;
+    max-height: 90vh;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
 }
 
 /* Panel animations */
@@ -109,8 +137,8 @@
   align-items: center;
   justify-content: center;
   padding: 8px;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
   background-color: transparent;
   color: #9ca3af;
   border: none;
@@ -271,8 +299,8 @@
 
 .btnCancel {
   padding: 12px 24px;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
   background-color: transparent;
   color: #374151;
   border: 1px solid #d1d5db;
@@ -294,8 +322,8 @@
 
 .btnSave {
   padding: 12px 24px;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
   background-color: #3b82f6;
   color: #ffffff;
   border: none;

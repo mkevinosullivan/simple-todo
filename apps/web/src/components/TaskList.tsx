@@ -3,6 +3,7 @@ import type React from 'react';
 import type { Task } from '@simple-todo/shared/types';
 
 import { EmptyState } from './EmptyState';
+import { LoadingSkeleton } from './LoadingSkeleton';
 import { TaskCard } from './TaskCard';
 import styles from './TaskList.module.css';
 
@@ -54,7 +55,11 @@ export const TaskList: React.FC<TaskListProps> = ({
   );
 
   if (loading) {
-    return <div className={styles.loadingState}>Loading tasks...</div>;
+    return (
+      <div className={styles.taskList}>
+        <LoadingSkeleton count={3} />
+      </div>
+    );
   }
 
   if (error) {

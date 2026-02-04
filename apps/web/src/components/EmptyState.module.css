@@ -2,23 +2,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2rem;
+  padding: var(--spacing-3xl) var(--spacing-2xl);
   text-align: center;
-  animation: empty-state-enter 400ms ease-out;
+  animation: empty-state-enter 400ms var(--easing-ease-out);
 }
 
 .message {
-  font-size: 1.125rem;
-  color: #6b7280;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
   margin: 0;
   max-width: 500px;
 }
 
 .errorMessage {
   color: #991b1b;
-  margin-top: 1rem;
+  margin-top: var(--spacing-base);
   text-align: center;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
 }
 
 /* Empty state entrance animation */

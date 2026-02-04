@@ -1,21 +1,23 @@
 /* WIPCountIndicator Component Styles */
 
 .indicator {
-  font-size: 16px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 8px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  padding: 6px var(--spacing-md);
+  border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
   transition:
-    transform 100ms ease-out,
-    box-shadow 100ms ease-out;
+    transform var(--duration-fast) var(--easing-ease-out),
+    box-shadow var(--duration-fast) var(--easing-ease-out);
   white-space: nowrap;
 }
 
-.indicator:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+@media (hover: hover) and (pointer: fine) {
+  .indicator:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .indicator:active {
@@ -23,7 +25,7 @@
 }
 
 .indicator:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--color-accent-blue);
   outline-offset: 2px;
 }
 
@@ -31,25 +33,18 @@
 
 /* 0-60%: Green - Below limit */
 .below-limit {
-  background-color: #d1fae5; /* Light green */
-  color: #059669; /* Dark green */
+  background-color: var(--color-success-light);
+  color: var(--color-success-dark);
 }
 
 /* 60-90%: Yellow - Approaching limit */
 .approaching-limit {
-  background-color: #fef3c7; /* Light yellow */
-  color: #92400e; /* Dark yellow */
+  background-color: var(--color-warning-light);
+  color: #92400e;
 }
 
 /* 90-100%: Orange - At limit */
 .at-limit {
-  background-color: #fed7aa; /* Light orange */
-  color: #9a3412; /* Dark orange */
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .indicator {
-    transition-duration: 0.01ms !important;
-  }
+  background-color: #fed7aa;
+  color: #9a3412;
 }

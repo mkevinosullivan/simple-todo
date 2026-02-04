@@ -18,6 +18,8 @@
       "Bash(node:*)",
       "Bash(done)",
       "Bash(npx vitest:*)",
+      "Bash(npx lighthouse:*)",
+      "Bash(python:*)",
       "mcp__ide__getDiagnostics",
       "mcp__playwright__browser_navigate",
       "mcp__playwright__browser_click",
@@ -27,7 +29,8 @@
       "mcp__playwright__browser_close",
       "mcp__playwright__browser_snapshot",
       "mcp__playwright__browser_type",
-      "mcp__playwright__browser_run_code"
+      "mcp__playwright__browser_run_code",
+      "mcp__playwright__browser_resize"
     ]
   },
   "hooks": {

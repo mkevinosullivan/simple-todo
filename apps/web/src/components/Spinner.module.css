@@ -1,0 +1,43 @@
+.spinner {
+  border-radius: 50%;
+  border-style: solid;
+  border-color: transparent;
+  border-top-color: currentColor;
+  animation: spin 600ms linear infinite;
+  display: inline-block;
+}
+
+.small {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.medium {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+.large {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+
+.primary {
+  border-top-color: var(--color-accent-blue);
+}
+
+.white {
+  border-top-color: var(--color-bg-card);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
