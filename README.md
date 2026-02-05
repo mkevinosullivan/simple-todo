@@ -6,6 +6,7 @@ TypeScript, and Express.
 ## Features
 
 - **Task Management**: Add, view, edit, delete, and complete tasks
+- **Proactive Prompting**: Background service runs at configured intervals to proactively remind you about active tasks (Story 4.1)
 - **WIP Limit Enforcement**: Configurable Work In Progress limit (5-10 tasks) helps maintain focus with encouraging, non-punitive messaging
 - **First-Launch Configuration**: Welcome screen guides new users through initial WIP limit setup
 - **Real-Time WIP Indicator**: Visual progress indicator shows active task count with color-coded status

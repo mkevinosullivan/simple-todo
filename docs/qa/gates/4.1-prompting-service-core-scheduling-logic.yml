@@ -1,0 +1,203 @@
+# Quality Gate Decision - Story 4.1
+# Powered by BMAD™ Core
+
+# Required fields
+schema: 1
+story: '4.1'
+story_title: 'Prompting Service - Core Scheduling Logic'
+gate: PASS
+status_reason: 'All acceptance criteria met with excellent implementation quality. Comprehensive test coverage, thorough documentation, and clean architecture. No blocking issues identified. Ready for integration.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2026-02-05T00:00:00Z'
+
+# Waiver status
+waiver: { active: false }
+
+# Issues (none identified)
+top_issues: []
+
+# Risk summary
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 0, low: 2 }
+  highest: low
+  risks:
+    - id: RISK-001
+      category: design
+      severity: low
+      probability: 2
+      impact: 1
+      score: 2
+      finding: 'Random task selection may favor certain tasks due to Math.random() distribution'
+      mitigation: 'Expected MVP behavior; Story 4.8 will implement priority-based selection'
+    - id: RISK-002
+      category: operations
+      severity: low
+      probability: 1
+      impact: 2
+      score: 2
+      finding: 'Scheduler interval drift over long periods'
+      mitigation: 'Interval validation (90% threshold) prevents rapid re-prompting; acceptable for MVP'
+  recommendations:
+    must_fix: []
+    monitor:
+      - 'Monitor prompt generation logs in production for unexpected patterns'
+      - 'Verify scheduler starts correctly on server deployment'
+
+# Quality score
+quality_score: 95  # 100 - (0*20 FAILs) - (0*10 CONCERNS) - 5 for MVP scope limitations
+
+# Gate expiry
+expires: '2026-02-19T00:00:00Z'  # 2 weeks from review
+
+# Evidence
+evidence:
+  tests_reviewed: 17  # Test count from PromptingService.test.ts
+  risks_identified: 2
+  files_reviewed: 6
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # All 10 ACs covered
+    ac_gaps: []  # No coverage gaps
+
+# NFR validation
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'No vulnerabilities identified. Internal service with no external inputs. Configuration loaded from trusted DataService. No sensitive data handling.'
+  performance:
+    status: PASS
+    notes: 'Efficient setInterval scheduling, O(1) random selection, minimal memory footprint. No performance concerns for expected load.'
+  reliability:
+    status: PASS
+    notes: 'Graceful degradation when no tasks available. Proper error handling with logging. Clean shutdown via stopScheduler(). Interval spacing prevents rapid re-prompting.'
+  maintainability:
+    status: PASS
+    notes: 'Excellent JSDoc documentation on all methods. Clear code structure following established service patterns. Well-organized comprehensive tests.'
+
+# Recommendations
+recommendations:
+  immediate: []  # No immediate action required
+  future:
+    - action: 'Consider adding restartScheduler() method for dynamic config updates (Story 4.5)'
+      refs: ['apps/server/src/services/PromptingService.ts']
+      priority: low
+    - action: 'Consider exposing scheduler status via health endpoint for monitoring'
+      refs: ['apps/server/src/routes/health.ts']
+      priority: low
+    - action: 'Add prompt generation rate metrics to AnalyticsService'
+      refs: ['apps/server/src/services/AnalyticsService.ts']
+      priority: low
+
+# Test coverage details
+test_coverage:
+  method_coverage:
+    - method: 'startScheduler()'
+      tests: ['should start scheduler when prompting enabled', 'should not start scheduler when prompting disabled']
+      status: covered
+    - method: 'stopScheduler()'
+      tests: ['should stopScheduler clear interval']
+      status: covered
+    - method: 'selectTaskForPrompt()'
+      tests: ['should return null when no active tasks', 'should return random task from active tasks array', 'should call TaskService.getAllTasks with active status']
+      status: covered
+    - method: 'generatePrompt()'
+      tests: ['should generate prompt with taskId, taskText, promptedAt', 'should return null when selectTaskForPrompt returns null', 'should update lastPromptTime when prompt generated', 'should generate promptedAt in ISO 8601 format']
+      status: covered
+    - method: 'loadPromptingConfig()'
+      tests: ['should load config from DataService', 'should return enabled and frequencyHours properties', 'should throw error if config loading fails']
+      status: covered
+    - method: 'onScheduledPrompt()'
+      tests: ['should skip onScheduledPrompt when no active tasks', 'should skip prompt when minimum interval not reached', 'should allow prompt when minimum interval has elapsed']
+      status: covered
+
+# Acceptance criteria validation
+acceptance_criteria_validation:
+  - ac: 1
+    description: 'PromptingService class created with methods: startScheduler(), stopScheduler(), generatePrompt(), selectTaskForPrompt()'
+    status: PASS
+    evidence: 'PromptingService.ts:18-223, all methods implemented with proper signatures'
+  - ac: 2
+    description: 'Scheduler uses node-schedule library or setInterval to trigger prompts at configured intervals'
+    status: PASS
+    evidence: 'PromptingService.ts:57-59, setInterval used (appropriate for MVP)'
+  - ac: 3
+    description: 'Default prompting interval: 2-3 hours, randomly selected within range for each prompt'
+    status: PASS
+    evidence: 'PromptingService.ts:51-54, random offset ±15 minutes applied to base frequency'
+  - ac: 4
+    description: 'selectTaskForPrompt() chooses one active task from TaskService using random selection algorithm'
+    status: PASS
+    evidence: 'PromptingService.ts:180-199, Math.random() used for selection'
+  - ac: 5
+    description: 'generatePrompt() creates prompt object: { taskId, taskText, promptedAt }'
+    status: PASS
+    evidence: 'PromptingService.ts:149-153, ProactivePrompt object created correctly'
+  - ac: 6
+    description: 'Service reads prompting configuration from config.json: { enabled, frequencyHours }'
+    status: PASS
+    evidence: 'PromptingService.ts:211-222, loadPromptingConfig() loads from DataService'
+  - ac: 7
+    description: 'If prompting disabled in config, scheduler does not start (respects opt-out)'
+    status: PASS
+    evidence: 'PromptingService.ts:45-48, early return when config.enabled is false'
+  - ac: 8
+    description: 'Scheduler only runs when there are active tasks available (pauses when task list empty)'
+    status: PASS
+    evidence: 'PromptingService.ts:109-114, skips generation when activeTaskCount is 0'
+  - ac: 9
+    description: 'Service tracks last prompt time to ensure proper interval spacing'
+    status: PASS
+    evidence: 'PromptingService.ts:95-106, 156, lastPromptTime tracked and validated'
+  - ac: 10
+    description: 'Unit tests verify: scheduler triggers at intervals, task selection logic, respects enabled/disabled state'
+    status: PASS
+    evidence: 'PromptingService.test.ts:1-279, comprehensive test coverage of all behaviors'
+
+# Files reviewed
+files_reviewed:
+  - path: 'packages/shared/src/types/PromptEvent.ts'
+    status: reviewed
+    findings: 'Clean interface definition with proper JSDoc comments'
+  - path: 'apps/server/src/services/PromptingService.ts'
+    status: reviewed
+    findings: 'Excellent implementation following established patterns, comprehensive JSDoc'
+  - path: 'apps/server/tests/unit/services/PromptingService.test.ts'
+    status: reviewed
+    findings: 'Comprehensive test suite covering all methods and edge cases'
+  - path: 'packages/shared/src/types/index.ts'
+    status: reviewed
+    findings: 'ProactivePrompt properly exported'
+  - path: 'apps/server/src/index.ts'
+    status: reviewed
+    findings: 'Proper integration with app lifecycle, graceful shutdown implemented'
+  - path: 'README.md'
+    status: reviewed
+    findings: 'Documentation updated to mention proactive prompting feature'
+
+# Code quality metrics
+code_quality:
+  type_check: PASS
+  lint: PASS
+  format: PASS
+  test_execution: PASS
+  documentation: EXCELLENT
+  architecture_compliance: EXCELLENT
+
+# Reviewer notes
+reviewer_notes: |
+  This is an exemplary implementation that demonstrates strong software engineering practices.
+  The code is production-ready with no refactoring needed. All acceptance criteria are fully
+  implemented and thoroughly tested. The service integrates cleanly with the existing codebase
+  and follows established architectural patterns.
+
+  Key highlights:
+  - Comprehensive test coverage with well-designed test suite
+  - Excellent documentation (JSDoc on all public methods)
+  - Proper error handling and logging throughout
+  - Clean dependency injection pattern for testability
+  - Thoughtful interval spacing validation to prevent issues
+  - MVP scope appropriately balanced (setInterval vs node-schedule decision)
+
+  The implementation provides a solid foundation for subsequent Epic 4 stories. Story 4.2
+  can build SSE delivery on top of this scheduler without modification to core logic.
+
+  Recommend proceeding to "Done" status and moving forward with Story 4.2.
