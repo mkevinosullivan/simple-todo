@@ -60,6 +60,37 @@
   height: 24px;
 }
 
+.helpButton {
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all var(--duration-base) var(--easing-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .helpButton:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-accent-blue);
+  }
+}
+
+.helpButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent-blue), 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+.helpIcon {
+  width: 24px;
+  height: 24px;
+}
+
 .main {
   width: 100%;
   max-width: 800px;

@@ -10,6 +10,7 @@ TypeScript, and Express.
 - **First-Launch Configuration**: Welcome screen guides new users through initial WIP limit setup
 - **Real-Time WIP Indicator**: Visual progress indicator shows active task count with color-coded status
 - **Settings Management**: Adjust WIP limit and view current active task count with immediate effect
+- **Help Documentation**: Accessible in-app help modal with comprehensive guides on features, keyboard shortcuts, and troubleshooting
 - **Behavioral Analytics**: Track completion rate, average task lifetime, task counts by status, and oldest active tasks
 - **Task Metadata**: Automatic tracking of creation and completion timestamps for all tasks
 - **Modern Tech Stack**: Built with React 18, TypeScript 5, and Express
@@ -214,6 +215,8 @@ simple-todo/
 │   │   │   ├── context/
 │   │   │   ├── utils/
 │   │   │   ├── styles/
+│   │   │   ├── content/    # Markdown content files
+│   │   │   │   └── help/   # Help documentation
 │   │   │   ├── App.tsx
 │   │   │   └── main.tsx
 │   │   ├── index.html
@@ -309,6 +312,49 @@ The analytics system provides rich behavioral data to help you understand your p
 - **Identify Bottlenecks**: Find tasks aging without completion
 - **Optimize Workflow**: Adjust WIP limits based on completion patterns
 - **Data-Driven Insights**: Foundation for future intelligent prompting features
+
+## Help Documentation
+
+The app includes comprehensive in-app help documentation accessible from the main header.
+
+### Accessing Help
+
+Click the **Help icon (?)** in the app header to open the Help modal with tabbed sections covering:
+
+1. **Getting Started**: Overview of the basic task flow (add → complete → celebrate)
+2. **WIP Limits**: Explanation of Work In Progress limits, benefits, and how to adjust them
+3. **Proactive Prompts**: Guide to understanding and responding to task reminders
+4. **Keyboard Shortcuts**: List of keyboard navigation shortcuts for efficient app usage
+5. **Troubleshooting**: Common issues and solutions
+
+### Quick Start Guide
+
+The Help modal includes a link to the interactive **Getting Started Guide** (Story 3.6), which provides a guided walkthrough for first-time users.
+
+### Updating Help Content
+
+Help content is stored in markdown files that can be updated without code changes:
+
+**Location**: `apps/web/src/content/help/`
+
+**Files**:
+- `getting-started.md` - Basic app introduction and task flow
+- `wip-limits.md` - WIP limit explanation and configuration
+- `proactive-prompts.md` - Proactive prompting guide
+- `keyboard-shortcuts.md` - Keyboard navigation reference
+- `troubleshooting.md` - Common issues and solutions
+
+**Updating Content**:
+1. Edit the markdown file in `apps/web/src/content/help/`
+2. Changes are automatically picked up during development (HMR)
+3. No server restart needed - just refresh the Help modal
+4. Markdown supports headings, lists, code blocks, and basic formatting
+
+**Tone Guidelines**:
+- Use encouraging, supportive language (matches PRD personality)
+- Keep content concise and action-oriented
+- Avoid technical jargon where possible
+- Focus on helping users succeed
 
 ## Available Scripts
 
