@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 
 import { CelebrationOverlay } from '../../../src/components/CelebrationOverlay';
@@ -163,11 +163,11 @@ describe('CelebrationOverlay', () => {
     );
 
     // Fast-forward time: 5000ms duration + 300ms exit animation
-    vi.advanceTimersByTime(5300);
-
-    await waitFor(() => {
-      expect(mockDismiss).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5300);
     });
+
+    expect(mockDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('should auto-dismiss after default duration (7000ms) when not specified', async () => {
@@ -183,11 +183,11 @@ describe('CelebrationOverlay', () => {
     );
 
     // Fast-forward time: 7000ms default + 300ms exit animation
-    vi.advanceTimersByTime(7300);
-
-    await waitFor(() => {
-      expect(mockDismiss).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(7300);
     });
+
+    expect(mockDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('should have role="alert" for accessibility', () => {
@@ -248,11 +248,11 @@ describe('CelebrationOverlay', () => {
     expect(celebrationCard).toHaveAttribute('tabindex', '0');
   });
 
-  it('should announce message to screen reader', () => {
+  it('should announce message to screen reader', async () => {
     const mockDismiss = vi.fn();
     const message = 'Task completed!';
 
-    const { announceToScreenReader } = require('../../../src/utils/announceToScreenReader');
+    const { announceToScreenReader } = await import('../../../src/utils/announceToScreenReader');
 
     render(
       <CelebrationOverlay

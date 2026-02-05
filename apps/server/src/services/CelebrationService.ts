@@ -96,7 +96,7 @@ export class CelebrationService {
     let finalMessage: CelebrationMessage = { ...selectedMessage };
 
     // Handle data-driven messages with dynamic task count
-    if (selectedMessage.variant === 'data-driven' && this.taskService) {
+    if (selectedMessage.variant === 'data-driven') {
       finalMessage = await this.generateDataDrivenMessage(selectedMessage);
     }
 
