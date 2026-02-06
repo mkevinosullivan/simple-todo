@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { CelebrationMessage, Task } from '@simple-todo/shared/types';
 
@@ -7,6 +7,7 @@ import { AddTaskInput } from '../components/AddTaskInput.js';
 import { CelebrationOverlay } from '../components/CelebrationOverlay.js';
 import { ErrorToast } from '../components/ErrorToast.js';
 import { HelpModal } from '../components/HelpModal.js';
+import { PromptToast } from '../components/PromptToast.js';
 import { SettingsModal } from '../components/SettingsModal.js';
 import { TaskList } from '../components/TaskList.js';
 import { WIPCountIndicator } from '../components/WIPCountIndicator.js';
@@ -14,9 +15,12 @@ import { WIPLimitMessage } from '../components/WIPLimitMessage.js';
 import { useConfig } from '../context/ConfigContext.js';
 import { useTaskContext } from '../context/TaskContext.js';
 import { useCelebrationQueue } from '../hooks/useCelebrationQueue.js';
+import { usePromptQueue } from '../hooks/usePromptQueue.js';
+import { useSSE } from '../hooks/useSSE.js';
 import { useWipStatus } from '../hooks/useWipStatus.js';
 import { celebrations } from '../services/celebrations.js';
 import { updateEducationFlag } from '../services/config.js';
+import { prompts } from '../services/prompts.js';
 import { tasks } from '../services/tasks.js';
 import { announceToScreenReader } from '../utils/announceToScreenReader.js';
 
@@ -40,6 +44,8 @@ export const TaskListView: React.FC = () => {
   const { tasks: taskList, loading, error: contextError, addTask, removeTask, updateTask } = useTaskContext();
   const { canAddTask, currentCount, limit, hasSeenWIPLimitEducation, refreshLimit } = useWipStatus();
   const { currentCelebration, queueCelebration, dismissCelebration } = useCelebrationQueue();
+  const { prompts: ssePrompts } = useSSE();
+  const { currentPrompt, queuePrompt, dismissCurrent } = usePromptQueue();
   const [toastError, setToastError] = useState<string | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
@@ -47,6 +53,7 @@ export const TaskListView: React.FC = () => {
   const [wipLimitPulse, setWipLimitPulse] = useState<boolean>(false);
   const [isFirstCompletion, setIsFirstCompletion] = useState<boolean>(true);
   const [, setForceRender] = useState<number>(0);
+  const processedPromptCount = useRef<number>(0);
   const error = contextError;
 
   // Force re-render every 60 seconds to update age indicators
@@ -57,6 +64,19 @@ export const TaskListView: React.FC = () => {
 
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, []);
+
+  // Subscribe to SSE prompts and queue them (only queue NEW prompts)
+  useEffect(() => {
+    // Only process if we have NEW prompts (array grew)
+    if (ssePrompts.length > processedPromptCount.current) {
+      // Queue all new prompts since last processed
+      for (let i = processedPromptCount.current; i < ssePrompts.length; i++) {
+        queuePrompt(ssePrompts[i]);
+      }
+      // Update count to prevent re-queuing
+      processedPromptCount.current = ssePrompts.length;
+    }
+  }, [ssePrompts, queuePrompt]);
 
   const handleTaskCreated = (newTask: Task): void => {
     addTask(newTask);
@@ -260,6 +280,45 @@ export const TaskListView: React.FC = () => {
     }
   };
 
+  /**
+   * Handle prompt toast Complete action
+   * Completes the task and dismisses the toast
+   */
+  const handlePromptComplete = async (taskId: string): Promise<void> => {
+    try {
+      await handleComplete(taskId);
+      dismissCurrent();
+    } catch (err) {
+      // Error handling is done in handleComplete
+      console.error('Failed to complete task from prompt:', err);
+      setToastError('Failed to complete task. Please try again.');
+      dismissCurrent();
+    }
+  };
+
+  /**
+   * Handle prompt toast Dismiss action
+   * Just dismisses the toast without any API call
+   */
+  const handlePromptDismiss = (): void => {
+    dismissCurrent();
+  };
+
+  /**
+   * Handle prompt toast Snooze action
+   * Calls snooze API and dismisses the toast
+   */
+  const handlePromptSnooze = async (taskId: string): Promise<void> => {
+    try {
+      await prompts.snooze({ taskId });
+      dismissCurrent();
+    } catch (err) {
+      console.error('Failed to snooze prompt:', err);
+      setToastError('Failed to snooze prompt. Please try again.');
+      dismissCurrent();
+    }
+  };
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -354,6 +413,14 @@ export const TaskListView: React.FC = () => {
           variant={currentCelebration.variant}
           duration={currentCelebration.duration}
           onDismiss={dismissCelebration}
+        />
+      )}
+      {currentPrompt && (
+        <PromptToast
+          prompt={currentPrompt}
+          onComplete={handlePromptComplete}
+          onDismiss={handlePromptDismiss}
+          onSnooze={handlePromptSnooze}
         />
       )}
     </div>

@@ -1,0 +1,218 @@
+/* PromptToast Component Styles */
+
+.toast {
+  position: fixed;
+  width: 320px;
+  background-color: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Position variants */
+.bottomRight {
+  bottom: 16px;
+  right: 16px;
+}
+
+.topRight {
+  top: 16px;
+  right: 16px;
+}
+
+/* Entrance animation */
+.enter {
+  animation: toast-enter 300ms ease-out forwards;
+}
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Exit animation */
+.exit {
+  animation: toast-exit 300ms ease-in forwards;
+}
+
+@keyframes toast-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .exit {
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Icon */
+.icon {
+  font-size: 20px;
+  text-align: center;
+  line-height: 1;
+}
+
+/* Heading */
+.heading {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  text-align: center;
+}
+
+/* Task text */
+.taskText {
+  font-size: 16px;
+  font-weight: 400;
+  color: #111827;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.expandable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.expandable:hover {
+  opacity: 0.8;
+}
+
+.expandable:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.expandHint {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background-color: #d1d5db;
+  margin: 4px 0;
+}
+
+/* Timer */
+.timer {
+  font-size: 12px;
+  font-weight: 400;
+  color: #6b7280;
+  text-align: center;
+}
+
+/* Progress bar */
+.progressBarContainer {
+  width: 100%;
+  height: 4px;
+  background-color: #d1d5db;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background-color: #3b82f6;
+  transition: width 1s linear;
+}
+
+/* Action buttons */
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 32px;
+  min-width: 32px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+}
+
+.button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.button:hover {
+  transform: scale(1.05);
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.buttonIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Complete button */
+.completeButton {
+  background-color: #10b981;
+  color: white;
+}
+
+.completeButton:hover {
+  background-color: #059669;
+}
+
+/* Dismiss button */
+.dismissButton {
+  background-color: #6b7280;
+  color: white;
+}
+
+.dismissButton:hover {
+  background-color: #4b5563;
+}
+
+/* Snooze button */
+.snoozeButton {
+  background-color: #6b7280;
+  color: white;
+}
+
+.snoozeButton:hover {
+  background-color: #4b5563;
+}

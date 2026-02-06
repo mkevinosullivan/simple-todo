@@ -1,4 +1,4 @@
-import type { Config, Task, TaskStatus } from '@simple-todo/shared/types';
+import type { Config, ProactivePrompt, Task, TaskStatus } from '@simple-todo/shared/types';
 import { DEFAULT_CONFIG } from '@simple-todo/shared/types';
 
 import type { WipConfig } from '../../src/services/config';
@@ -51,6 +51,20 @@ export function createTestWipConfig(overrides?: Partial<WipConfig>): WipConfig {
 export function createTestConfig(overrides?: Partial<Config>): Config {
   return {
     ...DEFAULT_CONFIG,
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a test ProactivePrompt object
+ * @param overrides - Partial prompt to override defaults
+ * @returns ProactivePrompt object for testing
+ */
+export function createTestPrompt(overrides?: Partial<ProactivePrompt>): ProactivePrompt {
+  return {
+    taskId: '123e4567-e89b-12d3-a456-426614174000',
+    taskText: 'Test prompt task',
+    promptedAt: new Date().toISOString(),
     ...overrides,
   };
 }

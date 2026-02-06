@@ -79,7 +79,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
 
     try {
       // Dynamic import of markdown file as raw text using Vite's import syntax
-      const modules = import.meta.glob('../content/help/*.md', { as: 'raw', eager: false });
+      const modules = import.meta.glob('../content/help/*.md', { query: '?raw', eager: false });
       const importPath = `../content/help/${filename}`;
 
       if (importPath in modules) {
