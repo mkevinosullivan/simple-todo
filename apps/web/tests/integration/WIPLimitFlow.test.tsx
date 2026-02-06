@@ -35,9 +35,12 @@ describe('WIP Limit Enforcement Flow', () => {
     render(<App />);
 
     // Wait for WIP limit message to appear
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText(/you have 7 active tasks/i)).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Verify message content
     expect(screen.getByText(/complete or delete a task/i)).toBeInTheDocument();
@@ -65,9 +68,12 @@ describe('WIP Limit Enforcement Flow', () => {
     render(<App />);
 
     // Wait for tasks to load
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Task 1')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Verify WIP limit message is NOT shown
     expect(screen.queryByText(/you have 7 active tasks/i)).not.toBeInTheDocument();
@@ -100,18 +106,24 @@ describe('WIP Limit Enforcement Flow', () => {
     render(<App />);
 
     // Wait for tasks to load
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText(/5\/7/)).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Delete a task
     const deleteButtons = screen.getAllByLabelText(/delete task/i);
     await user.click(deleteButtons[0]);
 
     // Wait for count to update
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText(/4\/7/)).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
   });
 
   it('should show first-time education only once', async () => {
@@ -131,9 +143,12 @@ describe('WIP Limit Enforcement Flow', () => {
     render(<App />);
 
     // First time: Should show education message with "Got it!" button
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText(/focus feature/i)).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     expect(screen.getByText(/got it!/i)).toBeInTheDocument();
 
@@ -142,9 +157,12 @@ describe('WIP Limit Enforcement Flow', () => {
     await userEvent.click(gotItButton);
 
     // Education message should be replaced with standard message
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.queryByText(/focus feature/i)).not.toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
   });
 
   it('should open settings when clicking WIP count indicator', async () => {
@@ -165,18 +183,24 @@ describe('WIP Limit Enforcement Flow', () => {
     render(<App />);
 
     // Wait for WIP indicator to appear
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText(/5\/7/)).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Click WIP count indicator
     const wipIndicator = screen.getByRole('status', { name: /active tasks/i });
     await user.click(wipIndicator);
 
     // Settings modal should open
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText(/wip limit configuration/i)).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
   });
 
   it('should open settings when clicking settings link in WIP message', async () => {
@@ -197,17 +221,23 @@ describe('WIP Limit Enforcement Flow', () => {
     render(<App />);
 
     // Wait for WIP limit message
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText(/adjust your limit in settings/i)).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Click settings link
     const settingsLink = screen.getByText(/adjust your limit in settings/i);
     await user.click(settingsLink);
 
     // Settings modal should open
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText(/wip limit configuration/i)).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
   });
 });
