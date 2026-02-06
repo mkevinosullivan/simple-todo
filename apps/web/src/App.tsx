@@ -7,6 +7,7 @@ import { DEFAULT_CONFIG } from '@simple-todo/shared/types';
 import { FirstLaunchScreen } from './components/FirstLaunchScreen.js';
 import { ConfigProvider } from './context/ConfigContext.js';
 import { TaskProvider } from './context/TaskContext.js';
+import { useSSE } from './hooks/useSSE.js';
 import { getConfig, updateWipLimit } from './services/config.js';
 import { TaskListView } from './views/TaskListView.js';
 
@@ -70,6 +71,9 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
+  // Establish SSE connection for real-time prompt delivery (Story 4.2)
+  const { prompts, connectionState, error: sseError } = useSSE();
+
   const fetchConfig = async () => {
     try {
       setLoading(true);
@@ -92,6 +96,24 @@ const App: React.FC = () => {
     void fetchConfig();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Log SSE connection state changes
+  useEffect(() => {
+    console.log('SSE connection state:', connectionState);
+    if (sseError) {
+      console.error('SSE error:', sseError);
+    }
+  }, [connectionState, sseError]);
+
+  // Log received prompts (MVP - Story 4.3 will add PromptToast UI)
+  useEffect(() => {
+    if (prompts.length > 0) {
+      const latestPrompt = prompts[prompts.length - 1];
+      console.log('📬 Received prompt via SSE:', latestPrompt);
+      console.log(`Task: "${latestPrompt.taskText}" (ID: ${latestPrompt.taskId})`);
+      console.log(`Prompted at: ${latestPrompt.promptedAt}`);
+    }
+  }, [prompts]);
 
   const handleSetupComplete = async (wipLimit: number) => {
     await updateWipLimit(wipLimit);

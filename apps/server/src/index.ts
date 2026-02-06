@@ -1,15 +1,8 @@
 import app from './app.js';
-import { DataService } from './services/DataService.js';
-import { PromptingService } from './services/PromptingService.js';
-import { TaskService } from './services/TaskService.js';
+import { promptingService } from './services/index.js';
 import { logger } from './utils/logger.js';
 
 const PORT = process.env.PORT || 3001;
-
-// Initialize services for prompting
-const dataService = new DataService(process.env.DATA_DIR);
-const taskService = new TaskService(dataService);
-const promptingService = new PromptingService(taskService, dataService);
 
 // Start the server
 const server = app.listen(PORT, async () => {

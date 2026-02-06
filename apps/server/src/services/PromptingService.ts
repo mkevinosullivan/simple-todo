@@ -1,3 +1,5 @@
+import { EventEmitter } from 'events';
+
 import type { ProactivePrompt, Task } from '@simple-todo/shared/types';
 
 import { logger } from '../utils/logger.js';
@@ -10,18 +12,21 @@ import type { TaskService } from './TaskService.js';
  *
  * This service handles proactive prompting of tasks at configured intervals.
  * It selects active tasks randomly and generates prompts for user engagement.
+ * Extends EventEmitter to broadcast prompts via SSE.
  *
  * @example
  * const promptingService = new PromptingService(taskService, dataService);
  * await promptingService.startScheduler();
+ * promptingService.on('prompt', (prompt) => console.log(prompt));
  */
-export class PromptingService {
+export class PromptingService extends EventEmitter {
   private readonly taskService: TaskService;
   private readonly dataService: DataService;
   private scheduler: NodeJS.Timeout | null = null;
   private lastPromptTime: Date | null = null;
 
   constructor(taskService: TaskService, dataService: DataService) {
+    super();
     this.taskService = taskService;
     this.dataService = dataService;
   }
@@ -121,8 +126,11 @@ export class PromptingService {
       return;
     }
 
-    // For now, just log the prompt (Story 4.2 will add SSE streaming)
+    // Log the prompt
     logger.info('Scheduled prompt triggered', { prompt });
+
+    // Emit prompt event for SSE broadcasting (Story 4.2)
+    this.emit('prompt', prompt);
   }
 
   /**

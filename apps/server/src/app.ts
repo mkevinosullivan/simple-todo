@@ -5,6 +5,7 @@ import analyticsRouter from './routes/analytics.js';
 import celebrationsRouter from './routes/celebrations.js';
 import configRouter from './routes/config.js';
 import healthRouter from './routes/health.js';
+import promptsRouter from './routes/prompts.js';
 import tasksRouter from './routes/tasks.js';
 
 const app: Express = express();
@@ -25,6 +26,7 @@ app.use('/api/analytics', analyticsRouter);
 app.use('/api/celebrations', celebrationsRouter);
 app.use('/api/config', configRouter);
 app.use('/api/health', healthRouter);
+app.use('/api/prompts', promptsRouter);
 app.use('/api/tasks', tasksRouter);
 
 export default app;
