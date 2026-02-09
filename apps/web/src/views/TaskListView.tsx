@@ -22,6 +22,7 @@ import { updateEducationFlag } from '../services/config.js';
 import { prompts } from '../services/prompts.js';
 import { tasks } from '../services/tasks.js';
 import { announceToScreenReader } from '../utils/announceToScreenReader.js';
+import { canSendBrowserNotification, sendBrowserNotification } from '../utils/browserNotifications.js';
 
 import styles from './TaskListView.module.css';
 
@@ -73,12 +74,20 @@ export const TaskListView: React.FC<TaskListViewProps> = ({ ssePrompts }) => {
     if (ssePrompts.length > processedPromptCount.current) {
       // Queue all new prompts since last processed
       for (let i = processedPromptCount.current; i < ssePrompts.length; i++) {
-        queuePrompt(ssePrompts[i]);
+        const prompt = ssePrompts[i];
+
+        // Queue toast notification (in-app)
+        queuePrompt(prompt);
+
+        // Send browser notification if enabled (AC: 6 - dual notification)
+        if (canSendBrowserNotification(config.browserNotificationsEnabled)) {
+          sendBrowserNotification(prompt.taskText, prompt.taskId);
+        }
       }
       // Update count to prevent re-queuing
       processedPromptCount.current = ssePrompts.length;
     }
-  }, [ssePrompts, queuePrompt]);
+  }, [ssePrompts, queuePrompt, config.browserNotificationsEnabled]);
 
   const handleTaskCreated = (newTask: Task): void => {
     addTask(newTask);

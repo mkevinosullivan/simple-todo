@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 
 import type {
+  UpdateBrowserNotificationsDto,
   UpdateCelebrationConfigDto,
   UpdateConfigDto,
   UpdateEducationFlagDto,
@@ -8,6 +9,7 @@ import type {
   UpdateWipLimitDto,
 } from '../middleware/validation.js';
 import {
+  UpdateBrowserNotificationsSchema,
   UpdateCelebrationConfigSchema,
   UpdateConfigSchema,
   UpdateEducationFlagSchema,
@@ -607,6 +609,86 @@ router.put(
         logger.error('Failed to update prompting configuration', { error });
         res.status(500).json({
           error: 'Failed to update prompting configuration',
+        });
+      }
+    }
+  )
+);
+
+/**
+ * PUT /api/config/browser-notifications
+ * Update browser notifications configuration
+ *
+ * @route PUT /api/config/browser-notifications
+ * @param {object} req.body - Request body
+ * @param {boolean} req.body.enabled - Whether to enable browser notifications
+ * @returns {object} 200 - Full updated configuration object
+ * @returns {object} 400 - Validation error (enabled not boolean)
+ * @returns {object} 500 - Internal server error
+ *
+ * @throws {Error} Returns 400 if enabled is not a boolean
+ * @throws {Error} Returns 400 if enabled field is missing
+ * @throws {Error} Returns 500 if unable to persist configuration
+ *
+ * @example
+ * // Request:
+ * PUT /api/config/browser-notifications
+ * {
+ *   "enabled": true
+ * }
+ *
+ * // Response (200):
+ * {
+ *   "wipLimit": 7,
+ *   "promptingEnabled": true,
+ *   "promptingFrequencyHours": 2.5,
+ *   "celebrationsEnabled": true,
+ *   "celebrationDurationSeconds": 7,
+ *   "browserNotificationsEnabled": true,
+ *   "hasCompletedSetup": true,
+ *   "hasSeenPromptEducation": false,
+ *   "hasSeenWIPLimitEducation": false
+ * }
+ *
+ * // Error response (400 - invalid type):
+ * {
+ *   "error": "Validation failed",
+ *   "details": [
+ *     {
+ *       "field": "enabled",
+ *       "message": "enabled must be a boolean"
+ *     }
+ *   ]
+ * }
+ */
+router.put(
+  '/browser-notifications',
+  validateRequest(UpdateBrowserNotificationsSchema),
+  asyncHandler(
+    async (
+      req: Request<object, object, UpdateBrowserNotificationsDto>,
+      res: Response
+    ): Promise<void> => {
+      try {
+        // Request body is validated by middleware
+        const { enabled } = req.body;
+
+        // Load current config
+        const config = await dataService.loadConfig();
+
+        // Update browser notifications field
+        config.browserNotificationsEnabled = enabled;
+
+        // Persist updated config to file
+        await dataService.saveConfig(config);
+
+        // Return full updated configuration
+        res.status(200).json(config);
+      } catch (error) {
+        // Generic server error (file system, etc.)
+        logger.error('Failed to update browser notifications configuration', { error });
+        res.status(500).json({
+          error: 'Failed to update browser notifications configuration',
         });
       }
     }

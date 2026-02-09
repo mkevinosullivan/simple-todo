@@ -14,11 +14,13 @@ import {
   getCelebrationConfig,
   getPromptingConfig,
   getWipConfig,
+  updateBrowserNotifications,
   updateCelebrationConfig,
   updatePromptingConfig,
   updateWipLimit,
 } from '../services/config.js';
 
+import { BrowserNotificationConfig } from './BrowserNotificationConfig.js';
 import { CelebrationConfig } from './CelebrationConfig.js';
 import { CelebrationOverlay } from './CelebrationOverlay.js';
 import { PromptingConfig } from './PromptingConfig.js';
@@ -76,6 +78,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     enabled: true,
     frequencyHours: 2.5,
   });
+  const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState<boolean>(false);
+  const [initialBrowserNotificationsEnabled, setInitialBrowserNotificationsEnabled] =
+    useState<boolean>(false);
 
   // Load configs when modal opens
   useEffect(() => {
@@ -105,6 +110,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       setPromptingConfig(promptingConfigData);
       setInitialPromptingConfig(promptingConfigData);
 
+      // Load browser notifications config from global config
+      const browserNotificationsEnabledValue = globalConfig?.browserNotificationsEnabled ?? false;
+      setBrowserNotificationsEnabled(browserNotificationsEnabledValue);
+      setInitialBrowserNotificationsEnabled(browserNotificationsEnabledValue);
+
       setErrorMessage(null);
     } catch (error) {
       console.error('Failed to load configs:', error);
@@ -128,7 +138,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     celebrationConfig.celebrationDurationSeconds !==
       initialCelebrationConfig.celebrationDurationSeconds ||
     promptingConfig.enabled !== initialPromptingConfig.enabled ||
-    promptingConfig.frequencyHours !== initialPromptingConfig.frequencyHours;
+    promptingConfig.frequencyHours !== initialPromptingConfig.frequencyHours ||
+    browserNotificationsEnabled !== initialBrowserNotificationsEnabled;
 
   /**
    * Handles save button click
@@ -185,6 +196,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         });
       }
 
+      // Save browser notifications config if changed
+      if (browserNotificationsEnabled !== initialBrowserNotificationsEnabled) {
+        const updatedConfig = await updateBrowserNotifications(browserNotificationsEnabled);
+
+        // Update global config context so changes take effect immediately
+        updateGlobalConfig(updatedConfig);
+        setInitialBrowserNotificationsEnabled(updatedConfig.browserNotificationsEnabled);
+      }
+
       setShowSuccessToast(true);
 
       // Auto-hide success toast after 5 seconds
@@ -207,6 +227,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setSliderValue(initialValue);
     setCelebrationConfig(initialCelebrationConfig);
     setPromptingConfig(initialPromptingConfig);
+    setBrowserNotificationsEnabled(initialBrowserNotificationsEnabled);
     setErrorMessage(null);
     setShowSuccessToast(false);
     onClose();
@@ -248,6 +269,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       enabled,
       frequencyHours,
     });
+  };
+
+  /**
+   * Handles browser notifications config update (local state only, saved on Save button click)
+   */
+  const handleUpdateBrowserNotifications = (enabled: boolean): void => {
+    setBrowserNotificationsEnabled(enabled);
   };
 
   return (
@@ -369,6 +397,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     promptingConfig.nextPromptTime ? new Date(promptingConfig.nextPromptTime) : null
                   }
                   onUpdate={handleUpdatePromptingConfig}
+                />
+
+                {/* Browser Notification Configuration Section */}
+                <BrowserNotificationConfig
+                  enabled={browserNotificationsEnabled}
+                  onUpdate={handleUpdateBrowserNotifications}
                 />
 
                 {/* Footer buttons */}

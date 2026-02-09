@@ -909,4 +909,171 @@ describe('Config API Integration Tests', () => {
       expect(config.celebrationsEnabled).toBe(false);
     });
   });
+
+  describe('PUT /api/config/browser-notifications', () => {
+    it('should update browser notifications to enabled', async () => {
+      const response = await request(app)
+        .put('/api/config/browser-notifications')
+        .send({ enabled: true })
+        .expect(200);
+
+      // Should return full config object
+      expect(response.body.browserNotificationsEnabled).toBe(true);
+      expect(response.body).toHaveProperty('wipLimit');
+      expect(response.body).toHaveProperty('promptingEnabled');
+
+      // Verify persistence to file
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+      expect(config.browserNotificationsEnabled).toBe(true);
+    });
+
+    it('should update browser notifications to disabled', async () => {
+      // First enable it
+      await request(app)
+        .put('/api/config/browser-notifications')
+        .send({ enabled: true })
+        .expect(200);
+
+      // Then disable it
+      const response = await request(app)
+        .put('/api/config/browser-notifications')
+        .send({ enabled: false })
+        .expect(200);
+
+      expect(response.body.browserNotificationsEnabled).toBe(false);
+
+      // Verify persistence
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+      expect(config.browserNotificationsEnabled).toBe(false);
+    });
+
+    it('should return full config object', async () => {
+      const response = await request(app)
+        .put('/api/config/browser-notifications')
+        .send({ enabled: true })
+        .expect(200);
+
+      // Verify all config fields are present
+      expect(response.body).toMatchObject({
+        wipLimit: 7,
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+        celebrationsEnabled: true,
+        celebrationDurationSeconds: 7,
+        browserNotificationsEnabled: true,
+        hasCompletedSetup: false,
+        hasSeenPromptEducation: false,
+        hasSeenWIPLimitEducation: false,
+      });
+    });
+
+    it('should reject non-boolean enabled value with 400', async () => {
+      const response = await request(app)
+        .put('/api/config/browser-notifications')
+        .send({ enabled: 'true' })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details).toBeDefined();
+      expect(response.body.details[0].message).toBe('enabled must be a boolean');
+    });
+
+    it('should reject missing enabled field with 400', async () => {
+      const response = await request(app)
+        .put('/api/config/browser-notifications')
+        .send({})
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details).toBeDefined();
+      expect(response.body.details[0].message).toBe('enabled is required');
+    });
+
+    it('should persist to config.json', async () => {
+      // Update browser notifications
+      await request(app)
+        .put('/api/config/browser-notifications')
+        .send({ enabled: true })
+        .expect(200);
+
+      // Verify file was updated
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+      expect(config.browserNotificationsEnabled).toBe(true);
+
+      // Verify GET /api/config returns updated value
+      const response = await request(app).get('/api/config').expect(200);
+      expect(response.body.browserNotificationsEnabled).toBe(true);
+    });
+
+    it('should preserve other config fields', async () => {
+      // Set initial config with specific values
+      const initialConfig: Config = {
+        ...DEFAULT_CONFIG,
+        wipLimit: 8,
+        hasCompletedSetup: true,
+        celebrationsEnabled: false,
+        promptingFrequencyHours: 4,
+      };
+      await fs.writeFile(testConfigFile, JSON.stringify(initialConfig, null, 2), 'utf-8');
+
+      // Update browser notifications
+      await request(app)
+        .put('/api/config/browser-notifications')
+        .send({ enabled: true })
+        .expect(200);
+
+      // Verify other fields are unchanged
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+
+      expect(config.browserNotificationsEnabled).toBe(true);
+      expect(config.wipLimit).toBe(8);
+      expect(config.hasCompletedSetup).toBe(true);
+      expect(config.celebrationsEnabled).toBe(false);
+      expect(config.promptingFrequencyHours).toBe(4);
+    });
+
+    it('should be idempotent (calling twice has same result)', async () => {
+      // First update
+      const response1 = await request(app)
+        .put('/api/config/browser-notifications')
+        .send({ enabled: true })
+        .expect(200);
+
+      expect(response1.body.browserNotificationsEnabled).toBe(true);
+
+      // Second update (should succeed with same result)
+      const response2 = await request(app)
+        .put('/api/config/browser-notifications')
+        .send({ enabled: true })
+        .expect(200);
+
+      expect(response2.body.browserNotificationsEnabled).toBe(true);
+    });
+
+    it('should reject number value with 400', async () => {
+      const response = await request(app)
+        .put('/api/config/browser-notifications')
+        .send({ enabled: 1 })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should reject null value with 400', async () => {
+      const response = await request(app)
+        .put('/api/config/browser-notifications')
+        .send({ enabled: null })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+  });
 });

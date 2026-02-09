@@ -191,3 +191,20 @@ export async function updatePromptingConfig(
     frequencyHours,
   });
 }
+
+/**
+ * Update browser notifications configuration
+ *
+ * @param enabled - Whether to enable browser notifications
+ * @returns Promise resolving to updated full Config object
+ * @throws {Error} If API request fails
+ *
+ * @example
+ * const updated = await updateBrowserNotifications(true);
+ * console.log(updated.browserNotificationsEnabled); // true
+ */
+export async function updateBrowserNotifications(enabled: boolean): Promise<Config> {
+  return await apiPut<Config>('/api/config/browser-notifications', {
+    enabled,
+  });
+}

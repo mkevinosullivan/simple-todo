@@ -133,6 +133,32 @@ export const UpdatePromptingConfigSchema = z.object({
 export type UpdatePromptingConfigDto = z.infer<typeof UpdatePromptingConfigSchema>;
 
 /**
+ * Zod schema for updating browser notifications configuration
+ * Validates that enabled is a boolean
+ *
+ * @example
+ * // Valid request bodies:
+ * { enabled: true }
+ * { enabled: false }
+ *
+ * // Invalid request bodies (will return 400):
+ * { enabled: "true" }  // String instead of boolean
+ * {}                    // Missing enabled field
+ */
+export const UpdateBrowserNotificationsSchema = z.object({
+  enabled: z.boolean({
+    required_error: 'enabled is required',
+    invalid_type_error: 'enabled must be a boolean',
+  }),
+});
+
+/**
+ * Type inference for UpdateBrowserNotificationsSchema
+ * Use this type for type-safe access to validated request body
+ */
+export type UpdateBrowserNotificationsDto = z.infer<typeof UpdateBrowserNotificationsSchema>;
+
+/**
  * Zod schema for partial config updates
  * Allows updating any config field with validation
  *
