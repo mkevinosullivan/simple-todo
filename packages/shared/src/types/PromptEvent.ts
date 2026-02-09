@@ -10,3 +10,35 @@ export interface ProactivePrompt {
   /** ISO 8601 timestamp when the prompt was generated */
   promptedAt: string;
 }
+
+/**
+ * Prompt response types
+ * Represents how a user responded to a prompt
+ */
+export type PromptResponse = 'complete' | 'dismiss' | 'snooze' | 'timeout';
+
+/**
+ * Prompt Event interface
+ * Represents a logged prompt event for analytics tracking
+ */
+export interface PromptEvent {
+  /** Unique ID for this prompt event */
+  promptId: string;
+  /** ID of the task that was prompted */
+  taskId: string;
+  /** ISO 8601 timestamp when the prompt was generated */
+  promptedAt: string;
+  /** User's response to the prompt */
+  response: PromptResponse;
+  /** ISO 8601 timestamp when user responded, null if timeout */
+  respondedAt: string | null;
+}
+
+/**
+ * Snooze Prompt DTO
+ * Request payload for snoozing a prompt
+ */
+export interface SnoozePromptDto {
+  /** ID of the task to snooze */
+  taskId: string;
+}

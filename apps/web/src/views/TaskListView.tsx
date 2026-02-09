@@ -1,7 +1,7 @@
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 
-import type { CelebrationMessage, Task } from '@simple-todo/shared/types';
+import type { CelebrationMessage, ProactivePrompt, Task } from '@simple-todo/shared/types';
 
 import { AddTaskInput } from '../components/AddTaskInput.js';
 import { CelebrationOverlay } from '../components/CelebrationOverlay.js';
@@ -16,7 +16,6 @@ import { useConfig } from '../context/ConfigContext.js';
 import { useTaskContext } from '../context/TaskContext.js';
 import { useCelebrationQueue } from '../hooks/useCelebrationQueue.js';
 import { usePromptQueue } from '../hooks/usePromptQueue.js';
-import { useSSE } from '../hooks/useSSE.js';
 import { useWipStatus } from '../hooks/useWipStatus.js';
 import { celebrations } from '../services/celebrations.js';
 import { updateEducationFlag } from '../services/config.js';
@@ -25,6 +24,10 @@ import { tasks } from '../services/tasks.js';
 import { announceToScreenReader } from '../utils/announceToScreenReader.js';
 
 import styles from './TaskListView.module.css';
+
+interface TaskListViewProps {
+  ssePrompts: ProactivePrompt[];
+}
 
 /**
  * TaskListView - Main page component for viewing task list
@@ -37,14 +40,13 @@ import styles from './TaskListView.module.css';
  * - Responsive layout
  *
  * @example
- * <TaskListView />
+ * <TaskListView ssePrompts={prompts} />
  */
-export const TaskListView: React.FC = () => {
+export const TaskListView: React.FC<TaskListViewProps> = ({ ssePrompts }) => {
   const { config } = useConfig();
   const { tasks: taskList, loading, error: contextError, addTask, removeTask, updateTask } = useTaskContext();
   const { canAddTask, currentCount, limit, hasSeenWIPLimitEducation, refreshLimit } = useWipStatus();
   const { currentCelebration, queueCelebration, dismissCelebration } = useCelebrationQueue();
-  const { prompts: ssePrompts } = useSSE();
   const { currentPrompt, queuePrompt, dismissCurrent } = usePromptQueue();
   const [toastError, setToastError] = useState<string | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -282,40 +284,63 @@ export const TaskListView: React.FC = () => {
 
   /**
    * Handle prompt toast Complete action
-   * Completes the task and dismisses the toast
+   * Completes the task, tracks the response, and dismisses the toast
    */
   const handlePromptComplete = async (taskId: string): Promise<void> => {
     try {
+      // Track prompt response before completing (in case completion fails)
+      await prompts.complete(taskId);
+
+      // Complete the task (triggers celebration)
       await handleComplete(taskId);
+
+      // Dismiss the toast
       dismissCurrent();
     } catch (err) {
       // Error handling is done in handleComplete
       console.error('Failed to complete task from prompt:', err);
       setToastError('Failed to complete task. Please try again.');
-      dismissCurrent();
+      // Keep toast visible on error so user can retry
     }
   };
 
   /**
    * Handle prompt toast Dismiss action
-   * Just dismisses the toast without any API call
+   * Tracks dismissal and removes the toast
    */
-  const handlePromptDismiss = (): void => {
+  const handlePromptDismiss = async (): Promise<void> => {
+    if (currentPrompt) {
+      try {
+        // Track prompt dismissal for analytics
+        await prompts.dismiss(currentPrompt.taskId);
+      } catch (err) {
+        // Non-critical error - still dismiss toast
+        console.error('Failed to track prompt dismissal:', err);
+      }
+    }
+
+    // Dismiss the toast
     dismissCurrent();
   };
 
   /**
    * Handle prompt toast Snooze action
-   * Calls snooze API and dismisses the toast
+   * Calls snooze API, tracks the response, and dismisses the toast
    */
   const handlePromptSnooze = async (taskId: string): Promise<void> => {
     try {
-      await prompts.snooze({ taskId });
+      // Snooze the prompt (also logs response automatically in backend)
+      await prompts.snooze(taskId);
+
+      // Dismiss the toast
       dismissCurrent();
+
+      // Optional: Show subtle confirmation (future enhancement)
+      // announceToScreenReader('Prompt snoozed for 1 hour', 'polite');
     } catch (err) {
       console.error('Failed to snooze prompt:', err);
       setToastError('Failed to snooze prompt. Please try again.');
-      dismissCurrent();
+      // Keep toast visible on error so user can retry
     }
   };
 

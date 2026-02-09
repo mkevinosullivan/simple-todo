@@ -6,6 +6,7 @@ import { TaskService } from '../services/TaskService.js';
 import { WIPLimitService } from '../services/WIPLimitService.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { logger } from '../utils/logger.js';
+import { isValidUuid } from '../utils/validation.js';
 
 const router = Router();
 
@@ -15,11 +16,6 @@ const taskService = new TaskService(dataService);
 const wipLimitService = new WIPLimitService(taskService, dataService);
 
 // Validation helpers
-const isValidUUID = (id: string): boolean => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(id);
-};
-
 const isValidTaskStatus = (status: unknown): status is TaskStatus => {
   return status === 'active' || status === 'completed';
 };
@@ -170,7 +166,7 @@ router.get(
   asyncHandler(async (req: Request<{ id: string }>, res: Response): Promise<void> => {
     try {
       // Validate ID format
-      if (!isValidUUID(req.params.id)) {
+      if (!isValidUuid(req.params.id)) {
         res.status(400).json({
           error: 'Invalid task ID format',
         });
@@ -232,7 +228,7 @@ router.put(
     ): Promise<void> => {
       try {
         // Validate ID format
-        if (!isValidUUID(req.params.id)) {
+        if (!isValidUuid(req.params.id)) {
           res.status(400).json({
             error: 'Invalid task ID format',
           });
@@ -308,7 +304,7 @@ router.delete(
   asyncHandler(async (req: Request<{ id: string }>, res: Response): Promise<void> => {
     try {
       // Validate ID format
-      if (!isValidUUID(req.params.id)) {
+      if (!isValidUuid(req.params.id)) {
         res.status(400).json({
           error: 'Invalid task ID format',
         });
@@ -361,7 +357,7 @@ router.patch(
   asyncHandler(async (req: Request<{ id: string }>, res: Response): Promise<void> => {
     try {
       // Validate ID format
-      if (!isValidUUID(req.params.id)) {
+      if (!isValidUuid(req.params.id)) {
         res.status(400).json({
           error: 'Invalid task ID format',
         });

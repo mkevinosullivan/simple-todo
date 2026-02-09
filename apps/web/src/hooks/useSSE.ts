@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { ProactivePrompt } from '@simple-todo/shared/types';
 
@@ -25,6 +25,7 @@ interface SSEHook {
  * - Connection state tracking (connecting, connected, disconnected, error)
  * - Automatic reconnection with exponential backoff (EventSource default)
  * - Cleanup on unmount to prevent memory leaks
+ * - Prevents duplicate connections in React StrictMode (development)
  *
  * @returns {SSEHook} Object with prompts array, connection state, and error
  *
@@ -42,6 +43,7 @@ export function useSSE(): SSEHook {
   const [prompts, setPrompts] = useState<ProactivePrompt[]>([]);
   const [connectionState, setConnectionState] = useState<ConnectionState>('connecting');
   const [error, setError] = useState<string | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
     // Check if EventSource is supported
@@ -52,8 +54,15 @@ export function useSSE(): SSEHook {
       return;
     }
 
+    // Prevent creating duplicate connections (React StrictMode double-render)
+    if (eventSourceRef.current) {
+      console.log('SSE connection already exists, skipping creation');
+      return;
+    }
+
     // Create EventSource connection
     const eventSource = new EventSource(`${API_BASE_URL}/api/prompts/stream`);
+    eventSourceRef.current = eventSource;
 
     // Connection opened
     eventSource.addEventListener('open', () => {
@@ -93,9 +102,12 @@ export function useSSE(): SSEHook {
 
     // Cleanup on unmount
     return () => {
-      console.log('Closing SSE connection');
-      eventSource.close();
-      setConnectionState('disconnected');
+      if (eventSourceRef.current) {
+        console.log('Closing SSE connection');
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+        setConnectionState('disconnected');
+      }
     };
   }, []); // Empty dependency array - only connect once on mount
 

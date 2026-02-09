@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 
-import type { ProactivePrompt, Task } from '@simple-todo/shared/types';
+import type { PromptEvent, PromptResponse, ProactivePrompt, Task } from '@simple-todo/shared/types';
+import { v4 as uuidv4 } from 'uuid';
 
 import { logger } from '../utils/logger.js';
 
@@ -24,6 +25,9 @@ export class PromptingService extends EventEmitter {
   private readonly dataService: DataService;
   private scheduler: NodeJS.Timeout | null = null;
   private lastPromptTime: Date | null = null;
+  private snoozedPrompts: Map<string, NodeJS.Timeout> = new Map();
+  private recentlyPromptedTasks: Map<string, number> = new Map();
+  private cleanupInterval: NodeJS.Timeout | null = null;
 
   constructor(taskService: TaskService, dataService: DataService) {
     super();
@@ -63,6 +67,11 @@ export class PromptingService extends EventEmitter {
       void this.onScheduledPrompt();
     }, intervalMs);
 
+    // Start cleanup interval for recently prompted tasks (runs every hour)
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupRecentlyPromptedTasks();
+    }, 60 * 60 * 1000); // 1 hour
+
     logger.info('Prompting scheduler started', {
       frequencyHours: config.frequencyHours,
       intervalMs,
@@ -82,8 +91,20 @@ export class PromptingService extends EventEmitter {
     if (this.scheduler) {
       clearInterval(this.scheduler);
       this.scheduler = null;
-      logger.info('Prompting scheduler stopped');
     }
+
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+
+    // Clear all snoozed prompts
+    for (const timeout of this.snoozedPrompts.values()) {
+      clearTimeout(timeout);
+    }
+    this.snoozedPrompts.clear();
+
+    logger.info('Prompting scheduler stopped');
   }
 
   /**
@@ -163,6 +184,9 @@ export class PromptingService extends EventEmitter {
     // Track when prompt was generated
     this.lastPromptTime = new Date();
 
+    // Add task to recently prompted list (24-hour cooldown)
+    this.recentlyPromptedTasks.set(task.id, Date.now());
+
     logger.info('Prompt generated', {
       taskId: prompt.taskId,
       promptedAt: prompt.promptedAt,
@@ -194,9 +218,26 @@ export class PromptingService extends EventEmitter {
       return null;
     }
 
+    // Filter out tasks prompted within last 24 hours (24-hour cooldown)
+    const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const eligibleTasks = activeTasks.filter((task) => {
+      const lastPromptTime = this.recentlyPromptedTasks.get(task.id);
+      if (lastPromptTime === undefined) {
+        return true; // Never prompted before
+      }
+      return now - lastPromptTime > twentyFourHoursMs;
+    });
+
+    // Return null if no eligible tasks
+    if (eligibleTasks.length === 0) {
+      logger.info('No eligible tasks for prompting (all recently prompted)');
+      return null;
+    }
+
     // Random selection for MVP
-    const randomIndex = Math.floor(Math.random() * activeTasks.length);
-    const selectedTask = activeTasks[randomIndex];
+    const randomIndex = Math.floor(Math.random() * eligibleTasks.length);
+    const selectedTask = eligibleTasks[randomIndex];
 
     logger.info('Task selected for prompt', {
       taskId: selectedTask.id,
@@ -226,6 +267,163 @@ export class PromptingService extends EventEmitter {
     } catch (err: unknown) {
       logger.error('Failed to load prompting configuration', { error: err });
       throw new Error('Failed to load prompting configuration');
+    }
+  }
+
+  /**
+   * Snoozes a prompt for a specific task, rescheduling it for 1 hour later
+   *
+   * @param taskId - The task ID to snooze
+   * @throws {Error} If task doesn't exist
+   *
+   * @example
+   * await promptingService.snoozePrompt('123e4567-e89b-12d3-a456-426614174000');
+   */
+  async snoozePrompt(taskId: string): Promise<void> {
+    // Validate task exists
+    const task = await this.taskService.getTaskById(taskId);
+    if (!task) {
+      throw new Error('Task not found');
+    }
+
+    // Cancel existing snooze for this task if exists
+    const existingTimeout = this.snoozedPrompts.get(taskId);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+      logger.info('Cancelled existing snooze for task', { taskId });
+    }
+
+    // Schedule prompt for 1 hour from now
+    const snoozeDelayMs = 60 * 60 * 1000; // 1 hour
+    const timeout = setTimeout(() => {
+      void this.onSnoozedPrompt(taskId);
+    }, snoozeDelayMs);
+
+    // Store timeout for cancellation
+    this.snoozedPrompts.set(taskId, timeout);
+
+    logger.info('Prompt snoozed for 1 hour', { taskId });
+  }
+
+  /**
+   * Handles snoozed prompt event
+   *
+   * Called when a snoozed prompt timer fires.
+   * Validates task still exists and is active before generating prompt.
+   */
+  private async onSnoozedPrompt(taskId: string): Promise<void> {
+    // Remove from snoozed prompts map
+    this.snoozedPrompts.delete(taskId);
+
+    // Validate task still exists and is active
+    const task = await this.taskService.getTaskById(taskId);
+    if (!task) {
+      logger.info('Snoozed task no longer exists, skipping prompt', { taskId });
+      return;
+    }
+
+    if (task.status !== 'active') {
+      logger.info('Snoozed task is no longer active, skipping prompt', { taskId });
+      return;
+    }
+
+    // Generate prompt for specific task
+    const prompt: ProactivePrompt = {
+      taskId: task.id,
+      taskText: task.text,
+      promptedAt: new Date().toISOString(),
+    };
+
+    // Track when prompt was generated
+    this.lastPromptTime = new Date();
+
+    // Add task to recently prompted list (24-hour cooldown)
+    this.recentlyPromptedTasks.set(task.id, Date.now());
+
+    logger.info('Snoozed prompt triggered', { prompt });
+
+    // Emit prompt event for SSE broadcasting
+    this.emit('prompt', prompt);
+  }
+
+  /**
+   * Logs a prompt response event for analytics
+   *
+   * @param taskId - The task ID that was prompted
+   * @param response - The user's response type
+   *
+   * @example
+   * await promptingService.logPromptResponse('123e4567-e89b-12d3-a456-426614174000', 'complete');
+   */
+  async logPromptResponse(taskId: string, response: PromptResponse): Promise<void> {
+    try {
+      // Load existing prompt events
+      const events = await this.dataService.loadPromptEvents();
+
+      // Create new prompt event
+      const event: PromptEvent = {
+        promptId: uuidv4(),
+        taskId,
+        promptedAt: new Date().toISOString(),
+        response,
+        respondedAt: new Date().toISOString(),
+      };
+
+      // Append new event
+      events.push(event);
+
+      // Save updated events
+      await this.dataService.savePromptEvents(events);
+
+      logger.info('Prompt response logged', {
+        promptId: event.promptId,
+        taskId,
+        response,
+      });
+    } catch (err: unknown) {
+      logger.error('Failed to log prompt response', { error: err, taskId, response });
+      throw new Error('Failed to log prompt response');
+    }
+  }
+
+  /**
+   * Cleans up recently prompted tasks older than 24 hours
+   *
+   * Called periodically by cleanup interval to prevent memory growth.
+   */
+  private cleanupRecentlyPromptedTasks(): void {
+    const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    let removedCount = 0;
+
+    for (const [taskId, timestamp] of this.recentlyPromptedTasks.entries()) {
+      if (now - timestamp > twentyFourHoursMs) {
+        this.recentlyPromptedTasks.delete(taskId);
+        removedCount++;
+      }
+    }
+
+    if (removedCount > 0) {
+      logger.info('Cleaned up recently prompted tasks', { removedCount });
+    }
+  }
+
+  /**
+   * Cancels a snoozed prompt for a specific task
+   *
+   * Used when tasks are completed or deleted to prevent prompts for non-existent tasks.
+   *
+   * @param taskId - The task ID to cancel snooze for
+   *
+   * @example
+   * promptingService.cancelSnooze('123e4567-e89b-12d3-a456-426614174000');
+   */
+  cancelSnooze(taskId: string): void {
+    const timeout = this.snoozedPrompts.get(taskId);
+    if (timeout) {
+      clearTimeout(timeout);
+      this.snoozedPrompts.delete(taskId);
+      logger.info('Snoozed prompt cancelled', { taskId });
     }
   }
 }

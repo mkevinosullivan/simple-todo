@@ -137,18 +137,44 @@ describe('DataService', () => {
       renameSpy.mockRestore();
     });
 
-    it('should clean up temp file on write error', async () => {
+    it('should clean up temp file on write error after retries', async () => {
       const testTasks = [createTestTask()];
       const tempFile = `${testTasksFile}.tmp`;
 
-      // Mock fs.rename to throw an error
+      // Mock fs.rename to always throw an error (simulating persistent failure)
       const renameSpy = jest.spyOn(fs, 'rename').mockRejectedValue(new Error('Rename failed'));
 
       await expect(dataService.saveTasks(testTasks)).rejects.toThrow('Failed to save tasks');
 
+      // Verify rename was attempted 3 times (with retries)
+      expect(renameSpy).toHaveBeenCalledTimes(3);
+
       // Verify temp file was cleaned up (unlink was called)
       // The temp file might not exist if it was cleaned up successfully
       await expect(fs.access(tempFile)).rejects.toThrow();
+
+      renameSpy.mockRestore();
+    });
+
+    it('should retry on transient failures and succeed on second attempt', async () => {
+      const testTasks = [createTestTask()];
+
+      // Mock fs.rename to fail first time, succeed second time
+      let attemptCount = 0;
+      const renameSpy = jest.spyOn(fs, 'rename').mockImplementation(async () => {
+        attemptCount++;
+        if (attemptCount === 1) {
+          throw new Error('ENOENT: temporary file lock');
+        }
+        // Second attempt succeeds (calls original implementation)
+        return Promise.resolve();
+      });
+
+      // Should succeed after retry
+      await expect(dataService.saveTasks(testTasks)).resolves.not.toThrow();
+
+      // Verify rename was attempted twice
+      expect(renameSpy).toHaveBeenCalledTimes(2);
 
       renameSpy.mockRestore();
     });

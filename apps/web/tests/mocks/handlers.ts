@@ -107,6 +107,21 @@ export const handlers: HttpHandler[] = [
     const updatedConfig = createTestConfig(body);
     return HttpResponse.json(updatedConfig);
   }),
+
+  // POST /api/prompts/snooze - successful snooze
+  http.post('http://localhost:3001/api/prompts/snooze', () => {
+    return new HttpResponse(null, { status: 200 });
+  }),
+
+  // POST /api/prompts/complete - successful completion tracking
+  http.post('http://localhost:3001/api/prompts/complete', () => {
+    return new HttpResponse(null, { status: 200 });
+  }),
+
+  // POST /api/prompts/dismiss - successful dismissal tracking
+  http.post('http://localhost:3001/api/prompts/dismiss', () => {
+    return new HttpResponse(null, { status: 200 });
+  }),
 ];
 
 /**

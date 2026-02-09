@@ -1,10 +1,11 @@
 import { Router, type Request, type Response } from 'express';
 
-import type { ProactivePrompt } from '@simple-todo/shared/types';
+import type { ProactivePrompt, SnoozePromptDto } from '@simple-todo/shared/types';
 
 import { dataService, promptingService } from '../services/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { logger } from '../utils/logger.js';
+import { isValidUuid } from '../utils/validation.js';
 
 const router = Router();
 
@@ -131,6 +132,150 @@ router.post(
 
     logger.info('Test prompt generated and emitted', { prompt });
     res.status(201).json(prompt);
+  })
+);
+
+/**
+ * Snooze a prompt for a specific task
+ *
+ * Reschedules the prompt for the same task to appear again in 1 hour.
+ * If the task is completed or deleted before the snooze time, the prompt is cancelled.
+ *
+ * @route POST /api/prompts/snooze
+ * @body { taskId: string }
+ * @returns 200 OK on success
+ *
+ * @example
+ * curl -X POST http://localhost:3001/api/prompts/snooze \
+ *   -H "Content-Type: application/json" \
+ *   -d '{"taskId": "123e4567-e89b-12d3-a456-426614174000"}'
+ */
+router.post(
+  '/snooze',
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const dto = req.body as SnoozePromptDto;
+
+    // Validate request body
+    if (!dto.taskId || typeof dto.taskId !== 'string') {
+      res.status(400).json({ error: 'Invalid or missing taskId' });
+      return;
+    }
+
+    // Validate UUID format
+    if (!isValidUuid(dto.taskId)) {
+      res.status(400).json({ error: 'Invalid taskId format (must be UUID)' });
+      return;
+    }
+
+    try {
+      // Snooze the prompt
+      await promptingService.snoozePrompt(dto.taskId);
+
+      // Log prompt response
+      await promptingService.logPromptResponse(dto.taskId, 'snooze');
+
+      logger.info('Prompt snoozed', { taskId: dto.taskId });
+      res.status(200).send();
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message === 'Task not found') {
+        res.status(404).json({ error: 'Task not found' });
+        return;
+      }
+
+      logger.error('Failed to snooze prompt', { error: err, taskId: dto.taskId });
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  })
+);
+
+/**
+ * Record prompt completion
+ *
+ * Records that the user completed a task from a prompt.
+ * Used for analytics tracking. Does not actually complete the task
+ * (task completion happens via PATCH /api/tasks/:id/complete).
+ *
+ * @route POST /api/prompts/complete
+ * @body { taskId: string }
+ * @returns 200 OK on success
+ *
+ * @example
+ * curl -X POST http://localhost:3001/api/prompts/complete \
+ *   -H "Content-Type: application/json" \
+ *   -d '{"taskId": "123e4567-e89b-12d3-a456-426614174000"}'
+ */
+router.post(
+  '/complete',
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const dto = req.body as { taskId?: string };
+
+    // Validate request body
+    if (!dto.taskId || typeof dto.taskId !== 'string') {
+      res.status(400).json({ error: 'Invalid or missing taskId' });
+      return;
+    }
+
+    // Validate UUID format
+    if (!isValidUuid(dto.taskId)) {
+      res.status(400).json({ error: 'Invalid taskId format (must be UUID)' });
+      return;
+    }
+
+    try {
+      // Log prompt response
+      await promptingService.logPromptResponse(dto.taskId, 'complete');
+
+      logger.info('Prompt completion tracked', { taskId: dto.taskId });
+      res.status(200).send();
+    } catch (err: unknown) {
+      logger.error('Failed to track prompt completion', { error: err, taskId: dto.taskId });
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  })
+);
+
+/**
+ * Dismiss a prompt
+ *
+ * Records that the user dismissed the prompt without taking action.
+ * Used for analytics tracking.
+ *
+ * @route POST /api/prompts/dismiss
+ * @body { taskId: string }
+ * @returns 200 OK on success
+ *
+ * @example
+ * curl -X POST http://localhost:3001/api/prompts/dismiss \
+ *   -H "Content-Type: application/json" \
+ *   -d '{"taskId": "123e4567-e89b-12d3-a456-426614174000"}'
+ */
+router.post(
+  '/dismiss',
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const dto = req.body as { taskId?: string };
+
+    // Validate request body
+    if (!dto.taskId || typeof dto.taskId !== 'string') {
+      res.status(400).json({ error: 'Invalid or missing taskId' });
+      return;
+    }
+
+    // Validate UUID format
+    if (!isValidUuid(dto.taskId)) {
+      res.status(400).json({ error: 'Invalid taskId format (must be UUID)' });
+      return;
+    }
+
+    try {
+      // Log prompt response
+      await promptingService.logPromptResponse(dto.taskId, 'dismiss');
+
+      logger.info('Prompt dismissed', { taskId: dto.taskId });
+      res.status(200).send();
+    } catch (err: unknown) {
+      logger.error('Failed to dismiss prompt', { error: err, taskId: dto.taskId });
+      res.status(500).json({ error: 'Internal server error' });
+    }
   })
 );
 

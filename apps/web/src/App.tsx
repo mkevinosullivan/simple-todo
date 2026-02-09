@@ -140,7 +140,7 @@ const App: React.FC = () => {
     <ConfigProvider initialConfig={config || undefined}>
       {config?.hasCompletedSetup ? (
         <TaskProvider>
-          <TaskListView />
+          <TaskListView ssePrompts={prompts} />
         </TaskProvider>
       ) : (
         <FirstLaunchScreen onComplete={handleSetupComplete} />

@@ -46,7 +46,7 @@ export async function apiGet<T>(endpoint: string): Promise<T> {
  *
  * @param endpoint - API endpoint path
  * @param data - Request body data
- * @returns Parsed JSON response
+ * @returns Parsed JSON response, or undefined if no content
  * @throws {Error} If response status is not OK
  */
 export async function apiPost<T, R>(endpoint: string, data: T): Promise<R> {
@@ -64,7 +64,20 @@ export async function apiPost<T, R>(endpoint: string, data: T): Promise<R> {
       throw new Error(errorMessage);
     }
 
-    return (await response.json()) as R;
+    // Check if response has content before parsing JSON
+    // Handle 204 No Content or empty response body
+    const contentLength = response.headers.get('content-length');
+    if (response.status === 204 || contentLength === '0') {
+      return undefined as R;
+    }
+
+    // Check if response body is empty
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      return undefined as R;
+    }
+
+    return JSON.parse(text) as R;
   } catch (error) {
     if (error instanceof Error) {
       throw error;

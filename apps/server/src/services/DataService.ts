@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-import type { Config, Task } from '@simple-todo/shared/types';
+import type { Config, PromptEvent, Task } from '@simple-todo/shared/types';
 import { DEFAULT_CONFIG } from '@simple-todo/shared/types';
 
 import { logger } from '../utils/logger.js';
@@ -14,11 +14,13 @@ export class DataService {
   private readonly dataDir: string;
   private readonly tasksFilePath: string;
   private readonly configFilePath: string;
+  private readonly promptsFilePath: string;
 
   constructor(dataDir?: string) {
     this.dataDir = dataDir || path.join(process.cwd(), 'data');
     this.tasksFilePath = path.join(this.dataDir, 'tasks.json');
     this.configFilePath = path.join(this.dataDir, 'config.json');
+    this.promptsFilePath = path.join(this.dataDir, 'prompts.json');
   }
 
   /**
@@ -94,35 +96,52 @@ export class DataService {
    *
    * Uses temp file + rename strategy to prevent data corruption if process crashes
    * during write. This ensures either old data or new data exists, never corrupted state.
+   * Includes retry logic for Windows file locking issues.
    *
    * @param tasks - Array of tasks to save
-   * @throws {Error} If file write operation fails
+   * @throws {Error} If file write operation fails after retries
    *
    * @example
    * await dataService.saveTasks(tasks);
    */
   async saveTasks(tasks: Task[]): Promise<void> {
     const tempFile = `${this.tasksFilePath}.tmp`;
+    const maxRetries = 3;
+    const retryDelay = 100; // ms
 
-    try {
-      // Ensure data directory exists
-      await fs.mkdir(this.dataDir, { recursive: true });
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Ensure data directory exists
+        await fs.mkdir(this.dataDir, { recursive: true });
 
-      // Step 1: Write to temporary file first (2-space indentation)
-      const content = JSON.stringify(tasks, null, 2);
-      await fs.writeFile(tempFile, content, 'utf-8');
+        // Step 1: Write to temporary file first (2-space indentation)
+        const content = JSON.stringify(tasks, null, 2);
+        await fs.writeFile(tempFile, content, 'utf-8');
 
-      // Step 2: Atomic rename (POSIX guarantees atomicity)
-      await fs.rename(tempFile, this.tasksFilePath);
+        // Step 2: Atomic rename (POSIX guarantees atomicity)
+        // On Windows, this can temporarily fail due to file locking (antivirus, indexing, etc.)
+        await fs.rename(tempFile, this.tasksFilePath);
 
-      // If process crashes here, worst case: temp file remains, data file is intact
-    } catch (error) {
-      // Step 3: Clean up temp file on error
-      await fs.unlink(tempFile).catch(() => {
-        // Ignore cleanup errors
-      });
-      logger.error('Failed to save tasks', { error });
-      throw new Error('Failed to save tasks');
+        // Success! Exit the retry loop
+        return;
+      } catch (error) {
+        // Log the attempt
+        logger.warn(`Failed to save tasks (attempt ${attempt}/${maxRetries})`, { error });
+
+        // Step 3: Clean up temp file on error
+        await fs.unlink(tempFile).catch(() => {
+          // Ignore cleanup errors
+        });
+
+        // If this was the last attempt, throw the error
+        if (attempt === maxRetries) {
+          logger.error('Failed to save tasks after all retries', { error });
+          throw new Error('Failed to save tasks');
+        }
+
+        // Wait before retrying (exponential backoff)
+        await new Promise((resolve) => setTimeout(resolve, retryDelay * attempt));
+      }
     }
   }
 
@@ -164,35 +183,146 @@ export class DataService {
    *
    * Uses temp file + rename strategy to prevent data corruption if process crashes
    * during write. This ensures either old data or new data exists, never corrupted state.
+   * Includes retry logic for Windows file locking issues.
    *
    * @param config - Configuration object to save
-   * @throws {Error} If file write operation fails
+   * @throws {Error} If file write operation fails after retries
    *
    * @example
    * await dataService.saveConfig(config);
    */
   async saveConfig(config: Config): Promise<void> {
     const tempFile = `${this.configFilePath}.tmp`;
+    const maxRetries = 3;
+    const retryDelay = 100; // ms
 
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Ensure data directory exists
+        await fs.mkdir(this.dataDir, { recursive: true });
+
+        // Step 1: Write to temporary file first (2-space indentation)
+        const content = JSON.stringify(config, null, 2);
+        await fs.writeFile(tempFile, content, 'utf-8');
+
+        // Step 2: Atomic rename (POSIX guarantees atomicity)
+        // On Windows, this can temporarily fail due to file locking (antivirus, indexing, etc.)
+        await fs.rename(tempFile, this.configFilePath);
+
+        // Success! Exit the retry loop
+        return;
+      } catch (error) {
+        // Log the attempt
+        logger.warn(`Failed to save config (attempt ${attempt}/${maxRetries})`, { error });
+
+        // Step 3: Clean up temp file on error
+        await fs.unlink(tempFile).catch(() => {
+          // Ignore cleanup errors
+        });
+
+        // If this was the last attempt, throw the error
+        if (attempt === maxRetries) {
+          logger.error('Failed to save config after all retries', { error });
+          throw new Error('Failed to save config');
+        }
+
+        // Wait before retrying (exponential backoff)
+        await new Promise((resolve) => setTimeout(resolve, retryDelay * attempt));
+      }
+    }
+  }
+
+  /**
+   * Loads prompt events from the JSON storage file
+   *
+   * @returns Array of prompt events, or empty array if file doesn't exist
+   * @throws {Error} If JSON is corrupted or file system error occurs
+   *
+   * @example
+   * const events = await dataService.loadPromptEvents();
+   * console.log(events.length); // Number of prompt events
+   */
+  async loadPromptEvents(): Promise<PromptEvent[]> {
     try {
-      // Ensure data directory exists
-      await fs.mkdir(this.dataDir, { recursive: true });
+      // Check if file exists
+      try {
+        await fs.access(this.promptsFilePath);
+      } catch {
+        // File doesn't exist, return empty array
+        return [];
+      }
 
-      // Step 1: Write to temporary file first (2-space indentation)
-      const content = JSON.stringify(config, null, 2);
-      await fs.writeFile(tempFile, content, 'utf-8');
+      // Read file contents
+      const content = await fs.readFile(this.promptsFilePath, 'utf-8');
 
-      // Step 2: Atomic rename (POSIX guarantees atomicity)
-      await fs.rename(tempFile, this.configFilePath);
-
-      // If process crashes here, worst case: temp file remains, data file is intact
+      // Parse and return events (explicitly validate as array)
+      const parsed: unknown = JSON.parse(content);
+      if (!Array.isArray(parsed)) {
+        throw new Error('Invalid prompt events data: expected array');
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return parsed as PromptEvent[];
     } catch (error) {
-      // Step 3: Clean up temp file on error
-      await fs.unlink(tempFile).catch(() => {
-        // Ignore cleanup errors
-      });
-      logger.error('Failed to save config', { error });
-      throw new Error('Failed to save config');
+      logger.error('Failed to load prompt events', { error });
+
+      if (error instanceof SyntaxError) {
+        throw new Error('Failed to load prompt events: Corrupted JSON file');
+      }
+      throw new Error('Failed to load prompt events: File system error');
+    }
+  }
+
+  /**
+   * Saves prompt events to JSON file using atomic write pattern
+   *
+   * Uses temp file + rename strategy to prevent data corruption if process crashes
+   * during write. This ensures either old data or new data exists, never corrupted state.
+   * Includes retry logic for Windows file locking issues.
+   *
+   * @param events - Array of prompt events to save
+   * @throws {Error} If file write operation fails after retries
+   *
+   * @example
+   * await dataService.savePromptEvents(events);
+   */
+  async savePromptEvents(events: PromptEvent[]): Promise<void> {
+    const tempFile = `${this.promptsFilePath}.tmp`;
+    const maxRetries = 3;
+    const retryDelay = 100; // ms
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Ensure data directory exists
+        await fs.mkdir(this.dataDir, { recursive: true });
+
+        // Step 1: Write to temporary file first (2-space indentation)
+        const content = JSON.stringify(events, null, 2);
+        await fs.writeFile(tempFile, content, 'utf-8');
+
+        // Step 2: Atomic rename (POSIX guarantees atomicity)
+        // On Windows, this can temporarily fail due to file locking (antivirus, indexing, etc.)
+        await fs.rename(tempFile, this.promptsFilePath);
+
+        // Success! Exit the retry loop
+        return;
+      } catch (error) {
+        // Log the attempt
+        logger.warn(`Failed to save prompt events (attempt ${attempt}/${maxRetries})`, { error });
+
+        // Step 3: Clean up temp file on error
+        await fs.unlink(tempFile).catch(() => {
+          // Ignore cleanup errors
+        });
+
+        // If this was the last attempt, throw the error
+        if (attempt === maxRetries) {
+          logger.error('Failed to save prompt events after all retries', { error });
+          throw new Error('Failed to save prompt events');
+        }
+
+        // Wait before retrying (exponential backoff)
+        await new Promise((resolve) => setTimeout(resolve, retryDelay * attempt));
+      }
     }
   }
 }
