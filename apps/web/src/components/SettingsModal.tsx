@@ -5,16 +5,23 @@ import { Dialog, Transition } from '@headlessui/react';
 
 import { useConfig } from '../context/ConfigContext.js';
 import { useCelebrationQueue } from '../hooks/useCelebrationQueue.js';
-import type { CelebrationConfig as CelebrationConfigType, WipConfig } from '../services/config.js';
+import type {
+  CelebrationConfig as CelebrationConfigType,
+  PromptingConfig as PromptingConfigType,
+  WipConfig,
+} from '../services/config.js';
 import {
   getCelebrationConfig,
+  getPromptingConfig,
   getWipConfig,
   updateCelebrationConfig,
+  updatePromptingConfig,
   updateWipLimit,
 } from '../services/config.js';
 
 import { CelebrationConfig } from './CelebrationConfig.js';
 import { CelebrationOverlay } from './CelebrationOverlay.js';
+import { PromptingConfig } from './PromptingConfig.js';
 import styles from './SettingsModal.module.css';
 
 export interface SettingsModalProps {
@@ -61,6 +68,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     celebrationsEnabled: true,
     celebrationDurationSeconds: 7,
   });
+  const [promptingConfig, setPromptingConfig] = useState<PromptingConfigType>({
+    enabled: true,
+    frequencyHours: 2.5,
+  });
+  const [initialPromptingConfig, setInitialPromptingConfig] = useState<PromptingConfigType>({
+    enabled: true,
+    frequencyHours: 2.5,
+  });
 
   // Load configs when modal opens
   useEffect(() => {
@@ -85,6 +100,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       setCelebrationConfig(celebrationConfigData);
       setInitialCelebrationConfig(celebrationConfigData);
 
+      // Load prompting config
+      const promptingConfigData = await getPromptingConfig();
+      setPromptingConfig(promptingConfigData);
+      setInitialPromptingConfig(promptingConfigData);
+
       setErrorMessage(null);
     } catch (error) {
       console.error('Failed to load configs:', error);
@@ -105,7 +125,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const isDirty =
     sliderValue !== initialValue ||
     celebrationConfig.celebrationsEnabled !== initialCelebrationConfig.celebrationsEnabled ||
-    celebrationConfig.celebrationDurationSeconds !== initialCelebrationConfig.celebrationDurationSeconds;
+    celebrationConfig.celebrationDurationSeconds !==
+      initialCelebrationConfig.celebrationDurationSeconds ||
+    promptingConfig.enabled !== initialPromptingConfig.enabled ||
+    promptingConfig.frequencyHours !== initialPromptingConfig.frequencyHours;
 
   /**
    * Handles save button click
@@ -130,7 +153,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       // Save celebration config if changed
       if (
         celebrationConfig.celebrationsEnabled !== initialCelebrationConfig.celebrationsEnabled ||
-        celebrationConfig.celebrationDurationSeconds !== initialCelebrationConfig.celebrationDurationSeconds
+        celebrationConfig.celebrationDurationSeconds !==
+          initialCelebrationConfig.celebrationDurationSeconds
       ) {
         const updatedConfig = await updateCelebrationConfig(
           celebrationConfig.celebrationsEnabled,
@@ -142,6 +166,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         setInitialCelebrationConfig({
           celebrationsEnabled: updatedConfig.celebrationsEnabled,
           celebrationDurationSeconds: updatedConfig.celebrationDurationSeconds,
+        });
+      }
+
+      // Save prompting config if changed
+      if (
+        promptingConfig.enabled !== initialPromptingConfig.enabled ||
+        promptingConfig.frequencyHours !== initialPromptingConfig.frequencyHours
+      ) {
+        const updatedPromptingConfig = await updatePromptingConfig(
+          promptingConfig.enabled,
+          promptingConfig.frequencyHours
+        );
+
+        setInitialPromptingConfig({
+          enabled: updatedPromptingConfig.enabled,
+          frequencyHours: updatedPromptingConfig.frequencyHours,
         });
       }
 
@@ -166,6 +206,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     // Reset to initial values
     setSliderValue(initialValue);
     setCelebrationConfig(initialCelebrationConfig);
+    setPromptingConfig(initialPromptingConfig);
     setErrorMessage(null);
     setShowSuccessToast(false);
     onClose();
@@ -196,6 +237,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       message: 'This is a preview celebration! 🎉',
       variant: 'enthusiastic',
       duration: celebrationConfig.celebrationDurationSeconds * 1000,
+    });
+  };
+
+  /**
+   * Handles prompting config update (local state only, saved on Save button click)
+   */
+  const handleUpdatePromptingConfig = (enabled: boolean, frequencyHours: number): void => {
+    setPromptingConfig({
+      enabled,
+      frequencyHours,
     });
   };
 
@@ -308,6 +359,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   celebrationDurationSeconds={celebrationConfig.celebrationDurationSeconds}
                   onUpdate={handleUpdateCelebrationConfig}
                   onPreview={handlePreviewCelebration}
+                />
+
+                {/* Prompting Configuration Section */}
+                <PromptingConfig
+                  enabled={promptingConfig.enabled}
+                  frequencyHours={promptingConfig.frequencyHours}
+                  nextPromptTime={
+                    promptingConfig.nextPromptTime ? new Date(promptingConfig.nextPromptTime) : null
+                  }
+                  onUpdate={handleUpdatePromptingConfig}
                 />
 
                 {/* Footer buttons */}

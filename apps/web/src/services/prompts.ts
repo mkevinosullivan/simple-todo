@@ -1,3 +1,5 @@
+import type { ProactivePrompt } from '@simple-todo/shared/types';
+
 import { apiPost } from './api.js';
 
 interface PromptActionRequest {
@@ -58,5 +60,33 @@ export const prompts = {
    */
   dismiss: async (taskId: string): Promise<void> => {
     await apiPost<PromptActionRequest, void>('/api/prompts/dismiss', { taskId });
+  },
+
+  /**
+   * Trigger an immediate test prompt
+   *
+   * Generates a prompt immediately for testing purposes, bypassing the regular schedule.
+   * Returns null if no active tasks are available.
+   *
+   * @returns ProactivePrompt object or null if no active tasks
+   * @throws {Error} If API request fails
+   *
+   * @example
+   * const prompt = await prompts.test();
+   * if (prompt) {
+   *   console.log('Test prompt generated:', prompt);
+   * }
+   */
+  test: async (): Promise<ProactivePrompt | null> => {
+    try {
+      const response = await apiPost<object, ProactivePrompt>('/api/prompts/test', {});
+      return response;
+    } catch (error) {
+      // 204 No Content indicates no active tasks - return null
+      if (error instanceof Error && error.message.includes('204')) {
+        return null;
+      }
+      throw error;
+    }
   },
 };

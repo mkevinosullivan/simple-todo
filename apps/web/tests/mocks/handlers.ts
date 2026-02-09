@@ -122,6 +122,45 @@ export const handlers: HttpHandler[] = [
   http.post('http://localhost:3001/api/prompts/dismiss', () => {
     return new HttpResponse(null, { status: 200 });
   }),
+
+  // GET /api/config/prompting - successful prompting config retrieval
+  http.get('http://localhost:3001/api/config/prompting', () => {
+    return HttpResponse.json({
+      enabled: true,
+      frequencyHours: 2.5,
+      nextPromptTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+    });
+  }),
+
+  // PUT /api/config/prompting - successful prompting config update
+  http.put('http://localhost:3001/api/config/prompting', async ({ request }) => {
+    const body = (await request.json()) as { enabled: boolean; frequencyHours: number };
+
+    // Validate frequencyHours range
+    if (body.frequencyHours < 1 || body.frequencyHours > 6) {
+      return HttpResponse.json(
+        { error: 'frequencyHours must be between 1 and 6' },
+        { status: 400 }
+      );
+    }
+
+    return HttpResponse.json({
+      enabled: body.enabled,
+      frequencyHours: body.frequencyHours,
+      nextPromptTime: body.enabled
+        ? new Date(Date.now() + body.frequencyHours * 60 * 60 * 1000).toISOString()
+        : undefined,
+    });
+  }),
+
+  // POST /api/prompts/test - successful test prompt
+  http.post('http://localhost:3001/api/prompts/test', () => {
+    return HttpResponse.json({
+      taskId: '123e4567-e89b-12d3-a456-426614174000',
+      taskText: 'Test prompt task',
+      promptedAt: new Date().toISOString(),
+    });
+  }),
 ];
 
 /**
@@ -137,3 +176,13 @@ export const emptyTasksHandler: HttpHandler = http.get('http://localhost:3001/ap
 export const errorHandler: HttpHandler = http.get('http://localhost:3001/api/tasks', () => {
   return HttpResponse.json({ error: 'Internal server error' }, { status: 500 });
 });
+
+/**
+ * Handler for test prompt with no active tasks (returns 204)
+ */
+export const noTasksTestPromptHandler: HttpHandler = http.post(
+  'http://localhost:3001/api/prompts/test',
+  () => {
+    return new HttpResponse(null, { status: 204 });
+  }
+);

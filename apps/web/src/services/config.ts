@@ -144,3 +144,50 @@ export async function updateCelebrationConfig(
     celebrationDurationSeconds,
   });
 }
+
+/**
+ * Prompting config response from API
+ */
+export interface PromptingConfig {
+  enabled: boolean;
+  frequencyHours: number;
+  nextPromptTime?: string;
+}
+
+/**
+ * Get prompting configuration
+ *
+ * @returns Promise resolving to prompting config with enabled flag, frequency, and optional next prompt time
+ * @throws {Error} If API request fails
+ *
+ * @example
+ * const config = await getPromptingConfig();
+ * console.log(config.enabled); // true
+ * console.log(config.frequencyHours); // 2.5
+ */
+export async function getPromptingConfig(): Promise<PromptingConfig> {
+  return await apiGet<PromptingConfig>('/api/config/prompting');
+}
+
+/**
+ * Update prompting configuration
+ *
+ * @param enabled - Whether to enable proactive prompting
+ * @param frequencyHours - Prompting frequency in hours (1-6)
+ * @returns Promise resolving to updated prompting config
+ * @throws {Error} If frequencyHours is out of range or API request fails
+ *
+ * @example
+ * const updated = await updatePromptingConfig(true, 3);
+ * console.log(updated.enabled); // true
+ * console.log(updated.frequencyHours); // 3
+ */
+export async function updatePromptingConfig(
+  enabled: boolean,
+  frequencyHours: number
+): Promise<PromptingConfig> {
+  return await apiPut<PromptingConfig>('/api/config/prompting', {
+    enabled,
+    frequencyHours,
+  });
+}

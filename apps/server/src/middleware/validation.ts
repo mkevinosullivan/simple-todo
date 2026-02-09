@@ -97,6 +97,42 @@ export const UpdateCelebrationConfigSchema = z.object({
 export type UpdateCelebrationConfigDto = z.infer<typeof UpdateCelebrationConfigSchema>;
 
 /**
+ * Zod schema for updating prompting configuration
+ * Validates that enabled is a boolean and frequencyHours is between 1-6
+ *
+ * @example
+ * // Valid request bodies:
+ * { enabled: true, frequencyHours: 2.5 }
+ * { enabled: false, frequencyHours: 4 }
+ * { enabled: true, frequencyHours: 1 }
+ *
+ * // Invalid request bodies (will return 400):
+ * { enabled: true, frequencyHours: 0.5 }  // Below minimum
+ * { enabled: true, frequencyHours: 7 }    // Above maximum
+ * { enabled: "true", frequencyHours: 3 }  // Wrong type
+ * { enabled: true }                        // Missing frequencyHours
+ */
+export const UpdatePromptingConfigSchema = z.object({
+  enabled: z.boolean({
+    required_error: 'enabled is required',
+    invalid_type_error: 'enabled must be a boolean',
+  }),
+  frequencyHours: z
+    .number({
+      required_error: 'frequencyHours is required',
+      invalid_type_error: 'frequencyHours must be a number',
+    })
+    .min(1, { message: 'frequencyHours must be between 1 and 6' })
+    .max(6, { message: 'frequencyHours must be between 1 and 6' }),
+});
+
+/**
+ * Type inference for UpdatePromptingConfigSchema
+ * Use this type for type-safe access to validated request body
+ */
+export type UpdatePromptingConfigDto = z.infer<typeof UpdatePromptingConfigSchema>;
+
+/**
  * Zod schema for partial config updates
  * Allows updating any config field with validation
  *

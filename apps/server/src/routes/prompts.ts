@@ -102,13 +102,16 @@ router.get(
 );
 
 /**
- * Manually trigger a prompt for testing (development only)
+ * Manually trigger a prompt for testing
  *
  * Generates a prompt for a random active task and broadcasts it via SSE.
  * Useful for testing the toast notification UI without waiting for scheduled prompts.
+ * Does not affect regular scheduling cycle.
  *
  * @route POST /api/prompts/test
- * @returns 201 with generated prompt, or 404 if no active tasks
+ * @returns 200 with generated prompt if successful
+ * @returns 204 No Content if no active tasks available
+ * @returns 500 Internal Server Error on failure
  *
  * @example
  * curl -X POST http://localhost:3001/api/prompts/test
@@ -116,22 +119,24 @@ router.get(
 router.post(
   '/test',
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    logger.info('Manual prompt test triggered');
+    try {
+      logger.info('Test prompt triggered');
 
-    // Generate a prompt
-    const prompt = await promptingService.generatePrompt();
+      // Trigger immediate prompt via service
+      const prompt = await promptingService.triggerImmediatePrompt();
 
-    if (prompt === null) {
-      logger.info('No active tasks available for test prompt');
-      res.status(404).json({ error: 'No active tasks available' });
-      return;
+      if (prompt === null) {
+        logger.info('No active tasks available for test prompt');
+        res.status(204).send();
+        return;
+      }
+
+      logger.info('Test prompt generated and emitted', { prompt });
+      res.status(200).json(prompt);
+    } catch (error) {
+      logger.error('Failed to trigger test prompt', { error });
+      res.status(500).json({ error: 'Internal server error' });
     }
-
-    // Emit the prompt event so SSE clients receive it
-    promptingService.emit('prompt', prompt);
-
-    logger.info('Test prompt generated and emitted', { prompt });
-    res.status(201).json(prompt);
   })
 );
 

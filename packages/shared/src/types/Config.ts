@@ -38,3 +38,14 @@ export const DEFAULT_CONFIG: Config = {
   hasSeenPromptEducation: false,
   hasSeenWIPLimitEducation: false,
 };
+
+/**
+ * DTO for updating prompting configuration
+ * Used by PUT /api/config/prompting endpoint
+ */
+export interface UpdatePromptingConfigDto {
+  /** Whether prompting is enabled */
+  enabled: boolean;
+  /** Prompting frequency in hours (1-6 range) */
+  frequencyHours: number;
+}

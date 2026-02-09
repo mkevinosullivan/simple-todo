@@ -4,16 +4,19 @@ import type {
   UpdateCelebrationConfigDto,
   UpdateConfigDto,
   UpdateEducationFlagDto,
+  UpdatePromptingConfigDto,
   UpdateWipLimitDto,
 } from '../middleware/validation.js';
 import {
   UpdateCelebrationConfigSchema,
   UpdateConfigSchema,
   UpdateEducationFlagSchema,
+  UpdatePromptingConfigSchema,
   UpdateWipLimitSchema,
   validateRequest,
 } from '../middleware/validation.js';
 import { DataService } from '../services/DataService.js';
+import { PromptingService } from '../services/PromptingService.js';
 import { TaskService } from '../services/TaskService.js';
 import { WIPLimitService } from '../services/WIPLimitService.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -25,6 +28,7 @@ const router = Router();
 const dataService = new DataService(process.env.DATA_DIR);
 const taskService = new TaskService(dataService);
 const wipLimitService = new WIPLimitService(taskService, dataService);
+const promptingService = new PromptingService(taskService, dataService);
 
 /**
  * GET /api/config
@@ -470,6 +474,139 @@ router.put(
         logger.error('Failed to update celebration configuration', { error });
         res.status(500).json({
           error: 'Failed to update celebration configuration',
+        });
+      }
+    }
+  )
+);
+
+/**
+ * GET /api/config/prompting
+ * Get current prompting configuration with next prompt time estimate
+ *
+ * @route GET /api/config/prompting
+ * @returns {object} 200 - Prompting configuration
+ * @returns {boolean} 200.enabled - Whether prompting is enabled
+ * @returns {number} 200.frequencyHours - Prompting frequency in hours (1-6)
+ * @returns {string} 200.nextPromptTime - ISO 8601 timestamp of next prompt (optional)
+ * @returns {object} 500 - Internal server error
+ *
+ * @example
+ * // Request:
+ * GET /api/config/prompting
+ *
+ * // Response (200):
+ * {
+ *   "enabled": true,
+ *   "frequencyHours": 2.5,
+ *   "nextPromptTime": "2026-02-09T15:30:00.000Z"
+ * }
+ */
+router.get(
+  '/prompting',
+  asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+    try {
+      // Load current configuration
+      const config = await dataService.loadConfig();
+
+      // Get next prompt time estimate
+      const nextPromptTime = await promptingService.getNextPromptTime();
+
+      // Return prompting configuration
+      const response: {
+        enabled: boolean;
+        frequencyHours: number;
+        nextPromptTime?: string;
+      } = {
+        enabled: config.promptingEnabled,
+        frequencyHours: config.promptingFrequencyHours,
+      };
+
+      // Include nextPromptTime if available
+      if (nextPromptTime !== null) {
+        response.nextPromptTime = nextPromptTime.toISOString();
+      }
+
+      res.status(200).json(response);
+    } catch (error) {
+      logger.error('Failed to get prompting configuration', { error });
+      res.status(500).json({
+        error: 'Failed to retrieve prompting configuration',
+      });
+    }
+  })
+);
+
+/**
+ * PUT /api/config/prompting
+ * Update prompting configuration and restart scheduler
+ *
+ * @route PUT /api/config/prompting
+ * @param {object} req.body - Request body
+ * @param {boolean} req.body.enabled - Whether to enable prompting
+ * @param {number} req.body.frequencyHours - Prompting frequency in hours (1-6)
+ * @returns {object} 200 - Updated prompting configuration
+ * @returns {boolean} 200.enabled - Whether prompting is enabled
+ * @returns {number} 200.frequencyHours - Prompting frequency in hours
+ * @returns {object} 400 - Validation error (invalid parameters)
+ * @returns {object} 500 - Internal server error
+ *
+ * @throws {Error} Returns 400 if enabled is not a boolean
+ * @throws {Error} Returns 400 if frequencyHours is not a number
+ * @throws {Error} Returns 400 if frequencyHours is outside 1-6 range
+ * @throws {Error} Returns 400 if fields are missing
+ * @throws {Error} Returns 500 if unable to persist configuration
+ *
+ * @example
+ * // Request:
+ * PUT /api/config/prompting
+ * {
+ *   "enabled": true,
+ *   "frequencyHours": 3
+ * }
+ *
+ * // Response (200):
+ * {
+ *   "enabled": true,
+ *   "frequencyHours": 3
+ * }
+ *
+ * // Error response (400 - invalid frequency):
+ * {
+ *   "error": "Validation failed",
+ *   "details": [
+ *     {
+ *       "field": "frequencyHours",
+ *       "message": "frequencyHours must be between 1 and 6"
+ *     }
+ *   ]
+ * }
+ */
+router.put(
+  '/prompting',
+  validateRequest(UpdatePromptingConfigSchema),
+  asyncHandler(
+    async (
+      req: Request<object, object, UpdatePromptingConfigDto>,
+      res: Response
+    ): Promise<void> => {
+      try {
+        // Request body is validated by middleware
+        const { enabled, frequencyHours } = req.body;
+
+        // Update prompting configuration via service
+        await promptingService.updatePromptingConfig({ enabled, frequencyHours });
+
+        // Return updated configuration
+        res.status(200).json({
+          enabled,
+          frequencyHours,
+        });
+      } catch (error) {
+        // Generic server error (file system, scheduler restart, etc.)
+        logger.error('Failed to update prompting configuration', { error });
+        res.status(500).json({
+          error: 'Failed to update prompting configuration',
         });
       }
     }

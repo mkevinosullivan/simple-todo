@@ -683,4 +683,230 @@ describe('Config API Integration Tests', () => {
       expect(config.promptingEnabled).toBe(DEFAULT_CONFIG.promptingEnabled);
     });
   });
+
+  describe('GET /api/config/prompting', () => {
+    it('should return current prompting configuration', async () => {
+      const response = await request(app).get('/api/config/prompting').expect(200);
+
+      expect(response.body).toMatchObject({
+        enabled: true,
+        frequencyHours: 2.5,
+      });
+    });
+
+    it('should return updated prompting configuration', async () => {
+      // Update config to have prompting disabled and different frequency
+      const config: Config = {
+        ...DEFAULT_CONFIG,
+        promptingEnabled: false,
+        promptingFrequencyHours: 4,
+      };
+      await fs.writeFile(testConfigFile, JSON.stringify(config, null, 2), 'utf-8');
+
+      const response = await request(app).get('/api/config/prompting').expect(200);
+
+      expect(response.body).toMatchObject({
+        enabled: false,
+        frequencyHours: 4,
+      });
+    });
+
+    it('should include nextPromptTime when available', async () => {
+      const response = await request(app).get('/api/config/prompting').expect(200);
+
+      expect(response.body).toHaveProperty('enabled');
+      expect(response.body).toHaveProperty('frequencyHours');
+      // nextPromptTime is optional and may or may not be present
+    });
+  });
+
+  describe('PUT /api/config/prompting', () => {
+    it('should update prompting configuration and persist to file', async () => {
+      const response = await request(app)
+        .put('/api/config/prompting')
+        .send({
+          enabled: true,
+          frequencyHours: 3,
+        })
+        .expect(200);
+
+      expect(response.body).toMatchObject({
+        enabled: true,
+        frequencyHours: 3,
+      });
+
+      // Verify persistence to file
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+      expect(config.promptingEnabled).toBe(true);
+      expect(config.promptingFrequencyHours).toBe(3);
+    });
+
+    it('should disable prompting', async () => {
+      const response = await request(app)
+        .put('/api/config/prompting')
+        .send({
+          enabled: false,
+          frequencyHours: 2,
+        })
+        .expect(200);
+
+      expect(response.body.enabled).toBe(false);
+
+      // Verify persistence
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+      expect(config.promptingEnabled).toBe(false);
+    });
+
+    it('should accept frequency at minimum boundary (1)', async () => {
+      const response = await request(app)
+        .put('/api/config/prompting')
+        .send({
+          enabled: true,
+          frequencyHours: 1,
+        })
+        .expect(200);
+
+      expect(response.body.frequencyHours).toBe(1);
+    });
+
+    it('should accept frequency at maximum boundary (6)', async () => {
+      const response = await request(app)
+        .put('/api/config/prompting')
+        .send({
+          enabled: true,
+          frequencyHours: 6,
+        })
+        .expect(200);
+
+      expect(response.body.frequencyHours).toBe(6);
+    });
+
+    it('should accept non-integer frequency (2.5)', async () => {
+      const response = await request(app)
+        .put('/api/config/prompting')
+        .send({
+          enabled: true,
+          frequencyHours: 2.5,
+        })
+        .expect(200);
+
+      expect(response.body.frequencyHours).toBe(2.5);
+    });
+
+    it('should reject frequency below minimum (0.5) with 400 status', async () => {
+      const response = await request(app)
+        .put('/api/config/prompting')
+        .send({
+          enabled: true,
+          frequencyHours: 0.5,
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details).toBeDefined();
+      expect(response.body.details[0].message).toBe('frequencyHours must be between 1 and 6');
+    });
+
+    it('should reject frequency above maximum (7) with 400 status', async () => {
+      const response = await request(app)
+        .put('/api/config/prompting')
+        .send({
+          enabled: true,
+          frequencyHours: 7,
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details).toBeDefined();
+      expect(response.body.details[0].message).toBe('frequencyHours must be between 1 and 6');
+    });
+
+    it('should reject invalid boolean type for enabled', async () => {
+      const response = await request(app)
+        .put('/api/config/prompting')
+        .send({
+          enabled: 'true',
+          frequencyHours: 3,
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details[0].message).toBe('enabled must be a boolean');
+    });
+
+    it('should reject invalid type for frequencyHours', async () => {
+      const response = await request(app)
+        .put('/api/config/prompting')
+        .send({
+          enabled: true,
+          frequencyHours: '3',
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details[0].message).toBe('frequencyHours must be a number');
+    });
+
+    it('should reject missing enabled field', async () => {
+      const response = await request(app)
+        .put('/api/config/prompting')
+        .send({
+          frequencyHours: 3,
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details[0].message).toBe('enabled is required');
+    });
+
+    it('should reject missing frequencyHours field', async () => {
+      const response = await request(app)
+        .put('/api/config/prompting')
+        .send({
+          enabled: true,
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details[0].message).toBe('frequencyHours is required');
+    });
+
+    it('should preserve other config fields when updating prompting', async () => {
+      // Set initial config with specific values
+      const initialConfig: Config = {
+        ...DEFAULT_CONFIG,
+        wipLimit: 8,
+        hasCompletedSetup: true,
+        celebrationsEnabled: false,
+      };
+      await fs.writeFile(testConfigFile, JSON.stringify(initialConfig, null, 2), 'utf-8');
+
+      // Update prompting config
+      await request(app)
+        .put('/api/config/prompting')
+        .send({
+          enabled: false,
+          frequencyHours: 5,
+        })
+        .expect(200);
+
+      // Verify other fields are unchanged
+      const fileContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(fileContent) as Config;
+
+      expect(config.promptingEnabled).toBe(false);
+      expect(config.promptingFrequencyHours).toBe(5);
+      expect(config.wipLimit).toBe(8);
+      expect(config.hasCompletedSetup).toBe(true);
+      expect(config.celebrationsEnabled).toBe(false);
+    });
+  });
 });

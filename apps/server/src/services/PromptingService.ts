@@ -426,4 +426,113 @@ export class PromptingService extends EventEmitter {
       logger.info('Snoozed prompt cancelled', { taskId });
     }
   }
+
+  /**
+   * Updates prompting configuration and restarts scheduler
+   *
+   * Stops current scheduler, updates config, and restarts scheduler if enabled.
+   * Frequency changes apply to next scheduled prompt.
+   *
+   * @param dto - Configuration update object
+   * @param dto.enabled - Whether prompting is enabled
+   * @param dto.frequencyHours - Prompting frequency in hours (1-6)
+   * @throws {Error} If configuration cannot be saved
+   *
+   * @example
+   * await promptingService.updatePromptingConfig({ enabled: true, frequencyHours: 3 });
+   */
+  async updatePromptingConfig(dto: {
+    enabled: boolean;
+    frequencyHours: number;
+  }): Promise<void> {
+    try {
+      // Stop current scheduler if running
+      this.stopScheduler();
+
+      // Load current config
+      const config = await this.dataService.loadConfig();
+
+      // Update prompting fields
+      config.promptingEnabled = dto.enabled;
+      config.promptingFrequencyHours = dto.frequencyHours;
+
+      // Persist updated config
+      await this.dataService.saveConfig(config);
+
+      logger.info('Prompting configuration updated', {
+        enabled: dto.enabled,
+        frequencyHours: dto.frequencyHours,
+      });
+
+      // Restart scheduler if enabled
+      if (dto.enabled) {
+        await this.startScheduler();
+      }
+    } catch (err: unknown) {
+      logger.error('Failed to update prompting configuration', { error: err });
+      throw new Error('Failed to update prompting configuration');
+    }
+  }
+
+  /**
+   * Triggers an immediate prompt for testing purposes
+   *
+   * Generates a prompt immediately without affecting regular scheduling.
+   * Emits SSE event to connected clients.
+   *
+   * @returns ProactivePrompt object or null if no active tasks
+   *
+   * @example
+   * const prompt = await promptingService.triggerImmediatePrompt();
+   * if (prompt) {
+   *   console.log('Test prompt generated:', prompt);
+   * }
+   */
+  async triggerImmediatePrompt(): Promise<ProactivePrompt | null> {
+    const prompt = await this.generatePrompt();
+
+    if (prompt === null) {
+      logger.info('No active tasks available for immediate prompt');
+      return null;
+    }
+
+    // Emit prompt event for SSE broadcasting
+    this.emit('prompt', prompt);
+
+    logger.info('Immediate test prompt triggered', { prompt });
+    return prompt;
+  }
+
+  /**
+   * Gets estimated time of next scheduled prompt
+   *
+   * Returns rough estimate (±15 min due to randomness) based on last prompt time
+   * and configured frequency. Returns null if prompting disabled or never prompted.
+   *
+   * @returns Date of next prompt or null if disabled/never prompted
+   *
+   * @example
+   * const nextTime = await promptingService.getNextPromptTime();
+   * if (nextTime) {
+   *   console.log('Next prompt at:', nextTime.toISOString());
+   * }
+   */
+  async getNextPromptTime(): Promise<Date | null> {
+    // Load config to check if prompting enabled
+    const config = await this.loadPromptingConfig();
+
+    if (!config.enabled) {
+      return null;
+    }
+
+    // Return null if never prompted before
+    if (this.lastPromptTime === null) {
+      return null;
+    }
+
+    // Calculate next prompt time (last prompt + frequency)
+    const nextPromptMs =
+      this.lastPromptTime.getTime() + config.frequencyHours * 60 * 60 * 1000;
+    return new Date(nextPromptMs);
+  }
 }

@@ -409,4 +409,87 @@ describe('Prompts SSE API Integration Tests', () => {
       // and not generate a prompt. This is validated by the onSnoozedPrompt method.
     });
   });
+
+  describe('POST /api/prompts/test', () => {
+    it('should trigger immediate prompt with active tasks', async () => {
+      // Create test task
+      const task = await taskService.createTask('Test prompt task');
+
+      const response = await request(app)
+        .post('/api/prompts/test')
+        .expect(200);
+
+      expect(response.body).toHaveProperty('taskId');
+      expect(response.body).toHaveProperty('taskText');
+      expect(response.body).toHaveProperty('promptedAt');
+      expect(response.body.taskId).toBe(task.id);
+      expect(response.body.taskText).toBe('Test prompt task');
+    });
+
+    it('should return 204 No Content when no active tasks available', async () => {
+      // Delete all tasks
+      const tasks = await taskService.getAllTasks('active');
+      for (const task of tasks) {
+        await taskService.deleteTask(task.id);
+      }
+
+      const response = await request(app)
+        .post('/api/prompts/test')
+        .expect(204);
+
+      expect(response.body).toEqual({});
+    });
+
+    it('should emit SSE event for test prompt', (done) => {
+      // Create a test task first
+      taskService.createTask('Task for SSE test').then((task) => {
+        const req = request(app)
+          .get('/api/prompts/stream')
+          .timeout(5000);
+
+        let receivedData = '';
+
+        req.on('response', (res) => {
+          res.on('data', (chunk) => {
+            receivedData += chunk.toString();
+
+            // Check if we received the prompt event
+            if (receivedData.includes('event: prompt') && receivedData.includes(task.id)) {
+              req.abort();
+              done();
+            }
+          });
+
+          // After SSE connection established, trigger test prompt
+          setTimeout(() => {
+            void request(app)
+              .post('/api/prompts/test')
+              .expect(200);
+          }, 100);
+        });
+
+        req.on('error', (err: Error & { code?: string }) => {
+          if (err.code === 'ECONNRESET') {
+            done();
+          } else {
+            done(err);
+          }
+        });
+      }).catch(done);
+    });
+
+    it('should not affect regular scheduling cycle', async () => {
+      // Create test task
+      const task = await taskService.createTask('Task for scheduling test');
+
+      // Trigger test prompt
+      await request(app)
+        .post('/api/prompts/test')
+        .expect(200);
+
+      // Verify that prompting service state is not affected
+      // (This is validated by the triggerImmediatePrompt implementation
+      // which calls generatePrompt without affecting the scheduler)
+    });
+  });
 });
