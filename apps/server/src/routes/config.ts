@@ -286,29 +286,37 @@ router.put(
 
 /**
  * PATCH /api/config/education
- * Update education flag configuration (e.g., hasSeenWIPLimitEducation)
+ * Update education flag configuration (hasSeenWIPLimitEducation or hasSeenPromptEducation)
  *
  * @route PATCH /api/config/education
  * @param {object} req.body - Request body
- * @param {boolean} req.body.hasSeenWIPLimitEducation - Whether user has seen WIP limit education
- * @returns {object} 200 - Success response
- * @returns {boolean} 200.hasSeenWIPLimitEducation - Updated flag value
- * @returns {object} 400 - Validation error (invalid type)
+ * @param {boolean} req.body.hasSeenWIPLimitEducation - Whether user has seen WIP limit education (optional)
+ * @param {boolean} req.body.hasSeenPromptEducation - Whether user has seen prompt education (optional)
+ * @returns {object} 200 - Success response with updated flags
+ * @returns {object} 400 - Validation error (invalid type or no flags provided)
  * @returns {object} 500 - Internal server error
  *
- * @throws {Error} Returns 400 if hasSeenWIPLimitEducation is not a boolean
+ * @throws {Error} Returns 400 if flags are not boolean
+ * @throws {Error} Returns 400 if no flags are provided
  * @throws {Error} Returns 500 if unable to persist configuration
  *
  * @example
- * // Request:
+ * // Request (WIP limit education):
  * PATCH /api/config/education
  * {
  *   "hasSeenWIPLimitEducation": true
  * }
  *
+ * // Request (prompt education):
+ * PATCH /api/config/education
+ * {
+ *   "hasSeenPromptEducation": true
+ * }
+ *
  * // Response (200):
  * {
- *   "hasSeenWIPLimitEducation": true
+ *   "hasSeenWIPLimitEducation": true,
+ *   "hasSeenPromptEducation": true
  * }
  *
  * // Error response (400 - invalid type):
@@ -316,8 +324,8 @@ router.put(
  *   "error": "Validation failed",
  *   "details": [
  *     {
- *       "field": "hasSeenWIPLimitEducation",
- *       "message": "hasSeenWIPLimitEducation must be a boolean"
+ *       "field": "hasSeenPromptEducation",
+ *       "message": "hasSeenPromptEducation must be a boolean"
  *     }
  *   ]
  * }
@@ -331,23 +339,27 @@ router.patch(
       res: Response
     ): Promise<void> => {
       try {
-        // Request body is validated by middleware
-        const { hasSeenWIPLimitEducation } = req.body;
+        // Request body is validated by middleware (at least one flag provided)
+        const { hasSeenWIPLimitEducation, hasSeenPromptEducation } = req.body;
 
         // Load current config
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const config = await dataService.loadConfig();
 
-        // Update education flag
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        config.hasSeenWIPLimitEducation = hasSeenWIPLimitEducation;
+        // Update education flags (only if provided)
+        if (hasSeenWIPLimitEducation !== undefined) {
+          config.hasSeenWIPLimitEducation = hasSeenWIPLimitEducation;
+        }
+        if (hasSeenPromptEducation !== undefined) {
+          config.hasSeenPromptEducation = hasSeenPromptEducation;
+        }
 
         // Persist to file
         await dataService.saveConfig(config);
 
-        // Return success response
+        // Return success response with both flag values
         res.status(200).json({
-          hasSeenWIPLimitEducation,
+          hasSeenWIPLimitEducation: config.hasSeenWIPLimitEducation,
+          hasSeenPromptEducation: config.hasSeenPromptEducation,
         });
       } catch (error) {
         // Generic server error (file system, etc.)

@@ -1312,4 +1312,93 @@ describe('Config API Integration Tests', () => {
       expect(response1.body).toEqual(response2.body);
     });
   });
+
+  describe('PATCH /api/config/education (Story 4.9)', () => {
+    it('should update hasSeenPromptEducation flag', async () => {
+      const response = await request(app)
+        .patch('/api/config/education')
+        .send({ hasSeenPromptEducation: true })
+        .expect(200);
+
+      expect(response.body.hasSeenPromptEducation).toBe(true);
+      expect(response.body.hasSeenWIPLimitEducation).toBe(false);
+    });
+
+    it('should update hasSeenWIPLimitEducation flag', async () => {
+      const response = await request(app)
+        .patch('/api/config/education')
+        .send({ hasSeenWIPLimitEducation: true })
+        .expect(200);
+
+      expect(response.body.hasSeenWIPLimitEducation).toBe(true);
+      expect(response.body.hasSeenPromptEducation).toBe(false);
+    });
+
+    it('should update both education flags', async () => {
+      const response = await request(app)
+        .patch('/api/config/education')
+        .send({
+          hasSeenPromptEducation: true,
+          hasSeenWIPLimitEducation: true,
+        })
+        .expect(200);
+
+      expect(response.body.hasSeenPromptEducation).toBe(true);
+      expect(response.body.hasSeenWIPLimitEducation).toBe(true);
+    });
+
+    it('should persist changes to config file', async () => {
+      await request(app)
+        .patch('/api/config/education')
+        .send({ hasSeenPromptEducation: true })
+        .expect(200);
+
+      // Read config file directly
+      const configContent = await fs.readFile(testConfigFile, 'utf-8');
+      const config = JSON.parse(configContent) as Config;
+
+      expect(config.hasSeenPromptEducation).toBe(true);
+    });
+
+    it('should reject non-boolean hasSeenPromptEducation', async () => {
+      const response = await request(app)
+        .patch('/api/config/education')
+        .send({ hasSeenPromptEducation: 'true' })
+        .expect(400);
+
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should reject non-boolean hasSeenWIPLimitEducation', async () => {
+      const response = await request(app)
+        .patch('/api/config/education')
+        .send({ hasSeenWIPLimitEducation: 'false' })
+        .expect(400);
+
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should reject empty request body', async () => {
+      const response = await request(app)
+        .patch('/api/config/education')
+        .send({})
+        .expect(400);
+
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should be idempotent', async () => {
+      const response1 = await request(app)
+        .patch('/api/config/education')
+        .send({ hasSeenPromptEducation: true })
+        .expect(200);
+
+      const response2 = await request(app)
+        .patch('/api/config/education')
+        .send({ hasSeenPromptEducation: true })
+        .expect(200);
+
+      expect(response1.body.hasSeenPromptEducation).toBe(response2.body.hasSeenPromptEducation);
+    });
+  });
 });

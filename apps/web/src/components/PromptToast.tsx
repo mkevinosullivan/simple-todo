@@ -9,6 +9,7 @@ interface PromptToastProps {
   onComplete: (taskId: string) => void;
   onDismiss: () => void;
   onSnooze: (taskId: string) => void;
+  onEducationDismiss?: (dontShowAgain: boolean) => void;
   position?: 'top-right' | 'bottom-right';
 }
 
@@ -32,11 +33,14 @@ export const PromptToast: React.FC<PromptToastProps> = ({
   onComplete,
   onDismiss,
   onSnooze,
+  onEducationDismiss,
   position = 'bottom-right',
 }) => {
   const [secondsRemaining, setSecondsRemaining] = useState<number>(30);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isExiting, setIsExiting] = useState<boolean>(false);
+  const [dontShowAgain, setDontShowAgain] = useState<boolean>(false);
+  const [showEducation, setShowEducation] = useState<boolean>(prompt.isFirstPrompt || false);
 
   const MAX_CHARS = 60;
   const isTruncated = prompt.taskText.length > MAX_CHARS;
@@ -59,25 +63,36 @@ export const PromptToast: React.FC<PromptToastProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  const handleDismissWithAnimation = (): void => {
+  const handlePromptAction = (action: 'complete' | 'dismiss' | 'snooze'): void => {
+    // If education visible, dismiss it and notify parent
+    if (showEducation && onEducationDismiss) {
+      onEducationDismiss(dontShowAgain);
+      setShowEducation(false);
+    }
+
+    // Then execute action with animation
     setIsExiting(true);
     setTimeout(() => {
-      onDismiss();
-    }, 300); // Match animation duration
+      if (action === 'complete') {
+        onComplete(prompt.taskId);
+      } else if (action === 'dismiss') {
+        onDismiss();
+      } else if (action === 'snooze') {
+        onSnooze(prompt.taskId);
+      }
+    }, 300);
+  };
+
+  const handleDismissWithAnimation = (): void => {
+    handlePromptAction('dismiss');
   };
 
   const handleCompleteWithAnimation = (): void => {
-    setIsExiting(true);
-    setTimeout(() => {
-      onComplete(prompt.taskId);
-    }, 300);
+    handlePromptAction('complete');
   };
 
   const handleSnoozeWithAnimation = (): void => {
-    setIsExiting(true);
-    setTimeout(() => {
-      onSnooze(prompt.taskId);
-    }, 300);
+    handlePromptAction('snooze');
   };
 
   const handleToggleExpand = (): void => {
@@ -95,15 +110,43 @@ export const PromptToast: React.FC<PromptToastProps> = ({
   const positionClass = position === 'top-right' ? styles.topRight : styles.bottomRight;
   const animationClass = isExiting ? styles.exit : styles.enter;
   const expandableClass = isTruncated ? styles.expandable : '';
+  const firstPromptClass = prompt.isFirstPrompt ? styles.firstPrompt : '';
 
   return (
     <div
-      className={`${styles.toast} ${positionClass} ${animationClass}`}
+      className={`${styles.toast} ${positionClass} ${animationClass} ${firstPromptClass}`}
       role="alert"
       aria-live="polite"
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
+      {/* Education overlay (conditionally rendered for first prompt) */}
+      {showEducation && (
+        <div
+          className={styles.educationOverlay}
+          role="region"
+          aria-label="First-time prompt information"
+        >
+          <div className={styles.educationHeader}>
+            <span className={styles.infoIcon} aria-hidden="true">ℹ️</span>
+            <h4 className={styles.educationHeading}>What's this?</h4>
+          </div>
+          <p className={styles.educationMessage}>
+            This is a proactive prompt - the app suggests a task to help you make progress.
+            You can complete it, dismiss it, or snooze for later.
+          </p>
+          <label className={styles.educationCheckbox}>
+            <input
+              type="checkbox"
+              checked={dontShowAgain}
+              onChange={(e) => setDontShowAgain(e.target.checked)}
+              aria-label="Don't show this again"
+            />
+            <span>Got it, don't show this again</span>
+          </label>
+        </div>
+      )}
+
       {/* Icon */}
       <div className={styles.icon} aria-hidden="true">
         ⏰
@@ -131,6 +174,14 @@ export const PromptToast: React.FC<PromptToastProps> = ({
 
       {isTruncated && !isExpanded && (
         <div className={styles.expandHint}>Click to expand</div>
+      )}
+
+      {/* Follow-up message (conditionally rendered) */}
+      {prompt.followUpMessage && (
+        <div className={styles.followUpMessage}>
+          <span className={styles.followUpIcon} aria-hidden="true">✨</span>
+          <em>{prompt.followUpMessage}</em>
+        </div>
       )}
 
       {/* Divider */}

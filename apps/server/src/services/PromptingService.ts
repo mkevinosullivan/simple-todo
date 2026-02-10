@@ -32,6 +32,9 @@ export class PromptingService extends EventEmitter {
     new Map();
   private lastUserActivityTime: Date | null = null;
   private readonly ACTIVITY_DETECTION_WINDOW_MS: number = 5 * 60 * 1000; // 5 minutes
+  private readonly appStartTime: Date = new Date();
+  private readonly FIRST_PROMPT_MINIMUM_DELAY_MS: number = 15 * 60 * 1000; // 15 minutes
+  private firstPromptResponse: PromptResponse | null = null;
 
   constructor(taskService: TaskService, dataService: DataService) {
     super();
@@ -123,10 +126,22 @@ export class PromptingService extends EventEmitter {
    * Called by the interval timer to generate and emit prompts.
    * Skips if no active tasks available or minimum interval not reached.
    * Delays if user is actively working or within quiet hours.
+   * First prompt delayed 15 minutes after app startup for user acclimation.
    */
   private async onScheduledPrompt(): Promise<void> {
     // Load config to get frequency for interval validation
     const config = await this.loadPromptingConfig();
+
+    // Check first prompt delay (only for very first prompt)
+    const fullConfig = await this.dataService.loadConfig();
+    const isFirstPrompt = !fullConfig.hasSeenPromptEducation;
+
+    if (isFirstPrompt && !this.hasMinimumDelayPassed()) {
+      logger.info(
+        'First prompt delayed - waiting for minimum 15-minute acclimation period',
+      );
+      return;
+    }
 
     // Check user activity first
     if (this.isUserActivelyWorking()) {
@@ -168,6 +183,19 @@ export class PromptingService extends EventEmitter {
     if (prompt === null) {
       logger.warn('Failed to generate scheduled prompt');
       return;
+    }
+
+    // Add isFirstPrompt flag
+    prompt.isFirstPrompt = isFirstPrompt;
+
+    // Add follow-up message if this is second prompt after first interaction
+    if (this.firstPromptResponse !== null) {
+      const followUpMessage = this.getFollowUpMessage(true, this.firstPromptResponse);
+      if (followUpMessage) {
+        prompt.followUpMessage = followUpMessage;
+      }
+      // Clear first prompt response after using it (only show follow-up once)
+      this.firstPromptResponse = null;
     }
 
     // Log the prompt
@@ -444,6 +472,13 @@ export class PromptingService extends EventEmitter {
       pending.promptEvent.response = response;
       pending.promptEvent.respondedAt = new Date().toISOString();
 
+      // Track first prompt response (only if not timeout and not already tracked)
+      const config = await this.dataService.loadConfig();
+      if (!config.hasSeenPromptEducation && response !== 'timeout' && this.firstPromptResponse === null) {
+        this.firstPromptResponse = response;
+        logger.info('First prompt response recorded for follow-up messaging', { response });
+      }
+
       // Remove from pending prompts
       this.pendingPrompts.delete(promptId);
 
@@ -597,6 +632,58 @@ export class PromptingService extends EventEmitter {
       this.snoozedPrompts.delete(taskId);
       logger.info('Snoozed prompt cancelled', { taskId });
     }
+  }
+
+  /**
+   * Checks if minimum delay has passed since app startup for first prompt
+   *
+   * First prompt is delayed 15 minutes after app launch to allow user acclimation.
+   * Subsequent prompts are not affected by this delay.
+   *
+   * @returns True if >= 15 minutes since app start, false otherwise
+   *
+   * @example
+   * if (promptingService.hasMinimumDelayPassed()) {
+   *   console.log('Ready to show first prompt');
+   * }
+   */
+  hasMinimumDelayPassed(): boolean {
+    const now = Date.now();
+    const appStartMs = this.appStartTime.getTime();
+    const timeSinceStart = now - appStartMs;
+
+    return timeSinceStart >= this.FIRST_PROMPT_MINIMUM_DELAY_MS;
+  }
+
+  /**
+   * Gets follow-up message based on first prompt response
+   *
+   * Returns appropriate follow-up message for second prompt based on how user
+   * responded to their first prompt. Messages are encouraging but not patronizing.
+   *
+   * @param isFirstPromptInteraction - Whether this is the second prompt after first interaction
+   * @param response - The user's response to the first prompt
+   * @returns Follow-up message string or null if no message needed
+   *
+   * @example
+   * const message = promptingService.getFollowUpMessage(true, 'complete');
+   * // Returns: "Great! You engaged with your first proactive prompt."
+   */
+  getFollowUpMessage(isFirstPromptInteraction: boolean, response: PromptResponse): string | null {
+    if (!isFirstPromptInteraction) {
+      return null;
+    }
+
+    if (response === 'complete') {
+      return 'Great! You engaged with your first proactive prompt.';
+    }
+
+    if (response === 'dismiss') {
+      return 'Not ready? You can snooze or disable prompts in Settings.';
+    }
+
+    // Snooze or timeout - no follow-up needed
+    return null;
   }
 
   /**

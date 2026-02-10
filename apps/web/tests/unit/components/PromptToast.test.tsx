@@ -393,4 +393,220 @@ describe('PromptToast', () => {
     const toastElement = container.firstChild as HTMLElement;
     expect(toastElement.classList.contains('topRight')).toBe(true);
   });
+
+  describe('Education Overlay (Story 4.9)', () => {
+    const mockOnEducationDismiss = vi.fn();
+
+    beforeEach(() => {
+      mockOnEducationDismiss.mockClear();
+    });
+
+    it('should show education overlay when isFirstPrompt is true', () => {
+      const prompt = createTestPrompt({ isFirstPrompt: true, taskText: 'Buy groceries' });
+      render(
+        <PromptToast
+          prompt={prompt}
+          onComplete={mockOnComplete}
+          onDismiss={mockOnDismiss}
+          onSnooze={mockOnSnooze}
+          onEducationDismiss={mockOnEducationDismiss}
+        />
+      );
+
+      expect(screen.getByText("What's this?")).toBeInTheDocument();
+      expect(screen.getByText(/This is a proactive prompt/i)).toBeInTheDocument();
+    });
+
+    it('should not show education overlay when isFirstPrompt is false', () => {
+      const prompt = createTestPrompt({ isFirstPrompt: false, taskText: 'Buy groceries' });
+      render(
+        <PromptToast
+          prompt={prompt}
+          onComplete={mockOnComplete}
+          onDismiss={mockOnDismiss}
+          onSnooze={mockOnSnooze}
+          onEducationDismiss={mockOnEducationDismiss}
+        />
+      );
+
+      expect(screen.queryByText("What's this?")).not.toBeInTheDocument();
+    });
+
+    it('should not show education overlay when isFirstPrompt is undefined', () => {
+      const prompt = createTestPrompt({ taskText: 'Buy groceries' });
+      render(
+        <PromptToast
+          prompt={prompt}
+          onComplete={mockOnComplete}
+          onDismiss={mockOnDismiss}
+          onSnooze={mockOnSnooze}
+          onEducationDismiss={mockOnEducationDismiss}
+        />
+      );
+
+      expect(screen.queryByText("What's this?")).not.toBeInTheDocument();
+    });
+
+    it('should render "Don\'t show this again" checkbox', () => {
+      const prompt = createTestPrompt({ isFirstPrompt: true });
+      render(
+        <PromptToast
+          prompt={prompt}
+          onComplete={mockOnComplete}
+          onDismiss={mockOnDismiss}
+          onSnooze={mockOnSnooze}
+          onEducationDismiss={mockOnEducationDismiss}
+        />
+      );
+
+      expect(screen.getByText(/Got it, don't show this again/i)).toBeInTheDocument();
+      expect(screen.getByRole('checkbox')).toBeInTheDocument();
+    });
+
+    it('should toggle checkbox when clicked', () => {
+      const prompt = createTestPrompt({ isFirstPrompt: true });
+      render(
+        <PromptToast
+          prompt={prompt}
+          onComplete={mockOnComplete}
+          onDismiss={mockOnDismiss}
+          onSnooze={mockOnSnooze}
+          onEducationDismiss={mockOnEducationDismiss}
+        />
+      );
+
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).not.toBeChecked();
+
+      fireEvent.click(checkbox);
+      expect(checkbox).toBeChecked();
+    });
+
+    it('should call onEducationDismiss when complete button clicked', async () => {
+      const prompt = createTestPrompt({ isFirstPrompt: true });
+      render(
+        <PromptToast
+          prompt={prompt}
+          onComplete={mockOnComplete}
+          onDismiss={mockOnDismiss}
+          onSnooze={mockOnSnooze}
+          onEducationDismiss={mockOnEducationDismiss}
+        />
+      );
+
+      const completeButton = screen.getByRole('button', { name: /complete task/i });
+      fireEvent.click(completeButton);
+
+      await waitFor(() => {
+        expect(mockOnEducationDismiss).toHaveBeenCalledWith(false);
+      });
+    });
+
+    it('should call onEducationDismiss with checkbox value', async () => {
+      const prompt = createTestPrompt({ isFirstPrompt: true });
+      render(
+        <PromptToast
+          prompt={prompt}
+          onComplete={mockOnComplete}
+          onDismiss={mockOnDismiss}
+          onSnooze={mockOnSnooze}
+          onEducationDismiss={mockOnEducationDismiss}
+        />
+      );
+
+      // Check the "don't show again" checkbox
+      const checkbox = screen.getByRole('checkbox');
+      fireEvent.click(checkbox);
+
+      // Click dismiss button
+      const dismissButton = screen.getByRole('button', { name: /dismiss prompt/i });
+      fireEvent.click(dismissButton);
+
+      await waitFor(() => {
+        expect(mockOnEducationDismiss).toHaveBeenCalledWith(true);
+      });
+    });
+
+    it('should have proper ARIA attributes for accessibility', () => {
+      const prompt = createTestPrompt({ isFirstPrompt: true });
+      render(
+        <PromptToast
+          prompt={prompt}
+          onComplete={mockOnComplete}
+          onDismiss={mockOnDismiss}
+          onSnooze={mockOnSnooze}
+          onEducationDismiss={mockOnEducationDismiss}
+        />
+      );
+
+      const educationRegion = screen.getByRole('region', { name: /first-time prompt information/i });
+      expect(educationRegion).toBeInTheDocument();
+    });
+
+    it('should have firstPrompt CSS class when isFirstPrompt is true', () => {
+      const prompt = createTestPrompt({ isFirstPrompt: true });
+      const { container } = render(
+        <PromptToast
+          prompt={prompt}
+          onComplete={mockOnComplete}
+          onDismiss={mockOnDismiss}
+          onSnooze={mockOnSnooze}
+          onEducationDismiss={mockOnEducationDismiss}
+        />
+      );
+
+      const toastElement = container.firstChild as HTMLElement;
+      expect(toastElement.classList.contains('firstPrompt')).toBe(true);
+    });
+  });
+
+  describe('Follow-Up Messaging (Story 4.9)', () => {
+    it('should show follow-up message when provided', () => {
+      const prompt = createTestPrompt({
+        taskText: 'Buy groceries',
+        followUpMessage: 'Great! You engaged with your first proactive prompt.',
+      });
+      render(
+        <PromptToast
+          prompt={prompt}
+          onComplete={mockOnComplete}
+          onDismiss={mockOnDismiss}
+          onSnooze={mockOnSnooze}
+        />
+      );
+
+      expect(screen.getByText('Great! You engaged with your first proactive prompt.')).toBeInTheDocument();
+    });
+
+    it('should not show follow-up message when not provided', () => {
+      const prompt = createTestPrompt({ taskText: 'Buy groceries' });
+      render(
+        <PromptToast
+          prompt={prompt}
+          onComplete={mockOnComplete}
+          onDismiss={mockOnDismiss}
+          onSnooze={mockOnSnooze}
+        />
+      );
+
+      expect(screen.queryByText(/Great!/i)).not.toBeInTheDocument();
+    });
+
+    it('should display different follow-up messages', () => {
+      const prompt = createTestPrompt({
+        taskText: 'Buy groceries',
+        followUpMessage: 'Not ready? You can snooze or disable prompts in Settings.',
+      });
+      render(
+        <PromptToast
+          prompt={prompt}
+          onComplete={mockOnComplete}
+          onDismiss={mockOnDismiss}
+          onSnooze={mockOnSnooze}
+        />
+      );
+
+      expect(screen.getByText(/Not ready?/i)).toBeInTheDocument();
+    });
+  });
 });

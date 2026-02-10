@@ -11,6 +11,10 @@ export interface ProactivePrompt {
   taskText: string;
   /** ISO 8601 timestamp when the prompt was generated */
   promptedAt: string;
+  /** True if this is the user's first prompt (for showing education overlay) */
+  isFirstPrompt?: boolean;
+  /** Optional follow-up message to display (e.g., encouragement after first prompt) */
+  followUpMessage?: string;
 }
 
 /**

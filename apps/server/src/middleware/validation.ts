@@ -36,23 +36,34 @@ export type UpdateWipLimitDto = z.infer<typeof UpdateWipLimitSchema>;
 
 /**
  * Zod schema for updating education flags
- * Validates that hasSeenWIPLimitEducation is a boolean
+ * Validates that at least one education flag is provided and is a boolean
  *
  * @example
  * // Valid request bodies:
  * { hasSeenWIPLimitEducation: true }
- * { hasSeenWIPLimitEducation: false }
+ * { hasSeenPromptEducation: false }
+ * { hasSeenWIPLimitEducation: true, hasSeenPromptEducation: true }
  *
  * // Invalid request bodies (will return 400):
  * { hasSeenWIPLimitEducation: "true" }  // String instead of boolean
- * {}                                     // Missing field
+ * {}                                     // No fields provided
  */
-export const UpdateEducationFlagSchema = z.object({
-  hasSeenWIPLimitEducation: z.boolean({
-    required_error: 'hasSeenWIPLimitEducation is required',
-    invalid_type_error: 'hasSeenWIPLimitEducation must be a boolean',
-  }),
-});
+export const UpdateEducationFlagSchema = z
+  .object({
+    hasSeenWIPLimitEducation: z
+      .boolean({
+        invalid_type_error: 'hasSeenWIPLimitEducation must be a boolean',
+      })
+      .optional(),
+    hasSeenPromptEducation: z
+      .boolean({
+        invalid_type_error: 'hasSeenPromptEducation must be a boolean',
+      })
+      .optional(),
+  })
+  .refine((data) => data.hasSeenWIPLimitEducation !== undefined || data.hasSeenPromptEducation !== undefined, {
+    message: 'At least one education flag must be provided',
+  });
 
 /**
  * Type inference for UpdateEducationFlagSchema

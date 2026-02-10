@@ -64,13 +64,14 @@ export async function updateWipLimit(limit: number): Promise<WipConfig> {
  */
 export interface EducationFlagResponse {
   hasSeenWIPLimitEducation: boolean;
+  hasSeenPromptEducation: boolean;
 }
 
 /**
  * Update education flag to mark that user has seen WIP limit education
  *
  * @param hasSeenWIPLimitEducation - Whether user has seen the education message
- * @returns Promise resolving to updated education flag
+ * @returns Promise resolving to updated education flags
  * @throws {Error} If API request fails
  *
  * @example
@@ -81,6 +82,24 @@ export async function updateEducationFlag(
 ): Promise<EducationFlagResponse> {
   return await apiPatch<EducationFlagResponse>('/api/config/education', {
     hasSeenWIPLimitEducation,
+  });
+}
+
+/**
+ * Update prompt education flag to mark that user has seen prompt education
+ *
+ * @param hasSeenPromptEducation - Whether user has seen the prompt education message
+ * @returns Promise resolving to updated education flags
+ * @throws {Error} If API request fails
+ *
+ * @example
+ * await updatePromptEducationFlag(true);
+ */
+export async function updatePromptEducationFlag(
+  hasSeenPromptEducation: boolean
+): Promise<EducationFlagResponse> {
+  return await apiPatch<EducationFlagResponse>('/api/config/education', {
+    hasSeenPromptEducation,
   });
 }
 

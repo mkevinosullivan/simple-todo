@@ -18,7 +18,7 @@ import { useCelebrationQueue } from '../hooks/useCelebrationQueue.js';
 import { usePromptQueue } from '../hooks/usePromptQueue.js';
 import { useWipStatus } from '../hooks/useWipStatus.js';
 import { celebrations } from '../services/celebrations.js';
-import { updateEducationFlag } from '../services/config.js';
+import { updateEducationFlag, updatePromptEducationFlag } from '../services/config.js';
 import { prompts } from '../services/prompts.js';
 import { tasks } from '../services/tasks.js';
 import { announceToScreenReader } from '../utils/announceToScreenReader.js';
@@ -118,6 +118,21 @@ export const TaskListView: React.FC<TaskListViewProps> = ({ ssePrompts }) => {
       refreshLimit();
     } catch (err) {
       console.error('Failed to persist education dismissal:', err);
+      // Non-critical error - user can still use the app
+    }
+  };
+
+  /**
+   * Handles prompt education dismissal - persists flag to backend
+   * Per AC 5: Any interaction with first prompt marks education as seen
+   */
+  const handlePromptEducationDismissed = async (dontShowAgain: boolean): Promise<void> => {
+    try {
+      // Always persist education as seen on first prompt interaction (AC 5)
+      // The dontShowAgain parameter is passed but education is always marked seen
+      await updatePromptEducationFlag(true);
+    } catch (err) {
+      console.error('Failed to persist prompt education dismissal:', err);
       // Non-critical error - user can still use the app
     }
   };
@@ -455,6 +470,7 @@ export const TaskListView: React.FC<TaskListViewProps> = ({ ssePrompts }) => {
           onComplete={handlePromptComplete}
           onDismiss={handlePromptDismiss}
           onSnooze={handlePromptSnooze}
+          onEducationDismiss={handlePromptEducationDismissed}
         />
       )}
     </div>

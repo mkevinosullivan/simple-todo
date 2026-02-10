@@ -527,4 +527,149 @@ describe('PromptingService', () => {
       expect(mockTaskService.getActiveTaskCount).toHaveBeenCalled();
     });
   });
+
+  describe('First Prompt Delay (Story 4.9)', () => {
+    it('should return false if less than 15 minutes since app start', () => {
+      // Mock Date.now() to be 10 minutes after app start
+      const originalNow = Date.now;
+      Date.now = jest.fn(() => promptingService['appStartTime'].getTime() + 10 * 60 * 1000);
+
+      const result = promptingService.hasMinimumDelayPassed();
+
+      expect(result).toBe(false);
+
+      // Restore original Date.now
+      Date.now = originalNow;
+    });
+
+    it('should return true if exactly 15 minutes since app start', () => {
+      const originalNow = Date.now;
+      Date.now = jest.fn(() => promptingService['appStartTime'].getTime() + 15 * 60 * 1000);
+
+      const result = promptingService.hasMinimumDelayPassed();
+
+      expect(result).toBe(true);
+
+      Date.now = originalNow;
+    });
+
+    it('should return true if more than 15 minutes since app start', () => {
+      const originalNow = Date.now;
+      Date.now = jest.fn(() => promptingService['appStartTime'].getTime() + 20 * 60 * 1000);
+
+      const result = promptingService.hasMinimumDelayPassed();
+
+      expect(result).toBe(true);
+
+      Date.now = originalNow;
+    });
+
+    it('should skip first prompt if minimum delay not passed', async () => {
+      const testConfig = createTestConfig({
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+        hasSeenPromptEducation: false,
+      });
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+      mockTaskService.getActiveTaskCount.mockResolvedValue(1);
+
+      // Mock Date.now to be 10 minutes after app start (delay not passed)
+      const originalNow = Date.now;
+      Date.now = jest.fn(() => promptingService['appStartTime'].getTime() + 10 * 60 * 1000);
+
+      // Trigger scheduled prompt
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (promptingService as any).onScheduledPrompt();
+
+      // Should NOT generate prompt (delay check should prevent it)
+      expect(mockTaskService.getActiveTaskCount).not.toHaveBeenCalled();
+
+      Date.now = originalNow;
+    });
+
+    it('should generate first prompt once minimum delay passed', async () => {
+      const testConfig = createTestConfig({
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+        hasSeenPromptEducation: false,
+      });
+      const testTask = createTestTask();
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+      mockTaskService.getActiveTaskCount.mockResolvedValue(1);
+      mockTaskService.getAllTasks.mockResolvedValue([testTask]);
+
+      // Mock Date.now to be 20 minutes after app start (delay passed)
+      const originalNow = Date.now;
+      Date.now = jest.fn(() => promptingService['appStartTime'].getTime() + 20 * 60 * 1000);
+
+      // Trigger scheduled prompt
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (promptingService as any).onScheduledPrompt();
+
+      // Should generate prompt (delay check passed)
+      expect(mockTaskService.getActiveTaskCount).toHaveBeenCalled();
+
+      Date.now = originalNow;
+    });
+
+    it('should not delay subsequent prompts after first', async () => {
+      const testConfig = createTestConfig({
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+        hasSeenPromptEducation: true, // User has seen education (not first prompt)
+      });
+      const testTask = createTestTask();
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+      mockTaskService.getActiveTaskCount.mockResolvedValue(1);
+      mockTaskService.getAllTasks.mockResolvedValue([testTask]);
+
+      // Mock Date.now to be 5 minutes after app start (delay not passed)
+      const originalNow = Date.now;
+      Date.now = jest.fn(() => promptingService['appStartTime'].getTime() + 5 * 60 * 1000);
+
+      // Trigger scheduled prompt
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (promptingService as any).onScheduledPrompt();
+
+      // Should still generate prompt (not first prompt, so no delay check)
+      expect(mockTaskService.getActiveTaskCount).toHaveBeenCalled();
+
+      Date.now = originalNow;
+    });
+  });
+
+  describe('Follow-Up Messaging (Story 4.9)', () => {
+    it('should return null if not first prompt interaction', () => {
+      const result = promptingService.getFollowUpMessage(false, 'complete');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return encouragement message for complete response', () => {
+      const result = promptingService.getFollowUpMessage(true, 'complete');
+
+      expect(result).toBe('Great! You engaged with your first proactive prompt.');
+    });
+
+    it('should return gentle reminder for dismiss response', () => {
+      const result = promptingService.getFollowUpMessage(true, 'dismiss');
+
+      expect(result).toBe('Not ready? You can snooze or disable prompts in Settings.');
+    });
+
+    it('should return null for snooze response', () => {
+      const result = promptingService.getFollowUpMessage(true, 'snooze');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null for timeout response', () => {
+      const result = promptingService.getFollowUpMessage(true, 'timeout');
+
+      expect(result).toBeNull();
+    });
+  });
 });
