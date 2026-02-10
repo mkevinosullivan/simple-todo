@@ -28,6 +28,8 @@ export class PromptingService extends EventEmitter {
   private snoozedPrompts: Map<string, NodeJS.Timeout> = new Map();
   private recentlyPromptedTasks: Map<string, number> = new Map();
   private cleanupInterval: NodeJS.Timeout | null = null;
+  private pendingPrompts: Map<string, { promptEvent: PromptEvent; timeoutId: NodeJS.Timeout }> =
+    new Map();
 
   constructor(taskService: TaskService, dataService: DataService) {
     super();
@@ -104,6 +106,12 @@ export class PromptingService extends EventEmitter {
     }
     this.snoozedPrompts.clear();
 
+    // Clear all pending prompt timeouts
+    for (const pending of this.pendingPrompts.values()) {
+      clearTimeout(pending.timeoutId);
+    }
+    this.pendingPrompts.clear();
+
     logger.info('Prompting scheduler stopped');
   }
 
@@ -157,7 +165,7 @@ export class PromptingService extends EventEmitter {
   /**
    * Generates a proactive prompt for a randomly selected active task
    *
-   * @returns ProactivePrompt object with taskId, taskText, promptedAt, or null if no active tasks
+   * @returns ProactivePrompt object with promptId, taskId, taskText, promptedAt, or null if no active tasks
    * @throws {Error} If task selection or prompt generation fails
    *
    * @example
@@ -174,12 +182,34 @@ export class PromptingService extends EventEmitter {
       return null;
     }
 
+    // Generate unique prompt ID
+    const promptId = uuidv4();
+    const promptedAt = new Date().toISOString();
+
     // Create prompt object
     const prompt: ProactivePrompt = {
+      promptId,
       taskId: task.id,
       taskText: task.text,
-      promptedAt: new Date().toISOString(),
+      promptedAt,
     };
+
+    // Create PromptEvent for tracking (initially without response)
+    const promptEvent: PromptEvent = {
+      promptId,
+      taskId: task.id,
+      promptedAt,
+      response: 'timeout', // Will be updated if user responds
+      respondedAt: null,
+    };
+
+    // Schedule timeout to mark as 'timeout' after 30 seconds
+    const timeoutId = setTimeout(() => {
+      void this.recordPromptTimeout(promptId);
+    }, 30000); // 30 seconds
+
+    // Store pending prompt for response tracking
+    this.pendingPrompts.set(promptId, { promptEvent, timeoutId });
 
     // Track when prompt was generated
     this.lastPromptTime = new Date();
@@ -188,6 +218,7 @@ export class PromptingService extends EventEmitter {
     this.recentlyPromptedTasks.set(task.id, Date.now());
 
     logger.info('Prompt generated', {
+      promptId,
       taskId: prompt.taskId,
       promptedAt: prompt.promptedAt,
     });
@@ -327,12 +358,34 @@ export class PromptingService extends EventEmitter {
       return;
     }
 
+    // Generate unique prompt ID
+    const promptId = uuidv4();
+    const promptedAt = new Date().toISOString();
+
     // Generate prompt for specific task
     const prompt: ProactivePrompt = {
+      promptId,
       taskId: task.id,
       taskText: task.text,
-      promptedAt: new Date().toISOString(),
+      promptedAt,
     };
+
+    // Create PromptEvent for tracking
+    const promptEvent: PromptEvent = {
+      promptId,
+      taskId: task.id,
+      promptedAt,
+      response: 'timeout',
+      respondedAt: null,
+    };
+
+    // Schedule timeout to mark as 'timeout' after 30 seconds
+    const timeoutId = setTimeout(() => {
+      void this.recordPromptTimeout(promptId);
+    }, 30000);
+
+    // Store pending prompt for response tracking
+    this.pendingPrompts.set(promptId, { promptEvent, timeoutId });
 
     // Track when prompt was generated
     this.lastPromptTime = new Date();
@@ -347,8 +400,105 @@ export class PromptingService extends EventEmitter {
   }
 
   /**
-   * Logs a prompt response event for analytics
+   * Records a prompt response event for analytics
    *
+   * Updates the prompt event with the user's response and persists to storage.
+   * Cancels the timeout timer for this prompt.
+   *
+   * @param promptId - The unique prompt ID to record response for
+   * @param response - The user's response type ('complete' | 'dismiss' | 'snooze')
+   * @throws {Error} If prompt ID not found or persistence fails
+   *
+   * @example
+   * await promptingService.recordPromptResponse('123e4567-e89b-12d3-a456-426614174000', 'complete');
+   */
+  async recordPromptResponse(promptId: string, response: PromptResponse): Promise<void> {
+    try {
+      // Find pending prompt
+      const pending = this.pendingPrompts.get(promptId);
+      if (!pending) {
+        logger.warn('Prompt ID not found in pending prompts', { promptId, response });
+        // Don't throw - this could be a late response after timeout
+        return;
+      }
+
+      // Cancel timeout timer
+      clearTimeout(pending.timeoutId);
+
+      // Update prompt event with response
+      pending.promptEvent.response = response;
+      pending.promptEvent.respondedAt = new Date().toISOString();
+
+      // Remove from pending prompts
+      this.pendingPrompts.delete(promptId);
+
+      // Load existing prompt events
+      const events = await this.dataService.loadPromptEvents();
+
+      // Append completed event
+      events.push(pending.promptEvent);
+
+      // Save updated events
+      await this.dataService.savePromptEvents(events);
+
+      logger.info('Prompt response recorded', {
+        promptId,
+        response,
+        respondedAt: pending.promptEvent.respondedAt,
+      });
+    } catch (err: unknown) {
+      logger.error('Failed to record prompt response', { error: err, promptId, response });
+      throw new Error('Failed to record prompt response');
+    }
+  }
+
+  /**
+   * Records a prompt timeout event for analytics
+   *
+   * Called when the 30-second timeout expires without user response.
+   * Saves the prompt event with 'timeout' response and null respondedAt.
+   *
+   * @param promptId - The unique prompt ID that timed out
+   *
+   * @example
+   * await promptingService.recordPromptTimeout('123e4567-e89b-12d3-a456-426614174000');
+   */
+  private async recordPromptTimeout(promptId: string): Promise<void> {
+    try {
+      // Find pending prompt
+      const pending = this.pendingPrompts.get(promptId);
+      if (!pending) {
+        // Already handled (user responded before timeout)
+        return;
+      }
+
+      // Remove from pending prompts
+      this.pendingPrompts.delete(promptId);
+
+      // Event already has response: 'timeout' and respondedAt: null from initialization
+      // Load existing prompt events
+      const events = await this.dataService.loadPromptEvents();
+
+      // Append timeout event
+      events.push(pending.promptEvent);
+
+      // Save updated events
+      await this.dataService.savePromptEvents(events);
+
+      logger.info('Prompt timeout recorded', {
+        promptId,
+        taskId: pending.promptEvent.taskId,
+      });
+    } catch (err: unknown) {
+      logger.error('Failed to record prompt timeout', { error: err, promptId });
+      // Don't throw - timeout is background operation
+    }
+  }
+
+  /**
+   * Logs a prompt response event for analytics (DEPRECATED - use recordPromptResponse)
+   *
+   * @deprecated Use recordPromptResponse(promptId, response) instead
    * @param taskId - The task ID that was prompted
    * @param response - The user's response type
    *
@@ -357,29 +507,36 @@ export class PromptingService extends EventEmitter {
    */
   async logPromptResponse(taskId: string, response: PromptResponse): Promise<void> {
     try {
-      // Load existing prompt events
-      const events = await this.dataService.loadPromptEvents();
+      // Find the most recent pending prompt for this task
+      let matchingPromptId: string | null = null;
+      for (const [promptId, pending] of this.pendingPrompts.entries()) {
+        if (pending.promptEvent.taskId === taskId) {
+          matchingPromptId = promptId;
+          break; // Use first match (should only be one active prompt per task)
+        }
+      }
 
-      // Create new prompt event
-      const event: PromptEvent = {
-        promptId: uuidv4(),
-        taskId,
-        promptedAt: new Date().toISOString(),
-        response,
-        respondedAt: new Date().toISOString(),
-      };
+      if (matchingPromptId) {
+        // Use new recordPromptResponse method
+        await this.recordPromptResponse(matchingPromptId, response);
+      } else {
+        // Fallback: create orphan event (for backward compatibility)
+        const events = await this.dataService.loadPromptEvents();
+        const event: PromptEvent = {
+          promptId: uuidv4(),
+          taskId,
+          promptedAt: new Date().toISOString(),
+          response,
+          respondedAt: new Date().toISOString(),
+        };
+        events.push(event);
+        await this.dataService.savePromptEvents(events);
 
-      // Append new event
-      events.push(event);
-
-      // Save updated events
-      await this.dataService.savePromptEvents(events);
-
-      logger.info('Prompt response logged', {
-        promptId: event.promptId,
-        taskId,
-        response,
-      });
+        logger.warn('Created orphan prompt event (no matching pending prompt)', {
+          taskId,
+          response,
+        });
+      }
     } catch (err: unknown) {
       logger.error('Failed to log prompt response', { error: err, taskId, response });
       throw new Error('Failed to log prompt response');

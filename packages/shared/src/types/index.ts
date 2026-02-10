@@ -5,6 +5,7 @@ export type { Config, UpdatePromptingConfigDto } from './Config.js';
 export { DEFAULT_CONFIG } from './Config.js';
 export type {
   ProactivePrompt,
+  PromptAnalytics,
   PromptEvent,
   PromptResponse,
   SnoozePromptDto,

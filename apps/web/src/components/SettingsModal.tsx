@@ -2,9 +2,11 @@ import type React from 'react';
 import { Fragment, useEffect, useState } from 'react';
 
 import { Dialog, Transition } from '@headlessui/react';
+import type { PromptAnalytics } from '@simple-todo/shared/types';
 
 import { useConfig } from '../context/ConfigContext.js';
 import { useCelebrationQueue } from '../hooks/useCelebrationQueue.js';
+import { getPromptAnalytics } from '../services/analytics.js';
 import type {
   CelebrationConfig as CelebrationConfigType,
   PromptingConfig as PromptingConfigType,
@@ -81,11 +83,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState<boolean>(false);
   const [initialBrowserNotificationsEnabled, setInitialBrowserNotificationsEnabled] =
     useState<boolean>(false);
+  const [promptAnalytics, setPromptAnalytics] = useState<PromptAnalytics | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState<boolean>(false);
 
   // Load configs when modal opens
   useEffect(() => {
     if (isOpen) {
       void loadConfigs();
+      void loadPromptAnalytics();
     }
   }, [isOpen]);
 
@@ -119,6 +124,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     } catch (error) {
       console.error('Failed to load configs:', error);
       setErrorMessage('Failed to load settings');
+    }
+  };
+
+  /**
+   * Loads prompt analytics from API
+   */
+  const loadPromptAnalytics = async (): Promise<void> => {
+    setAnalyticsLoading(true);
+    try {
+      const analytics = await getPromptAnalytics();
+      setPromptAnalytics(analytics);
+    } catch (error) {
+      console.error('Failed to load prompt analytics:', error);
+      // Non-critical error - don't show error message to user
+      setPromptAnalytics(null);
+    } finally {
+      setAnalyticsLoading(false);
     }
   };
 
@@ -404,6 +426,71 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   enabled={browserNotificationsEnabled}
                   onUpdate={handleUpdateBrowserNotifications}
                 />
+
+                {/* Prompt Analytics Section */}
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Prompt Analytics</h3>
+                  <p className={styles.sectionDescription}>
+                    Track your engagement with proactive task prompts.
+                  </p>
+
+                  {analyticsLoading ? (
+                    <p className={styles.loadingText}>Loading analytics...</p>
+                  ) : promptAnalytics ? (
+                    <div className={styles.analyticsGrid}>
+                      <div className={styles.analyticsStat}>
+                        <span className={styles.statsLabel}>Response Rate</span>
+                        <span className={styles.statsValue}>
+                          {promptAnalytics.promptResponseRate.toFixed(1)}%
+                        </span>
+                        <span className={styles.statsHint}>
+                          {promptAnalytics.promptResponseRate >= 40
+                            ? '✓ Exceeds 40% target'
+                            : 'Target: ≥40%'}
+                        </span>
+                      </div>
+
+                      <div className={styles.analyticsStat}>
+                        <span className={styles.statsLabel}>Completed</span>
+                        <span className={styles.statsValue}>
+                          {promptAnalytics.responseBreakdown.complete}
+                        </span>
+                      </div>
+
+                      <div className={styles.analyticsStat}>
+                        <span className={styles.statsLabel}>Dismissed</span>
+                        <span className={styles.statsValue}>
+                          {promptAnalytics.responseBreakdown.dismiss}
+                        </span>
+                      </div>
+
+                      <div className={styles.analyticsStat}>
+                        <span className={styles.statsLabel}>Snoozed</span>
+                        <span className={styles.statsValue}>
+                          {promptAnalytics.responseBreakdown.snooze}
+                        </span>
+                      </div>
+
+                      <div className={styles.analyticsStat}>
+                        <span className={styles.statsLabel}>Timed Out</span>
+                        <span className={styles.statsValue}>
+                          {promptAnalytics.responseBreakdown.timeout}
+                        </span>
+                      </div>
+
+                      <div className={styles.analyticsStat}>
+                        <span className={styles.statsLabel}>Avg Response Time</span>
+                        <span className={styles.statsValue}>
+                          {promptAnalytics.averageResponseTime > 0
+                            ? `${(promptAnalytics.averageResponseTime / 1000).toFixed(1)}s`
+                            : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className={styles.noDataText}>No prompt data available yet.</p>
+                  )}
+                </div>
 
                 {/* Footer buttons */}
                 <div className={styles.footer}>

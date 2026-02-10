@@ -9,7 +9,7 @@ const router = Router();
 // Initialize services (use DATA_DIR environment variable if set, for testing)
 const dataService = new DataService(process.env.DATA_DIR);
 const taskService = new TaskService(dataService);
-const analyticsService = new AnalyticsService(taskService);
+const analyticsService = new AnalyticsService(taskService, dataService);
 
 /**
  * GET /api/analytics
@@ -37,6 +37,47 @@ router.get('/', (req, res) => {
     } catch (error) {
       console.error('Error fetching analytics:', error);
       res.status(500).json({ error: 'Failed to fetch analytics' });
+    }
+  })();
+});
+
+/**
+ * GET /api/analytics/prompts
+ * Get prompt response analytics
+ *
+ * Returns aggregated statistics about prompt responses including response rate,
+ * breakdown by type, and average response time.
+ *
+ * @returns {Object} Prompt analytics
+ * @returns {number} promptResponseRate - Percentage of prompts with user engagement (0-100)
+ * @returns {Object} responseBreakdown - Counts by response type (complete, dismiss, snooze, timeout)
+ * @returns {number} averageResponseTime - Average response time in milliseconds
+ *
+ * @example
+ * GET /api/analytics/prompts
+ * Response: {
+ *   "promptResponseRate": 45.2,
+ *   "responseBreakdown": { "complete": 12, "dismiss": 5, "snooze": 3, "timeout": 10 },
+ *   "averageResponseTime": 5420
+ * }
+ */
+router.get('/prompts', (req, res) => {
+  void (async () => {
+    try {
+      const [promptResponseRate, responseBreakdown, averageResponseTime] = await Promise.all([
+        analyticsService.getPromptResponseRate(),
+        analyticsService.getPromptResponseBreakdown(),
+        analyticsService.getAverageResponseTime(),
+      ]);
+
+      res.status(200).json({
+        promptResponseRate,
+        responseBreakdown,
+        averageResponseTime,
+      });
+    } catch (error) {
+      console.error('Error fetching prompt analytics:', error);
+      res.status(500).json({ error: 'Failed to retrieve prompt analytics' });
     }
   })();
 });

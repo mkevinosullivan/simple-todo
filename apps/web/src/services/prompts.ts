@@ -4,6 +4,7 @@ import { apiPost } from './api.js';
 
 interface PromptActionRequest {
   taskId: string;
+  promptId?: string; // Optional for backward compatibility
 }
 
 /**
@@ -22,13 +23,14 @@ export const prompts = {
    * If the task is completed or deleted before the snooze time, the prompt is cancelled.
    *
    * @param taskId - ID of the task to snooze
+   * @param promptId - Optional unique prompt ID for tracking
    * @throws {Error} If API request fails or task not found
    *
    * @example
-   * await prompts.snooze('123e4567-e89b-12d3-a456-426614174000');
+   * await prompts.snooze('123e4567-e89b-12d3-a456-426614174000', 'prompt-uuid');
    */
-  snooze: async (taskId: string): Promise<void> => {
-    await apiPost<PromptActionRequest, void>('/api/prompts/snooze', { taskId });
+  snooze: async (taskId: string, promptId?: string): Promise<void> => {
+    await apiPost<PromptActionRequest, void>('/api/prompts/snooze', { taskId, promptId });
   },
 
   /**
@@ -38,13 +40,14 @@ export const prompts = {
    * This does NOT complete the task - use tasks.complete() for that.
    *
    * @param taskId - ID of the task that was completed via prompt
+   * @param promptId - Optional unique prompt ID for tracking
    * @throws {Error} If API request fails
    *
    * @example
-   * await prompts.complete('123e4567-e89b-12d3-a456-426614174000');
+   * await prompts.complete('123e4567-e89b-12d3-a456-426614174000', 'prompt-uuid');
    */
-  complete: async (taskId: string): Promise<void> => {
-    await apiPost<PromptActionRequest, void>('/api/prompts/complete', { taskId });
+  complete: async (taskId: string, promptId?: string): Promise<void> => {
+    await apiPost<PromptActionRequest, void>('/api/prompts/complete', { taskId, promptId });
   },
 
   /**
@@ -53,13 +56,14 @@ export const prompts = {
    * Records that the user dismissed a prompt without taking action for analytics.
    *
    * @param taskId - ID of the task that was prompted
+   * @param promptId - Optional unique prompt ID for tracking
    * @throws {Error} If API request fails
    *
    * @example
-   * await prompts.dismiss('123e4567-e89b-12d3-a456-426614174000');
+   * await prompts.dismiss('123e4567-e89b-12d3-a456-426614174000', 'prompt-uuid');
    */
-  dismiss: async (taskId: string): Promise<void> => {
-    await apiPost<PromptActionRequest, void>('/api/prompts/dismiss', { taskId });
+  dismiss: async (taskId: string, promptId?: string): Promise<void> => {
+    await apiPost<PromptActionRequest, void>('/api/prompts/dismiss', { taskId, promptId });
   },
 
   /**

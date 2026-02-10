@@ -147,18 +147,18 @@ router.post(
  * If the task is completed or deleted before the snooze time, the prompt is cancelled.
  *
  * @route POST /api/prompts/snooze
- * @body { taskId: string }
+ * @body { taskId: string, promptId?: string }
  * @returns 200 OK on success
  *
  * @example
  * curl -X POST http://localhost:3001/api/prompts/snooze \
  *   -H "Content-Type: application/json" \
- *   -d '{"taskId": "123e4567-e89b-12d3-a456-426614174000"}'
+ *   -d '{"taskId": "123e4567-e89b-12d3-a456-426614174000", "promptId": "prompt-uuid"}'
  */
 router.post(
   '/snooze',
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const dto = req.body as SnoozePromptDto;
+    const dto = req.body as SnoozePromptDto & { promptId?: string };
 
     // Validate request body
     if (!dto.taskId || typeof dto.taskId !== 'string') {
@@ -176,10 +176,14 @@ router.post(
       // Snooze the prompt
       await promptingService.snoozePrompt(dto.taskId);
 
-      // Log prompt response
-      await promptingService.logPromptResponse(dto.taskId, 'snooze');
+      // Log prompt response (use new method if promptId provided, fallback to old method)
+      if (dto.promptId) {
+        await promptingService.recordPromptResponse(dto.promptId, 'snooze');
+      } else {
+        await promptingService.logPromptResponse(dto.taskId, 'snooze');
+      }
 
-      logger.info('Prompt snoozed', { taskId: dto.taskId });
+      logger.info('Prompt snoozed', { taskId: dto.taskId, promptId: dto.promptId });
       res.status(200).send();
     } catch (err: unknown) {
       if (err instanceof Error && err.message === 'Task not found') {
@@ -201,18 +205,18 @@ router.post(
  * (task completion happens via PATCH /api/tasks/:id/complete).
  *
  * @route POST /api/prompts/complete
- * @body { taskId: string }
+ * @body { taskId: string, promptId?: string }
  * @returns 200 OK on success
  *
  * @example
  * curl -X POST http://localhost:3001/api/prompts/complete \
  *   -H "Content-Type: application/json" \
- *   -d '{"taskId": "123e4567-e89b-12d3-a456-426614174000"}'
+ *   -d '{"taskId": "123e4567-e89b-12d3-a456-426614174000", "promptId": "prompt-uuid"}'
  */
 router.post(
   '/complete',
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const dto = req.body as { taskId?: string };
+    const dto = req.body as { taskId?: string; promptId?: string };
 
     // Validate request body
     if (!dto.taskId || typeof dto.taskId !== 'string') {
@@ -227,10 +231,14 @@ router.post(
     }
 
     try {
-      // Log prompt response
-      await promptingService.logPromptResponse(dto.taskId, 'complete');
+      // Log prompt response (use new method if promptId provided, fallback to old method)
+      if (dto.promptId) {
+        await promptingService.recordPromptResponse(dto.promptId, 'complete');
+      } else {
+        await promptingService.logPromptResponse(dto.taskId, 'complete');
+      }
 
-      logger.info('Prompt completion tracked', { taskId: dto.taskId });
+      logger.info('Prompt completion tracked', { taskId: dto.taskId, promptId: dto.promptId });
       res.status(200).send();
     } catch (err: unknown) {
       logger.error('Failed to track prompt completion', { error: err, taskId: dto.taskId });
@@ -246,18 +254,18 @@ router.post(
  * Used for analytics tracking.
  *
  * @route POST /api/prompts/dismiss
- * @body { taskId: string }
+ * @body { taskId: string, promptId?: string }
  * @returns 200 OK on success
  *
  * @example
  * curl -X POST http://localhost:3001/api/prompts/dismiss \
  *   -H "Content-Type: application/json" \
- *   -d '{"taskId": "123e4567-e89b-12d3-a456-426614174000"}'
+ *   -d '{"taskId": "123e4567-e89b-12d3-a456-426614174000", "promptId": "prompt-uuid"}'
  */
 router.post(
   '/dismiss',
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const dto = req.body as { taskId?: string };
+    const dto = req.body as { taskId?: string; promptId?: string };
 
     // Validate request body
     if (!dto.taskId || typeof dto.taskId !== 'string') {
@@ -272,10 +280,14 @@ router.post(
     }
 
     try {
-      // Log prompt response
-      await promptingService.logPromptResponse(dto.taskId, 'dismiss');
+      // Log prompt response (use new method if promptId provided, fallback to old method)
+      if (dto.promptId) {
+        await promptingService.recordPromptResponse(dto.promptId, 'dismiss');
+      } else {
+        await promptingService.logPromptResponse(dto.taskId, 'dismiss');
+      }
 
-      logger.info('Prompt dismissed', { taskId: dto.taskId });
+      logger.info('Prompt dismissed', { taskId: dto.taskId, promptId: dto.promptId });
       res.status(200).send();
     } catch (err: unknown) {
       logger.error('Failed to dismiss prompt', { error: err, taskId: dto.taskId });

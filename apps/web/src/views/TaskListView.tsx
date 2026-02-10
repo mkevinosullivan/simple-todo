@@ -298,7 +298,7 @@ export const TaskListView: React.FC<TaskListViewProps> = ({ ssePrompts }) => {
   const handlePromptComplete = async (taskId: string): Promise<void> => {
     try {
       // Track prompt response before completing (in case completion fails)
-      await prompts.complete(taskId);
+      await prompts.complete(taskId, currentPrompt?.promptId);
 
       // Complete the task (triggers celebration)
       await handleComplete(taskId);
@@ -321,7 +321,7 @@ export const TaskListView: React.FC<TaskListViewProps> = ({ ssePrompts }) => {
     if (currentPrompt) {
       try {
         // Track prompt dismissal for analytics
-        await prompts.dismiss(currentPrompt.taskId);
+        await prompts.dismiss(currentPrompt.taskId, currentPrompt.promptId);
       } catch (err) {
         // Non-critical error - still dismiss toast
         console.error('Failed to track prompt dismissal:', err);
@@ -339,7 +339,7 @@ export const TaskListView: React.FC<TaskListViewProps> = ({ ssePrompts }) => {
   const handlePromptSnooze = async (taskId: string): Promise<void> => {
     try {
       // Snooze the prompt (also logs response automatically in backend)
-      await prompts.snooze(taskId);
+      await prompts.snooze(taskId, currentPrompt?.promptId);
 
       // Dismiss the toast
       dismissCurrent();

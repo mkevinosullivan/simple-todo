@@ -1,6 +1,7 @@
-import type { Task } from '@simple-todo/shared/types';
+import type { PromptResponse, Task } from '@simple-todo/shared/types';
 import { TaskHelpers } from '@simple-todo/shared/utils';
 
+import type { DataService } from './DataService.js';
 import type { TaskService } from './TaskService.js';
 
 /**
@@ -22,9 +23,11 @@ import type { TaskService } from './TaskService.js';
  */
 export class AnalyticsService {
   private readonly taskService: TaskService;
+  private readonly dataService: DataService;
 
-  constructor(taskService: TaskService) {
+  constructor(taskService: TaskService, dataService: DataService) {
     this.taskService = taskService;
+    this.dataService = dataService;
   }
 
   /**
@@ -145,5 +148,110 @@ export class AnalyticsService {
     );
 
     return sorted[0];
+  }
+
+  /**
+   * Calculates the prompt response rate as a percentage
+   *
+   * Formula: (engaged prompts / total prompts) × 100
+   * Engaged prompts = prompts with response 'complete', 'dismiss', or 'snooze' (excludes 'timeout')
+   * Edge cases:
+   * - Returns 0 when no prompt events exist
+   * - Returns 0 when all prompts timed out
+   *
+   * @returns Percentage of prompts that received user engagement (0-100)
+   *
+   * @example
+   * const rate = await analyticsService.getPromptResponseRate();
+   * console.log(rate); // 45.2 (if 45 of 100 prompts were engaged)
+   */
+  async getPromptResponseRate(): Promise<number> {
+    const events = await this.dataService.loadPromptEvents();
+
+    // Edge case: no prompt events exist
+    if (events.length === 0) {
+      return 0;
+    }
+
+    // Count engaged prompts (exclude timeout)
+    const engagedPrompts = events.filter(
+      (e) => e.response === 'complete' || e.response === 'dismiss' || e.response === 'snooze',
+    );
+
+    // Calculate response rate
+    return (engagedPrompts.length / events.length) * 100;
+  }
+
+  /**
+   * Returns breakdown of prompt responses by type
+   *
+   * Counts all prompt events grouped by response type.
+   * Always returns all four response types even if count is 0.
+   *
+   * @returns Object with counts for each response type (complete, dismiss, snooze, timeout)
+   *
+   * @example
+   * const breakdown = await analyticsService.getPromptResponseBreakdown();
+   * console.log(breakdown); // { complete: 12, dismiss: 5, snooze: 3, timeout: 10 }
+   */
+  async getPromptResponseBreakdown(): Promise<Record<PromptResponse, number>> {
+    const events = await this.dataService.loadPromptEvents();
+
+    // Initialize all response types to 0
+    const breakdown: Record<PromptResponse, number> = {
+      complete: 0,
+      dismiss: 0,
+      snooze: 0,
+      timeout: 0,
+    };
+
+    // Count events by response type
+    for (const event of events) {
+      breakdown[event.response]++;
+    }
+
+    return breakdown;
+  }
+
+  /**
+   * Calculates average response time for engaged prompts
+   *
+   * Only includes prompts where user actively responded (complete, dismiss, snooze).
+   * Excludes timeout prompts (respondedAt is null for timeouts).
+   * Edge cases:
+   * - Returns 0 when no prompt events exist
+   * - Returns 0 when no engaged prompts (all timeouts)
+   *
+   * @returns Average time in milliseconds from promptedAt to respondedAt, or 0 if no engaged prompts
+   *
+   * @example
+   * const avgTime = await analyticsService.getAverageResponseTime();
+   * console.log(avgTime); // 5420 (5.42 seconds average response time)
+   */
+  async getAverageResponseTime(): Promise<number> {
+    const events = await this.dataService.loadPromptEvents();
+
+    // Filter to engaged prompts only (exclude timeout, which has null respondedAt)
+    const engagedPrompts = events.filter(
+      (e) =>
+        e.respondedAt !== null &&
+        (e.response === 'complete' || e.response === 'dismiss' || e.response === 'snooze'),
+    );
+
+    // Edge case: no engaged prompts
+    if (engagedPrompts.length === 0) {
+      return 0;
+    }
+
+    // Calculate response times
+    const responseTimes = engagedPrompts.map((e) => {
+      const promptedAt = new Date(e.promptedAt).getTime();
+      const respondedAt = new Date(e.respondedAt!).getTime(); // Non-null assertion safe due to filter
+      return respondedAt - promptedAt;
+    });
+
+    // Calculate average
+    const sum = responseTimes.reduce((acc, time) => acc + time, 0);
+    return sum / responseTimes.length;
   }
 }
