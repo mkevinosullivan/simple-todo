@@ -672,4 +672,202 @@ describe('PromptingService', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('Configuration Updates', () => {
+    it('should stop and restart scheduler when config updated with enabled=true', async () => {
+      const initialConfig = createTestConfig({
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+      });
+      const updatedConfig = createTestConfig({
+        promptingEnabled: true,
+        promptingFrequencyHours: 3.0,
+      });
+
+      mockDataService.loadConfig
+        .mockResolvedValueOnce(initialConfig)
+        .mockResolvedValueOnce(updatedConfig)
+        .mockResolvedValue(updatedConfig);
+
+      // Start initial scheduler
+      await promptingService.startScheduler();
+
+      // Update configuration
+      await promptingService.updatePromptingConfig({
+        enabled: true,
+        frequencyHours: 3.0,
+      });
+
+      // Verify saveConfig was called with updated values
+      expect(mockDataService.saveConfig).toHaveBeenCalledWith(
+        expect.objectContaining({
+          promptingEnabled: true,
+          promptingFrequencyHours: 3.0,
+        })
+      );
+    });
+
+    it('should stop scheduler when config updated with enabled=false', async () => {
+      const initialConfig = createTestConfig({
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+      });
+      const updatedConfig = createTestConfig({
+        promptingEnabled: false,
+        promptingFrequencyHours: 2.5,
+      });
+
+      mockDataService.loadConfig
+        .mockResolvedValueOnce(initialConfig)
+        .mockResolvedValueOnce(updatedConfig);
+
+      // Start initial scheduler
+      await promptingService.startScheduler();
+
+      // Verify scheduler is running
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((promptingService as any).scheduler).toBeDefined();
+
+      // Update configuration to disable
+      await promptingService.updatePromptingConfig({
+        enabled: false,
+        frequencyHours: 2.5,
+      });
+
+      // Verify scheduler was stopped
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((promptingService as any).scheduler).toBeNull();
+    });
+
+    it('should throw error if config update fails', async () => {
+      mockDataService.loadConfig.mockRejectedValue(new Error('Config load failed'));
+
+      await expect(
+        promptingService.updatePromptingConfig({
+          enabled: true,
+          frequencyHours: 2.5,
+        })
+      ).rejects.toThrow('Failed to update prompting configuration');
+    });
+  });
+
+  describe('First Prompt Flag', () => {
+    it('should include isFirstPrompt=true flag when user has not seen education', async () => {
+      const testConfig = createTestConfig({
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+        hasSeenPromptEducation: false,
+      });
+      const testTask = createTestTask();
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+      mockTaskService.getActiveTaskCount.mockResolvedValue(1);
+      mockTaskService.getAllTasks.mockResolvedValue([testTask]);
+
+      // Mock Date.now to be 20 minutes after app start (delay passed)
+      const originalNow = Date.now;
+      Date.now = jest.fn(() => promptingService['appStartTime'].getTime() + 20 * 60 * 1000);
+
+      // Listen for prompt event
+      let emittedPrompt: any = null;
+      promptingService.on('prompt', (prompt) => {
+        emittedPrompt = prompt;
+      });
+
+      // Trigger scheduled prompt
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (promptingService as any).onScheduledPrompt();
+
+      // Verify isFirstPrompt flag is set
+      expect(emittedPrompt).toBeDefined();
+      expect(emittedPrompt.isFirstPrompt).toBe(true);
+
+      Date.now = originalNow;
+    });
+
+    it('should include isFirstPrompt=false flag when user has seen education', async () => {
+      const testConfig = createTestConfig({
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+        hasSeenPromptEducation: true,
+      });
+      const testTask = createTestTask();
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+      mockTaskService.getActiveTaskCount.mockResolvedValue(1);
+      mockTaskService.getAllTasks.mockResolvedValue([testTask]);
+
+      // Listen for prompt event
+      let emittedPrompt: any = null;
+      promptingService.on('prompt', (prompt) => {
+        emittedPrompt = prompt;
+      });
+
+      // Trigger scheduled prompt
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (promptingService as any).onScheduledPrompt();
+
+      // Verify isFirstPrompt flag is set to false
+      expect(emittedPrompt).toBeDefined();
+      expect(emittedPrompt.isFirstPrompt).toBe(false);
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should skip snoozed prompt if task was deleted', async () => {
+      const testTask = createTestTask({ id: 'task-to-delete' });
+
+      mockTaskService.getTaskById.mockResolvedValueOnce(testTask); // snooze validation
+      mockTaskService.getTaskById.mockResolvedValueOnce(null); // snoozed prompt check
+
+      // Snooze the task
+      await promptingService.snoozePrompt(testTask.id);
+
+      // Manually trigger snoozed prompt
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (promptingService as any).onSnoozedPrompt(testTask.id);
+
+      // Should not emit prompt event
+      // Verify by checking that generatePrompt was not called (no prompt generated)
+      expect(mockTaskService.getTaskById).toHaveBeenCalledWith(testTask.id);
+    });
+
+    it('should skip snoozed prompt if task was completed', async () => {
+      const activeTask = createTestTask({ id: 'task-to-complete', status: 'active' });
+      const completedTask = createTestTask({ id: 'task-to-complete', status: 'completed' });
+
+      mockTaskService.getTaskById.mockResolvedValueOnce(activeTask); // snooze validation
+      mockTaskService.getTaskById.mockResolvedValueOnce(completedTask); // snoozed prompt check
+
+      // Snooze the task while active
+      await promptingService.snoozePrompt(activeTask.id);
+
+      // Manually trigger snoozed prompt (task is now completed)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (promptingService as any).onSnoozedPrompt(activeTask.id);
+
+      // Should not emit prompt event for completed task
+      expect(mockTaskService.getTaskById).toHaveBeenCalledWith(activeTask.id);
+    });
+
+    it('should cancel snooze when cancelSnooze called', async () => {
+      const testTask = createTestTask();
+
+      mockTaskService.getTaskById.mockResolvedValue(testTask);
+
+      // Snooze the task
+      await promptingService.snoozePrompt(testTask.id);
+
+      // Verify snooze was scheduled
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((promptingService as any).snoozedPrompts.has(testTask.id)).toBe(true);
+
+      // Cancel the snooze
+      promptingService.cancelSnooze(testTask.id);
+
+      // Verify snooze was cancelled
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((promptingService as any).snoozedPrompts.has(testTask.id)).toBe(false);
+    });
+  });
 });

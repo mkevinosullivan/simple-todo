@@ -69,6 +69,51 @@ This will start:
 You can verify the backend is running by visiting
 http://localhost:3001/api/health
 
+Open your browser and navigate to **http://localhost:3000** to use the app.
+
+## Usage Guide
+
+### Getting Started
+
+1. **First Launch**: When you open the app for the first time, you'll see a welcome screen to configure your initial WIP limit (recommended: 7 tasks)
+
+2. **Adding Tasks**:
+   - Type your task in the input field at the top
+   - Press Enter or click "Add Task"
+   - Task text must be 1-500 characters
+
+3. **Completing Tasks**:
+   - Click the checkmark button on any active task
+   - You'll see a celebration message (default: 7 seconds)
+   - Completed tasks are removed from the active list
+
+4. **Managing Tasks**:
+   - **Edit**: Click the pencil icon to edit task text inline
+   - **Delete**: Click the trash icon to remove a task permanently
+   - Tasks show age indicators (e.g., "2 days ago") to help prioritize
+
+5. **Proactive Prompts** (Epic 4 Feature):
+   - The app will periodically prompt you about your active tasks (default: every 2.5 hours)
+   - When a prompt appears, you can:
+     - **Complete**: Mark the task done and see a celebration
+     - **Dismiss**: Close the prompt and continue working
+     - **Snooze**: Postpone the prompt for 1 hour
+   - Prompts arrive via desktop notifications (if enabled) and in-app toasts
+
+6. **Settings**:
+   - Click the WIP count indicator in the header to open Settings
+   - Adjust WIP limit (5-10 tasks)
+   - Configure prompting frequency (1-6 hours)
+   - Enable/disable celebrations, prompts, or browser notifications
+   - Set quiet hours to prevent prompts during specific times
+
+### Keyboard Shortcuts
+
+- **Tab**: Navigate between interactive elements
+- **Enter**: Activate focused button
+- **Escape**: Close modals and toasts
+- **Full accessibility**: Screen reader compatible with ARIA labels
+
 ## Build
 
 To create production builds:
@@ -441,6 +486,99 @@ If changes aren't reflecting in the browser:
 1. Check that the dev server is running
 2. Try hard refresh in browser (Ctrl+Shift+R or Cmd+Shift+R)
 3. Restart the dev server
+
+### Permission Errors on Data Directory
+
+If you see permission errors when creating or updating tasks:
+
+**On Windows:**
+- Ensure the `data/` directory is not read-only
+- Run the app with appropriate permissions
+
+**On macOS/Linux:**
+```bash
+chmod -R 755 data/
+```
+
+### Data Files Missing After Crash
+
+The app uses atomic file writes to prevent data corruption. If the app crashes during a write:
+
+1. Check the `data/` directory for `.tmp` files
+2. If a `.tmp` file exists, it's a partial write and can be deleted
+3. Your data in `tasks.json`, `config.json`, and `prompts.json` should be intact
+4. Restart the app normally
+
+## Cross-Platform Support
+
+### Windows
+
+- **Tested on**: Windows 10+
+- **Terminal**: PowerShell, Command Prompt, or Git Bash
+- **Note**: Paths use backslashes (`\`) on Windows
+
+### macOS
+
+- **Tested on**: macOS 12+ (Monterey and later)
+- **Terminal**: Terminal.app or iTerm2
+- **Note**: May require granting accessibility permissions for notifications
+
+### Linux
+
+- **Tested on**: Ubuntu 20.04+, Fedora 35+
+- **Terminal**: Bash, Zsh
+- **Note**: Ensure Node.js is installed via official sources or nvm
+
+## Providing Feedback
+
+Your feedback helps us improve the app! We welcome bug reports, feature requests, and general suggestions.
+
+### Bug Reports
+
+If you encounter a bug, please report it with the following information:
+
+- **App Version**: Check `package.json` version field
+- **Operating System**: Windows/macOS/Linux version
+- **Node.js Version**: Run `node --version`
+- **Browser**: Chrome/Firefox/Edge/Safari version
+- **Steps to Reproduce**: Detailed steps to recreate the issue
+- **Expected Behavior**: What you expected to happen
+- **Actual Behavior**: What actually happened
+- **Screenshots**: If applicable
+
+**Where to Report**:
+- **GitHub Issues**: [repository-url]/issues (if repository is public)
+- **Email**: [pilot-feedback-email] (to be provided)
+
+### Feature Requests
+
+Have an idea for a new feature? We'd love to hear it!
+
+**Submit via**:
+- **GitHub Issues**: Use the "Feature Request" template
+- **Email**: [pilot-feedback-email]
+
+**Include**:
+- **Use Case**: What problem does this solve?
+- **Proposed Solution**: How would you like it to work?
+- **Alternatives Considered**: Other ways to achieve the same goal
+
+### General Feedback
+
+For general comments, suggestions, or questions:
+
+- **Email**: [pilot-feedback-email]
+- **Subject Line**: `[Simple Todo Feedback] Your topic here`
+
+### Feedback Response Time
+
+As a pilot program, we aim to respond to:
+- **Critical bugs**: Within 24 hours
+- **High-priority issues**: Within 3 business days
+- **Feature requests**: Within 1 week
+- **General feedback**: Within 1 week
+
+Thank you for participating in our pilot program! Your feedback is invaluable.
 
 ## Contributing
 

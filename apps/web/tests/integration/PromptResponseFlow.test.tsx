@@ -164,6 +164,55 @@ describe('PromptResponseFlow - Prompt Action Integration Tests', () => {
       // Task should still be in the list (rollback)
       expect(screen.getByText('Task to be prompted')).toBeInTheDocument();
     });
+
+    it('should handle gracefully when task already completed (edge case)', async () => {
+      const taskId = 'task-1';
+
+      // Mock PATCH /api/tasks/:id/complete to return 400 (task already completed)
+      server.use(
+        http.patch(`http://localhost:3001/api/tasks/${taskId}/complete`, () => {
+          return HttpResponse.json(
+            { error: 'Cannot update completed tasks' },
+            { status: 400 }
+          );
+        })
+      );
+
+      const user = userEvent.setup();
+      const { rerender } = render(<TaskListView ssePrompts={mockSSEPrompts} />);
+
+      // Wait for initial load
+      await waitFor(() => {
+        expect(screen.queryByText('Loading tasks...')).not.toBeInTheDocument();
+      });
+
+      // Simulate SSE prompt
+      mockSSEPrompts.push(
+        createTestPrompt({
+          taskId,
+          taskText: 'Task to be prompted',
+        })
+      );
+
+      rerender(<TaskListView ssePrompts={mockSSEPrompts} />);
+
+      // Wait for prompt toast
+      await waitFor(() => {
+        expect(screen.getByText(/could you do this task now/i)).toBeInTheDocument();
+      });
+
+      // Click Complete button
+      const completeButton = screen.getByRole('button', { name: /complete task/i });
+      await user.click(completeButton);
+
+      // Toast should disappear (graceful handling, no error shown for already-completed)
+      await waitFor(() => {
+        expect(screen.queryByText(/could you do this task now/i)).not.toBeInTheDocument();
+      });
+
+      // Verify no duplicate celebration or error toast
+      expect(screen.queryByText(/failed to complete task/i)).not.toBeInTheDocument();
+    });
   });
 
   describe('Dismiss Action', () => {
