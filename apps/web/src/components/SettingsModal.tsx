@@ -10,15 +10,18 @@ import { getPromptAnalytics } from '../services/analytics.js';
 import type {
   CelebrationConfig as CelebrationConfigType,
   PromptingConfig as PromptingConfigType,
+  QuietHoursConfig as QuietHoursConfigType,
   WipConfig,
 } from '../services/config.js';
 import {
   getCelebrationConfig,
   getPromptingConfig,
+  getQuietHoursConfig,
   getWipConfig,
   updateBrowserNotifications,
   updateCelebrationConfig,
   updatePromptingConfig,
+  updateQuietHoursConfig,
   updateWipLimit,
 } from '../services/config.js';
 
@@ -83,6 +86,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState<boolean>(false);
   const [initialBrowserNotificationsEnabled, setInitialBrowserNotificationsEnabled] =
     useState<boolean>(false);
+  const [quietHoursConfig, setQuietHoursConfig] = useState<QuietHoursConfigType>({
+    enabled: false,
+    startTime: '22:00',
+    endTime: '08:00',
+  });
+  const [initialQuietHoursConfig, setInitialQuietHoursConfig] = useState<QuietHoursConfigType>({
+    enabled: false,
+    startTime: '22:00',
+    endTime: '08:00',
+  });
   const [promptAnalytics, setPromptAnalytics] = useState<PromptAnalytics | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState<boolean>(false);
 
@@ -119,6 +132,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       const browserNotificationsEnabledValue = globalConfig?.browserNotificationsEnabled ?? false;
       setBrowserNotificationsEnabled(browserNotificationsEnabledValue);
       setInitialBrowserNotificationsEnabled(browserNotificationsEnabledValue);
+
+      // Load quiet hours config
+      const quietHoursConfigData = await getQuietHoursConfig();
+      setQuietHoursConfig(quietHoursConfigData);
+      setInitialQuietHoursConfig(quietHoursConfigData);
 
       setErrorMessage(null);
     } catch (error) {
@@ -161,7 +179,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       initialCelebrationConfig.celebrationDurationSeconds ||
     promptingConfig.enabled !== initialPromptingConfig.enabled ||
     promptingConfig.frequencyHours !== initialPromptingConfig.frequencyHours ||
-    browserNotificationsEnabled !== initialBrowserNotificationsEnabled;
+    browserNotificationsEnabled !== initialBrowserNotificationsEnabled ||
+    quietHoursConfig.enabled !== initialQuietHoursConfig.enabled ||
+    quietHoursConfig.startTime !== initialQuietHoursConfig.startTime ||
+    quietHoursConfig.endTime !== initialQuietHoursConfig.endTime;
 
   /**
    * Handles save button click
@@ -227,6 +248,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         setInitialBrowserNotificationsEnabled(updatedConfig.browserNotificationsEnabled);
       }
 
+      // Save quiet hours config if changed
+      if (
+        quietHoursConfig.enabled !== initialQuietHoursConfig.enabled ||
+        quietHoursConfig.startTime !== initialQuietHoursConfig.startTime ||
+        quietHoursConfig.endTime !== initialQuietHoursConfig.endTime
+      ) {
+        const updatedQuietHoursConfig = await updateQuietHoursConfig(
+          quietHoursConfig.enabled,
+          quietHoursConfig.startTime,
+          quietHoursConfig.endTime
+        );
+
+        setInitialQuietHoursConfig(updatedQuietHoursConfig);
+      }
+
       setShowSuccessToast(true);
 
       // Auto-hide success toast after 5 seconds
@@ -250,6 +286,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setCelebrationConfig(initialCelebrationConfig);
     setPromptingConfig(initialPromptingConfig);
     setBrowserNotificationsEnabled(initialBrowserNotificationsEnabled);
+    setQuietHoursConfig(initialQuietHoursConfig);
     setErrorMessage(null);
     setShowSuccessToast(false);
     onClose();
@@ -298,6 +335,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
    */
   const handleUpdateBrowserNotifications = (enabled: boolean): void => {
     setBrowserNotificationsEnabled(enabled);
+  };
+
+  /**
+   * Handles quiet hours config update (local state only, saved on Save button click)
+   */
+  const handleUpdateQuietHoursConfig = (enabled: boolean, startTime: string, endTime: string): void => {
+    setQuietHoursConfig({
+      enabled,
+      startTime,
+      endTime,
+    });
   };
 
   return (
@@ -426,6 +474,90 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   enabled={browserNotificationsEnabled}
                   onUpdate={handleUpdateBrowserNotifications}
                 />
+
+                {/* Quiet Hours Configuration Section */}
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Quiet Hours</h3>
+                  <p className={styles.sectionDescription}>
+                    Set times when you don't want to receive prompts
+                  </p>
+
+                  <div className={styles.settingRow}>
+                    <label htmlFor="quiet-hours-toggle" className={styles.settingLabel}>
+                      Enable quiet hours
+                    </label>
+                    <input
+                      id="quiet-hours-toggle"
+                      type="checkbox"
+                      checked={quietHoursConfig.enabled}
+                      onChange={(e) =>
+                        handleUpdateQuietHoursConfig(
+                          e.target.checked,
+                          quietHoursConfig.startTime,
+                          quietHoursConfig.endTime
+                        )
+                      }
+                      className={styles.checkbox}
+                    />
+                  </div>
+
+                  <div className={styles.timePickerGroup}>
+                    <div className={styles.timePicker}>
+                      <label htmlFor="quiet-hours-start" className={styles.timePickerLabel}>
+                        Start time
+                      </label>
+                      <input
+                        id="quiet-hours-start"
+                        type="time"
+                        value={quietHoursConfig.startTime}
+                        onChange={(e) =>
+                          handleUpdateQuietHoursConfig(
+                            quietHoursConfig.enabled,
+                            e.target.value,
+                            quietHoursConfig.endTime
+                          )
+                        }
+                        disabled={!quietHoursConfig.enabled}
+                        className={styles.timeInput}
+                      />
+                    </div>
+
+                    <div className={styles.timePicker}>
+                      <label htmlFor="quiet-hours-end" className={styles.timePickerLabel}>
+                        End time
+                      </label>
+                      <input
+                        id="quiet-hours-end"
+                        type="time"
+                        value={quietHoursConfig.endTime}
+                        onChange={(e) =>
+                          handleUpdateQuietHoursConfig(
+                            quietHoursConfig.enabled,
+                            quietHoursConfig.startTime,
+                            e.target.value
+                          )
+                        }
+                        disabled={!quietHoursConfig.enabled}
+                        className={styles.timeInput}
+                      />
+                    </div>
+                  </div>
+
+                  <p className={styles.helperText}>
+                    Times use your local timezone. Prompts won't occur between these hours.
+                    {quietHoursConfig.startTime === quietHoursConfig.endTime && quietHoursConfig.enabled && (
+                      <span className={styles.equalTimeWarning}>
+                        {' '}Equal times create a 24-hour quiet period (no prompts).
+                      </span>
+                    )}
+                  </p>
+
+                  {quietHoursConfig.enabled && quietHoursConfig.startTime !== quietHoursConfig.endTime && (
+                    <p className={styles.exampleText}>
+                      Example: 22:00 to 08:00 means 10pm to 8am (midnight-spanning range)
+                    </p>
+                  )}
+                </div>
 
                 {/* Prompt Analytics Section */}
                 <div className={styles.section}>

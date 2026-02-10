@@ -336,4 +336,178 @@ describe('Settings Flow Integration', () => {
       expect(screen.queryByText(/Please choose a limit between 5 and 10/i)).not.toBeInTheDocument();
     });
   });
+
+  describe('Quiet Hours Configuration', () => {
+    it('should display quiet hours toggle and time pickers', async () => {
+      server.use(
+        http.get('http://localhost:3001/api/config/quiet-hours', () => {
+          return HttpResponse.json({
+            enabled: false,
+            startTime: '22:00',
+            endTime: '08:00',
+          });
+        })
+      );
+
+      render(<SettingsModal isOpen={true} onClose={() => {}} />);
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Enable quiet hours/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Start time/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/End time/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should disable time pickers when quiet hours toggle is off', async () => {
+      server.use(
+        http.get('http://localhost:3001/api/config/quiet-hours', () => {
+          return HttpResponse.json({
+            enabled: false,
+            startTime: '22:00',
+            endTime: '08:00',
+          });
+        })
+      );
+
+      render(<SettingsModal isOpen={true} onClose={() => {}} />);
+
+      await waitFor(() => {
+        const startTimeInput = screen.getByLabelText(/Start time/i) as HTMLInputElement;
+        const endTimeInput = screen.getByLabelText(/End time/i) as HTMLInputElement;
+
+        expect(startTimeInput.disabled).toBe(true);
+        expect(endTimeInput.disabled).toBe(true);
+      });
+    });
+
+    it('should enable time pickers when quiet hours toggle is on', async () => {
+      const user = userEvent.setup();
+
+      server.use(
+        http.get('http://localhost:3001/api/config/quiet-hours', () => {
+          return HttpResponse.json({
+            enabled: false,
+            startTime: '22:00',
+            endTime: '08:00',
+          });
+        })
+      );
+
+      render(<SettingsModal isOpen={true} onClose={() => {}} />);
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Enable quiet hours/i)).toBeInTheDocument();
+      });
+
+      const toggle = screen.getByLabelText(/Enable quiet hours/i) as HTMLInputElement;
+      await user.click(toggle);
+
+      const startTimeInput = screen.getByLabelText(/Start time/i) as HTMLInputElement;
+      const endTimeInput = screen.getByLabelText(/End time/i) as HTMLInputElement;
+
+      expect(startTimeInput.disabled).toBe(false);
+      expect(endTimeInput.disabled).toBe(false);
+    });
+
+    it('should update quiet hours configuration on save', async () => {
+      const user = userEvent.setup();
+      let savedConfig = {
+        enabled: false,
+        startTime: '22:00',
+        endTime: '08:00',
+      };
+
+      server.use(
+        http.get('http://localhost:3001/api/config/quiet-hours', () => {
+          return HttpResponse.json(savedConfig);
+        }),
+        http.put('http://localhost:3001/api/config/quiet-hours', async ({ request }) => {
+          const body = (await request.json()) as typeof savedConfig;
+          savedConfig = body;
+          return HttpResponse.json(savedConfig);
+        })
+      );
+
+      render(<SettingsModal isOpen={true} onClose={() => {}} />);
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Enable quiet hours/i)).toBeInTheDocument();
+      });
+
+      // Enable quiet hours
+      const toggle = screen.getByLabelText(/Enable quiet hours/i);
+      await user.click(toggle);
+
+      // Change start time
+      const startTimeInput = screen.getByLabelText(/Start time/i) as HTMLInputElement;
+      await user.clear(startTimeInput);
+      await user.type(startTimeInput, '23:00');
+
+      // Change end time
+      const endTimeInput = screen.getByLabelText(/End time/i) as HTMLInputElement;
+      await user.clear(endTimeInput);
+      await user.type(endTimeInput, '07:00');
+
+      // Save changes
+      const saveButton = screen.getByRole('button', { name: /save changes/i });
+      await user.click(saveButton);
+
+      // Verify success toast
+      await waitFor(() => {
+        expect(screen.getByText(/Settings saved!/i)).toBeInTheDocument();
+      });
+
+      // Verify saved config
+      expect(savedConfig.enabled).toBe(true);
+      expect(savedConfig.startTime).toBe('23:00');
+      expect(savedConfig.endTime).toBe('07:00');
+    });
+
+    it('should show informational message for equal times', async () => {
+      const user = userEvent.setup();
+
+      server.use(
+        http.get('http://localhost:3001/api/config/quiet-hours', () => {
+          return HttpResponse.json({
+            enabled: true,
+            startTime: '22:00',
+            endTime: '22:00',
+          });
+        })
+      );
+
+      render(<SettingsModal isOpen={true} onClose={() => {}} />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Equal times create a 24-hour quiet period/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should load quiet hours config on mount', async () => {
+      let getConfigCalled = false;
+
+      server.use(
+        http.get('http://localhost:3001/api/config/quiet-hours', () => {
+          getConfigCalled = true;
+          return HttpResponse.json({
+            enabled: true,
+            startTime: '23:30',
+            endTime: '06:30',
+          });
+        })
+      );
+
+      render(<SettingsModal isOpen={true} onClose={() => {}} />);
+
+      await waitFor(() => {
+        expect(getConfigCalled).toBe(true);
+      });
+
+      const startTimeInput = screen.getByLabelText(/Start time/i) as HTMLInputElement;
+      const endTimeInput = screen.getByLabelText(/End time/i) as HTMLInputElement;
+
+      expect(startTimeInput.value).toBe('23:30');
+      expect(endTimeInput.value).toBe('06:30');
+    });
+  });
 });

@@ -208,3 +208,55 @@ export async function updateBrowserNotifications(enabled: boolean): Promise<Conf
     enabled,
   });
 }
+
+/**
+ * Quiet hours config response from API
+ */
+export interface QuietHoursConfig {
+  enabled: boolean;
+  startTime: string;
+  endTime: string;
+}
+
+/**
+ * Get quiet hours configuration
+ *
+ * @returns Promise resolving to quiet hours config with enabled flag, startTime, and endTime
+ * @throws {Error} If API request fails
+ *
+ * @example
+ * const config = await getQuietHoursConfig();
+ * console.log(config.enabled); // false
+ * console.log(config.startTime); // "22:00"
+ * console.log(config.endTime); // "08:00"
+ */
+export async function getQuietHoursConfig(): Promise<QuietHoursConfig> {
+  return await apiGet<QuietHoursConfig>('/api/config/quiet-hours');
+}
+
+/**
+ * Update quiet hours configuration
+ *
+ * @param enabled - Whether to enable quiet hours
+ * @param startTime - Start time in HH:mm format (00:00-23:59)
+ * @param endTime - End time in HH:mm format (00:00-23:59)
+ * @returns Promise resolving to updated quiet hours config
+ * @throws {Error} If time format is invalid or API request fails
+ *
+ * @example
+ * const updated = await updateQuietHoursConfig(true, "22:00", "08:00");
+ * console.log(updated.enabled); // true
+ * console.log(updated.startTime); // "22:00"
+ * console.log(updated.endTime); // "08:00"
+ */
+export async function updateQuietHoursConfig(
+  enabled: boolean,
+  startTime: string,
+  endTime: string
+): Promise<QuietHoursConfig> {
+  return await apiPut<QuietHoursConfig>('/api/config/quiet-hours', {
+    enabled,
+    startTime,
+    endTime,
+  });
+}

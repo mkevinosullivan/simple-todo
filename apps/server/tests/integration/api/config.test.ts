@@ -1076,4 +1076,240 @@ describe('Config API Integration Tests', () => {
       expect(response.body.error).toBe('Validation failed');
     });
   });
+
+  describe('GET /api/config/quiet-hours', () => {
+    it('should return quiet hours configuration with default values', async () => {
+      const response = await request(app).get('/api/config/quiet-hours').expect(200);
+
+      expect(response.body).toHaveProperty('enabled');
+      expect(response.body).toHaveProperty('startTime');
+      expect(response.body).toHaveProperty('endTime');
+      expect(typeof response.body.enabled).toBe('boolean');
+      expect(typeof response.body.startTime).toBe('string');
+      expect(typeof response.body.endTime).toBe('string');
+    });
+
+    it('should return default quiet hours when not configured', async () => {
+      const response = await request(app).get('/api/config/quiet-hours').expect(200);
+
+      expect(response.body.enabled).toBe(false);
+      expect(response.body.startTime).toBe('22:00');
+      expect(response.body.endTime).toBe('08:00');
+    });
+
+    it('should return updated quiet hours after configuration', async () => {
+      // First, update quiet hours
+      await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: true,
+          startTime: '23:00',
+          endTime: '07:00',
+        })
+        .expect(200);
+
+      // Then fetch and verify
+      const response = await request(app).get('/api/config/quiet-hours').expect(200);
+
+      expect(response.body.enabled).toBe(true);
+      expect(response.body.startTime).toBe('23:00');
+      expect(response.body.endTime).toBe('07:00');
+    });
+  });
+
+  describe('PUT /api/config/quiet-hours', () => {
+    it('should update quiet hours configuration', async () => {
+      const response = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: true,
+          startTime: '22:00',
+          endTime: '08:00',
+        })
+        .expect(200);
+
+      expect(response.body.enabled).toBe(true);
+      expect(response.body.startTime).toBe('22:00');
+      expect(response.body.endTime).toBe('08:00');
+    });
+
+    it('should accept disabled quiet hours', async () => {
+      const response = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: false,
+          startTime: '22:00',
+          endTime: '08:00',
+        })
+        .expect(200);
+
+      expect(response.body.enabled).toBe(false);
+    });
+
+    it('should accept equal start and end times (24-hour quiet period)', async () => {
+      const response = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: true,
+          startTime: '22:00',
+          endTime: '22:00',
+        })
+        .expect(200);
+
+      expect(response.body.startTime).toBe('22:00');
+      expect(response.body.endTime).toBe('22:00');
+    });
+
+    it('should persist quiet hours configuration', async () => {
+      // Update config
+      await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: true,
+          startTime: '23:30',
+          endTime: '06:30',
+        })
+        .expect(200);
+
+      // Verify it persisted by fetching
+      const response = await request(app).get('/api/config/quiet-hours').expect(200);
+
+      expect(response.body.enabled).toBe(true);
+      expect(response.body.startTime).toBe('23:30');
+      expect(response.body.endTime).toBe('06:30');
+    });
+
+    it('should reject invalid time format - missing colon', async () => {
+      const response = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: true,
+          startTime: '2200',
+          endTime: '08:00',
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should reject invalid time format - hour too high', async () => {
+      const response = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: true,
+          startTime: '25:00',
+          endTime: '08:00',
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should reject invalid time format - minute too high', async () => {
+      const response = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: true,
+          startTime: '22:00',
+          endTime: '08:60',
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should reject missing enabled field', async () => {
+      const response = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          startTime: '22:00',
+          endTime: '08:00',
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should reject missing startTime field', async () => {
+      const response = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: true,
+          endTime: '08:00',
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should reject missing endTime field', async () => {
+      const response = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: true,
+          startTime: '22:00',
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should reject non-boolean enabled value', async () => {
+      const response = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: 'true',
+          startTime: '22:00',
+          endTime: '08:00',
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should accept midnight-spanning range', async () => {
+      const response = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: true,
+          startTime: '22:00',
+          endTime: '08:00',
+        })
+        .expect(200);
+
+      expect(response.body.startTime).toBe('22:00');
+      expect(response.body.endTime).toBe('08:00');
+    });
+
+    it('should be idempotent', async () => {
+      // First update
+      const response1 = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: true,
+          startTime: '23:00',
+          endTime: '07:00',
+        })
+        .expect(200);
+
+      // Second update with same values
+      const response2 = await request(app)
+        .put('/api/config/quiet-hours')
+        .send({
+          enabled: true,
+          startTime: '23:00',
+          endTime: '07:00',
+        })
+        .expect(200);
+
+      expect(response1.body).toEqual(response2.body);
+    });
+  });
 });

@@ -1,3 +1,5 @@
+import { EventEmitter } from 'events';
+
 import type { Task, TaskStatus } from '@simple-todo/shared/types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -8,11 +10,13 @@ import type { DataService } from './DataService.js';
 /**
  * TaskService - Core business logic for task CRUD operations
  * Encapsulates task management rules and metadata calculation
+ * Extends EventEmitter to notify listeners of task activity for prompt timing
  */
-export class TaskService {
+export class TaskService extends EventEmitter {
   private readonly dataService: DataService;
 
   constructor(dataService: DataService) {
+    super();
     this.dataService = dataService;
   }
 
@@ -56,6 +60,9 @@ export class TaskService {
 
       // Save updated tasks
       await this.dataService.saveTasks(tasks);
+
+      // Emit taskCreated event for activity tracking
+      this.emit('taskCreated', task);
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return task;
@@ -269,6 +276,9 @@ export class TaskService {
 
       // Save updated tasks
       await this.dataService.saveTasks(tasks);
+
+      // Emit taskCompleted event for activity tracking
+      this.emit('taskCompleted', task);
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return task;

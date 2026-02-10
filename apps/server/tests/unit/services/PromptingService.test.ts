@@ -276,4 +276,255 @@ describe('PromptingService', () => {
       expect(mockTaskService.getActiveTaskCount).toHaveBeenCalled();
     });
   });
+
+  describe('Activity Detection', () => {
+    it('should record user activity with current timestamp', () => {
+      const beforeTime = Date.now();
+      promptingService.recordUserActivity();
+      const afterTime = Date.now();
+
+      // Verify activity was recorded (indirectly by checking isUserActivelyWorking)
+      expect(promptingService.isUserActivelyWorking()).toBe(true);
+    });
+
+    it('should return true when user active within last 5 minutes', () => {
+      promptingService.recordUserActivity();
+
+      const isActive = promptingService.isUserActivelyWorking();
+
+      expect(isActive).toBe(true);
+    });
+
+    it('should return false when no activity recorded', () => {
+      const isActive = promptingService.isUserActivelyWorking();
+
+      expect(isActive).toBe(false);
+    });
+
+    it('should return false when activity older than 5 minutes', () => {
+      // Record activity
+      promptingService.recordUserActivity();
+
+      // Mock Date to simulate 6 minutes passing
+      const sixMinutesMs = 6 * 60 * 1000;
+      jest.spyOn(Date, 'now').mockReturnValue(Date.now() + sixMinutesMs);
+
+      const isActive = promptingService.isUserActivelyWorking();
+
+      expect(isActive).toBe(false);
+
+      jest.restoreAllMocks();
+    });
+
+    it('should delay prompt when user recently active', async () => {
+      const testConfig = createTestConfig({
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+      });
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+      mockTaskService.getActiveTaskCount.mockResolvedValue(1);
+
+      // Record recent activity
+      promptingService.recordUserActivity();
+
+      // Trigger scheduled prompt
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (promptingService as any).onScheduledPrompt();
+
+      // Should not check for active tasks because user is active
+      expect(mockTaskService.getActiveTaskCount).not.toHaveBeenCalled();
+    });
+
+    it('should generate prompt when user not recently active', async () => {
+      const testConfig = createTestConfig({
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+      });
+      const testTask = createTestTask();
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+      mockTaskService.getActiveTaskCount.mockResolvedValue(1);
+      mockTaskService.getAllTasks.mockResolvedValue([testTask]);
+
+      // Don't record any activity (user not active)
+
+      // Trigger scheduled prompt
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (promptingService as any).onScheduledPrompt();
+
+      // Should proceed with prompt generation
+      expect(mockTaskService.getActiveTaskCount).toHaveBeenCalled();
+    });
+  });
+
+  describe('Quiet Hours', () => {
+    beforeEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should return false when quiet hours disabled', async () => {
+      const testConfig = createTestConfig({
+        quietHoursEnabled: false,
+        quietHoursStart: '22:00',
+        quietHoursEnd: '08:00',
+      });
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const isQuietHours = await (promptingService as any).isWithinQuietHours();
+
+      expect(isQuietHours).toBe(false);
+    });
+
+    it('should return true when current time within quiet hours range', async () => {
+      const testConfig = createTestConfig({
+        quietHoursEnabled: true,
+        quietHoursStart: '22:00',
+        quietHoursEnd: '08:00',
+      });
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+
+      // Mock current time to 23:00 (11 PM - within quiet hours)
+      jest.spyOn(Date.prototype, 'getHours').mockReturnValue(23);
+      jest.spyOn(Date.prototype, 'getMinutes').mockReturnValue(0);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const isQuietHours = await (promptingService as any).isWithinQuietHours();
+
+      expect(isQuietHours).toBe(true);
+    });
+
+    it('should return false when current time outside quiet hours range', async () => {
+      const testConfig = createTestConfig({
+        quietHoursEnabled: true,
+        quietHoursStart: '22:00',
+        quietHoursEnd: '08:00',
+      });
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+
+      // Mock current time to 15:00 (3 PM - outside quiet hours)
+      jest.spyOn(Date.prototype, 'getHours').mockReturnValue(15);
+      jest.spyOn(Date.prototype, 'getMinutes').mockReturnValue(0);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const isQuietHours = await (promptingService as any).isWithinQuietHours();
+
+      expect(isQuietHours).toBe(false);
+    });
+
+    it('should handle midnight-spanning range - time after start', async () => {
+      const testConfig = createTestConfig({
+        quietHoursEnabled: true,
+        quietHoursStart: '22:00',
+        quietHoursEnd: '08:00',
+      });
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+
+      // Mock current time to 23:30 (11:30 PM - after start, before midnight)
+      jest.spyOn(Date.prototype, 'getHours').mockReturnValue(23);
+      jest.spyOn(Date.prototype, 'getMinutes').mockReturnValue(30);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const isQuietHours = await (promptingService as any).isWithinQuietHours();
+
+      expect(isQuietHours).toBe(true);
+    });
+
+    it('should handle midnight-spanning range - time before end', async () => {
+      const testConfig = createTestConfig({
+        quietHoursEnabled: true,
+        quietHoursStart: '22:00',
+        quietHoursEnd: '08:00',
+      });
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+
+      // Mock current time to 02:00 (2 AM - after midnight, before end)
+      jest.spyOn(Date.prototype, 'getHours').mockReturnValue(2);
+      jest.spyOn(Date.prototype, 'getMinutes').mockReturnValue(0);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const isQuietHours = await (promptingService as any).isWithinQuietHours();
+
+      expect(isQuietHours).toBe(true);
+    });
+
+    it('should handle midnight-spanning range - time outside range', async () => {
+      const testConfig = createTestConfig({
+        quietHoursEnabled: true,
+        quietHoursStart: '22:00',
+        quietHoursEnd: '08:00',
+      });
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+
+      // Mock current time to 15:00 (3 PM - outside range)
+      jest.spyOn(Date.prototype, 'getHours').mockReturnValue(15);
+      jest.spyOn(Date.prototype, 'getMinutes').mockReturnValue(0);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const isQuietHours = await (promptingService as any).isWithinQuietHours();
+
+      expect(isQuietHours).toBe(false);
+    });
+
+    it('should skip prompt generation during quiet hours', async () => {
+      const testConfig = createTestConfig({
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+        quietHoursEnabled: true,
+        quietHoursStart: '22:00',
+        quietHoursEnd: '08:00',
+      });
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+      mockTaskService.getActiveTaskCount.mockResolvedValue(1);
+
+      // Mock current time to be within quiet hours (23:00)
+      jest.spyOn(Date.prototype, 'getHours').mockReturnValue(23);
+      jest.spyOn(Date.prototype, 'getMinutes').mockReturnValue(0);
+
+      // Trigger scheduled prompt
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (promptingService as any).onScheduledPrompt();
+
+      // Should not proceed to check active tasks
+      expect(mockTaskService.getActiveTaskCount).not.toHaveBeenCalled();
+    });
+
+    it('should generate prompt outside quiet hours', async () => {
+      const testConfig = createTestConfig({
+        promptingEnabled: true,
+        promptingFrequencyHours: 2.5,
+        quietHoursEnabled: true,
+        quietHoursStart: '22:00',
+        quietHoursEnd: '08:00',
+      });
+      const testTask = createTestTask();
+
+      mockDataService.loadConfig.mockResolvedValue(testConfig);
+      mockTaskService.getActiveTaskCount.mockResolvedValue(1);
+      mockTaskService.getAllTasks.mockResolvedValue([testTask]);
+
+      // Mock current time to be outside quiet hours (15:00)
+      jest.spyOn(Date.prototype, 'getHours').mockReturnValue(15);
+      jest.spyOn(Date.prototype, 'getMinutes').mockReturnValue(0);
+
+      // Trigger scheduled prompt
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (promptingService as any).onScheduledPrompt();
+
+      // Should proceed with prompt generation
+      expect(mockTaskService.getActiveTaskCount).toHaveBeenCalled();
+    });
+  });
 });

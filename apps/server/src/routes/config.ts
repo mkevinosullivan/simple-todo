@@ -6,6 +6,7 @@ import type {
   UpdateConfigDto,
   UpdateEducationFlagDto,
   UpdatePromptingConfigDto,
+  UpdateQuietHoursConfigDto,
   UpdateWipLimitDto,
 } from '../middleware/validation.js';
 import {
@@ -14,6 +15,7 @@ import {
   UpdateConfigSchema,
   UpdateEducationFlagSchema,
   UpdatePromptingConfigSchema,
+  UpdateQuietHoursConfigSchema,
   UpdateWipLimitSchema,
   validateRequest,
 } from '../middleware/validation.js';
@@ -689,6 +691,145 @@ router.put(
         logger.error('Failed to update browser notifications configuration', { error });
         res.status(500).json({
           error: 'Failed to update browser notifications configuration',
+        });
+      }
+    }
+  )
+);
+
+/**
+ * GET /api/config/quiet-hours
+ * Get quiet hours configuration settings
+ *
+ * @route GET /api/config/quiet-hours
+ * @returns {object} 200 - Quiet hours configuration
+ * @returns {boolean} 200.enabled - Whether quiet hours is enabled
+ * @returns {string} 200.startTime - Start time in HH:mm format
+ * @returns {string} 200.endTime - End time in HH:mm format
+ * @returns {object} 500 - Internal server error
+ *
+ * @example
+ * // Request:
+ * GET /api/config/quiet-hours
+ *
+ * // Response (200):
+ * {
+ *   "enabled": false,
+ *   "startTime": "22:00",
+ *   "endTime": "08:00"
+ * }
+ */
+router.get(
+  '/quiet-hours',
+  asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+    try {
+      // Load full configuration
+      const config = await dataService.loadConfig();
+
+      // Return quiet hours configuration
+      res.status(200).json({
+        enabled: config.quietHoursEnabled,
+        startTime: config.quietHoursStart,
+        endTime: config.quietHoursEnd,
+      });
+    } catch (error) {
+      logger.error('Failed to get quiet hours configuration', { error });
+      res.status(500).json({
+        error: 'Failed to retrieve quiet hours configuration',
+      });
+    }
+  })
+);
+
+/**
+ * PUT /api/config/quiet-hours
+ * Update quiet hours configuration settings
+ *
+ * @route PUT /api/config/quiet-hours
+ * @param {object} req.body - Request body
+ * @param {boolean} req.body.enabled - Whether to enable quiet hours
+ * @param {string} req.body.startTime - Start time in HH:mm format (00:00-23:59)
+ * @param {string} req.body.endTime - End time in HH:mm format (00:00-23:59)
+ * @returns {object} 200 - Updated quiet hours configuration
+ * @returns {boolean} 200.enabled - Whether quiet hours is enabled
+ * @returns {string} 200.startTime - Start time in HH:mm format
+ * @returns {string} 200.endTime - End time in HH:mm format
+ * @returns {object} 400 - Validation error (invalid parameters)
+ * @returns {object} 500 - Internal server error
+ *
+ * @throws {Error} Returns 400 if time format is invalid (not HH:mm)
+ * @throws {Error} Returns 400 if enabled is not a boolean
+ * @throws {Error} Returns 400 if fields are missing
+ * @throws {Error} Returns 500 if unable to persist configuration
+ *
+ * @example
+ * // Request:
+ * PUT /api/config/quiet-hours
+ * {
+ *   "enabled": true,
+ *   "startTime": "22:00",
+ *   "endTime": "08:00"
+ * }
+ *
+ * // Response (200):
+ * {
+ *   "enabled": true,
+ *   "startTime": "22:00",
+ *   "endTime": "08:00"
+ * }
+ *
+ * // Equal times example (24-hour quiet period):
+ * {
+ *   "enabled": true,
+ *   "startTime": "22:00",
+ *   "endTime": "22:00"
+ * }
+ *
+ * // Error response (400 - invalid time format):
+ * {
+ *   "error": "Validation failed",
+ *   "details": [
+ *     {
+ *       "field": "startTime",
+ *       "message": "Start time must be in HH:mm format (00:00-23:59)"
+ *     }
+ *   ]
+ * }
+ */
+router.put(
+  '/quiet-hours',
+  validateRequest(UpdateQuietHoursConfigSchema),
+  asyncHandler(
+    async (
+      req: Request<object, object, UpdateQuietHoursConfigDto>,
+      res: Response
+    ): Promise<void> => {
+      try {
+        // Request body is validated by middleware
+        const { enabled, startTime, endTime } = req.body;
+
+        // Load current config
+        const config = await dataService.loadConfig();
+
+        // Update quiet hours fields
+        config.quietHoursEnabled = enabled;
+        config.quietHoursStart = startTime;
+        config.quietHoursEnd = endTime;
+
+        // Persist updated config to file
+        await dataService.saveConfig(config);
+
+        // Return updated quiet hours configuration
+        res.status(200).json({
+          enabled,
+          startTime,
+          endTime,
+        });
+      } catch (error) {
+        // Generic server error (file system, etc.)
+        logger.error('Failed to update quiet hours configuration', { error });
+        res.status(500).json({
+          error: 'Failed to update quiet hours configuration',
         });
       }
     }

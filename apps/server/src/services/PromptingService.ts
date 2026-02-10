@@ -30,6 +30,8 @@ export class PromptingService extends EventEmitter {
   private cleanupInterval: NodeJS.Timeout | null = null;
   private pendingPrompts: Map<string, { promptEvent: PromptEvent; timeoutId: NodeJS.Timeout }> =
     new Map();
+  private lastUserActivityTime: Date | null = null;
+  private readonly ACTIVITY_DETECTION_WINDOW_MS: number = 5 * 60 * 1000; // 5 minutes
 
   constructor(taskService: TaskService, dataService: DataService) {
     super();
@@ -120,10 +122,23 @@ export class PromptingService extends EventEmitter {
    *
    * Called by the interval timer to generate and emit prompts.
    * Skips if no active tasks available or minimum interval not reached.
+   * Delays if user is actively working or within quiet hours.
    */
   private async onScheduledPrompt(): Promise<void> {
     // Load config to get frequency for interval validation
     const config = await this.loadPromptingConfig();
+
+    // Check user activity first
+    if (this.isUserActivelyWorking()) {
+      logger.info('Prompt delayed: user actively working');
+      return;
+    }
+
+    // Check quiet hours
+    if (await this.isWithinQuietHours()) {
+      logger.info('Prompt skipped due to quiet hours');
+      return;
+    }
 
     // Check if minimum interval has elapsed since last prompt
     if (this.lastPromptTime) {
@@ -581,6 +596,93 @@ export class PromptingService extends EventEmitter {
       clearTimeout(timeout);
       this.snoozedPrompts.delete(taskId);
       logger.info('Snoozed prompt cancelled', { taskId });
+    }
+  }
+
+  /**
+   * Records user activity for prompt timing
+   *
+   * Called when user creates or completes a task to track active work sessions.
+   * Used to avoid interrupting user during active work with prompts.
+   *
+   * @example
+   * promptingService.recordUserActivity();
+   */
+  recordUserActivity(): void {
+    this.lastUserActivityTime = new Date();
+    logger.debug('User activity recorded', { timestamp: this.lastUserActivityTime });
+  }
+
+  /**
+   * Checks if user is actively working based on recent activity
+   *
+   * Returns true if user has created or completed a task within the last 5 minutes.
+   * Used to delay prompts during active work sessions.
+   *
+   * @returns True if user is actively working, false otherwise
+   *
+   * @example
+   * if (promptingService.isUserActivelyWorking()) {
+   *   console.log('User is busy, delaying prompt');
+   * }
+   */
+  isUserActivelyWorking(): boolean {
+    if (!this.lastUserActivityTime) {
+      return false; // No activity recorded yet
+    }
+
+    const now = Date.now();
+    const lastActivityMs = this.lastUserActivityTime.getTime();
+    const timeSinceActivity = now - lastActivityMs;
+
+    return timeSinceActivity < this.ACTIVITY_DETECTION_WINDOW_MS;
+  }
+
+  /**
+   * Checks if current time is within configured quiet hours
+   *
+   * Handles midnight-spanning ranges (e.g., 22:00-08:00) by checking if current time
+   * falls on either side of midnight. Returns false if quiet hours feature is disabled.
+   *
+   * @returns True if within quiet hours and feature enabled, false otherwise
+   * @throws {Error} If configuration cannot be loaded
+   *
+   * @example
+   * if (await promptingService.isWithinQuietHours()) {
+   *   console.log('Within quiet hours, skipping prompt');
+   * }
+   */
+  async isWithinQuietHours(): Promise<boolean> {
+    const config = await this.dataService.loadConfig();
+
+    // Feature disabled
+    if (!config.quietHoursEnabled) {
+      return false;
+    }
+
+    // Parse time strings
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+    const [startHour, startMin] = config.quietHoursStart.split(':').map(Number);
+    const startTimeInMinutes = startHour * 60 + startMin;
+
+    const [endHour, endMin] = config.quietHoursEnd.split(':').map(Number);
+    const endTimeInMinutes = endHour * 60 + endMin;
+
+    // Handle midnight-spanning range (e.g., 22:00 - 08:00)
+    if (endTimeInMinutes < startTimeInMinutes) {
+      // Range spans midnight
+      return (
+        currentTimeInMinutes >= startTimeInMinutes || currentTimeInMinutes < endTimeInMinutes
+      );
+    } else {
+      // Normal range within same day
+      return (
+        currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes
+      );
     }
   }
 

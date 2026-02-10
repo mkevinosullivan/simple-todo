@@ -159,6 +159,52 @@ export const UpdateBrowserNotificationsSchema = z.object({
 export type UpdateBrowserNotificationsDto = z.infer<typeof UpdateBrowserNotificationsSchema>;
 
 /**
+ * Zod schema for updating quiet hours configuration
+ * Validates that enabled is a boolean and times are in HH:mm format
+ *
+ * @example
+ * // Valid request bodies:
+ * { enabled: true, startTime: "22:00", endTime: "08:00" }
+ * { enabled: false, startTime: "23:00", endTime: "07:00" }
+ * { enabled: true, startTime: "22:00", endTime: "22:00" }  // Equal times (24-hour quiet period)
+ *
+ * // Invalid request bodies (will return 400):
+ * { enabled: true, startTime: "25:00", endTime: "08:00" }  // Invalid hour
+ * { enabled: true, startTime: "22:60", endTime: "08:00" }  // Invalid minute
+ * { enabled: true, startTime: "22", endTime: "08:00" }     // Missing minutes
+ * { enabled: "true", startTime: "22:00", endTime: "08:00" } // Wrong type
+ * { enabled: true, startTime: "22:00" }                     // Missing endTime
+ */
+export const UpdateQuietHoursConfigSchema = z.object({
+  enabled: z.boolean({
+    required_error: 'enabled is required',
+    invalid_type_error: 'enabled must be a boolean',
+  }),
+  startTime: z
+    .string({
+      required_error: 'startTime is required',
+      invalid_type_error: 'startTime must be a string',
+    })
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+      message: 'Start time must be in HH:mm format (00:00-23:59)',
+    }),
+  endTime: z
+    .string({
+      required_error: 'endTime is required',
+      invalid_type_error: 'endTime must be a string',
+    })
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+      message: 'End time must be in HH:mm format (00:00-23:59)',
+    }),
+});
+
+/**
+ * Type inference for UpdateQuietHoursConfigSchema
+ * Use this type for type-safe access to validated request body
+ */
+export type UpdateQuietHoursConfigDto = z.infer<typeof UpdateQuietHoursConfigSchema>;
+
+/**
  * Zod schema for partial config updates
  * Allows updating any config field with validation
  *

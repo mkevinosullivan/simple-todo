@@ -21,6 +21,12 @@ export interface Config {
   hasSeenPromptEducation: boolean;
   /** Whether user has seen the WIP limit education message */
   hasSeenWIPLimitEducation: boolean;
+  /** Enable quiet hours feature */
+  quietHoursEnabled: boolean;
+  /** Quiet hours start time in 24-hour format "HH:mm" */
+  quietHoursStart: string;
+  /** Quiet hours end time in 24-hour format "HH:mm" */
+  quietHoursEnd: string;
 }
 
 /**
@@ -37,6 +43,9 @@ export const DEFAULT_CONFIG: Config = {
   hasCompletedSetup: false,
   hasSeenPromptEducation: false,
   hasSeenWIPLimitEducation: false,
+  quietHoursEnabled: false,
+  quietHoursStart: '22:00',
+  quietHoursEnd: '08:00',
 };
 
 /**
@@ -48,4 +57,17 @@ export interface UpdatePromptingConfigDto {
   enabled: boolean;
   /** Prompting frequency in hours (1-6 range) */
   frequencyHours: number;
+}
+
+/**
+ * DTO for updating quiet hours configuration
+ * Used by PUT /api/config/quiet-hours endpoint
+ */
+export interface UpdateQuietHoursConfigDto {
+  /** Whether quiet hours is enabled */
+  enabled: boolean;
+  /** Start time in 24-hour format "HH:mm" */
+  startTime: string;
+  /** End time in 24-hour format "HH:mm" */
+  endTime: string;
 }
