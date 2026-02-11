@@ -28,7 +28,10 @@ import {
 import { BrowserNotificationConfig } from './BrowserNotificationConfig.js';
 import { CelebrationConfig } from './CelebrationConfig.js';
 import { CelebrationOverlay } from './CelebrationOverlay.js';
+import { PromptAnalyticsConfig } from './PromptAnalyticsConfig.js';
 import { PromptingConfig } from './PromptingConfig.js';
+import { QuietHoursConfig } from './QuietHoursConfig.js';
+import { WipLimitConfig } from './WipLimitConfig.js';
 import styles from './SettingsModal.module.css';
 
 export interface SettingsModalProps {
@@ -403,53 +406,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
 
                 {/* WIP Limit Configuration Section */}
-                <div className={styles.wipSection}>
-                  <h3 className={styles.sectionTitle}>WIP Limit Configuration</h3>
-
-                  {/* Current active task count */}
-                  {wipConfig && (
-                    <p className={styles.currentCount}>
-                      You currently have <strong>{wipConfig.currentCount}</strong> active tasks
-                    </p>
-                  )}
-
-                  {/* Slider label */}
-                  <label htmlFor="wip-limit-slider" className={styles.sliderLabel}>
-                    Work In Progress Limit (5-10 tasks)
-                  </label>
-
-                  {/* Slider value display */}
-                  <div className={styles.sliderValueDisplay}>
-                    <span className={styles.sliderValue}>{sliderValue}</span>
-                  </div>
-
-                  {/* Slider control */}
-                  <div className={styles.sliderContainer}>
-                    <span className={styles.sliderMinMax}>5</span>
-                    <input
-                      id="wip-limit-slider"
-                      type="range"
-                      min="5"
-                      max="10"
-                      value={sliderValue}
-                      onChange={handleSliderChange}
-                      className={styles.slider}
-                      aria-label="Work In Progress Limit"
-                      aria-valuenow={sliderValue}
-                      aria-valuemin={5}
-                      aria-valuemax={10}
-                    />
-                    <span className={styles.sliderMinMax}>10</span>
-                  </div>
-
-                  {/* Explanation text */}
-                  <p className={styles.helpText}>
-                    Limits how many active tasks you can have at once. This helps prevent overwhelm.
-                  </p>
-
-                  {/* Error message */}
-                  {errorMessage && <div className={styles.errorMessage}>{errorMessage}</div>}
-                </div>
+                <WipLimitConfig
+                  wipConfig={wipConfig}
+                  sliderValue={sliderValue}
+                  onSliderChange={handleSliderChange}
+                  errorMessage={errorMessage}
+                />
 
                 {/* Celebration Configuration Section */}
                 <CelebrationConfig
@@ -476,153 +438,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 />
 
                 {/* Quiet Hours Configuration Section */}
-                <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Quiet Hours</h3>
-                  <p className={styles.sectionDescription}>
-                    Set times when you don't want to receive prompts
-                  </p>
-
-                  <div className={styles.settingRow}>
-                    <label htmlFor="quiet-hours-toggle" className={styles.settingLabel}>
-                      Enable quiet hours
-                    </label>
-                    <input
-                      id="quiet-hours-toggle"
-                      type="checkbox"
-                      checked={quietHoursConfig.enabled}
-                      onChange={(e) =>
-                        handleUpdateQuietHoursConfig(
-                          e.target.checked,
-                          quietHoursConfig.startTime,
-                          quietHoursConfig.endTime
-                        )
-                      }
-                      className={styles.checkbox}
-                    />
-                  </div>
-
-                  <div className={styles.timePickerGroup}>
-                    <div className={styles.timePicker}>
-                      <label htmlFor="quiet-hours-start" className={styles.timePickerLabel}>
-                        Start time
-                      </label>
-                      <input
-                        id="quiet-hours-start"
-                        type="time"
-                        value={quietHoursConfig.startTime}
-                        onChange={(e) =>
-                          handleUpdateQuietHoursConfig(
-                            quietHoursConfig.enabled,
-                            e.target.value,
-                            quietHoursConfig.endTime
-                          )
-                        }
-                        disabled={!quietHoursConfig.enabled}
-                        className={styles.timeInput}
-                      />
-                    </div>
-
-                    <div className={styles.timePicker}>
-                      <label htmlFor="quiet-hours-end" className={styles.timePickerLabel}>
-                        End time
-                      </label>
-                      <input
-                        id="quiet-hours-end"
-                        type="time"
-                        value={quietHoursConfig.endTime}
-                        onChange={(e) =>
-                          handleUpdateQuietHoursConfig(
-                            quietHoursConfig.enabled,
-                            quietHoursConfig.startTime,
-                            e.target.value
-                          )
-                        }
-                        disabled={!quietHoursConfig.enabled}
-                        className={styles.timeInput}
-                      />
-                    </div>
-                  </div>
-
-                  <p className={styles.helperText}>
-                    Times use your local timezone. Prompts won't occur between these hours.
-                    {quietHoursConfig.startTime === quietHoursConfig.endTime && quietHoursConfig.enabled && (
-                      <span className={styles.equalTimeWarning}>
-                        {' '}Equal times create a 24-hour quiet period (no prompts).
-                      </span>
-                    )}
-                  </p>
-
-                  {quietHoursConfig.enabled && quietHoursConfig.startTime !== quietHoursConfig.endTime && (
-                    <p className={styles.exampleText}>
-                      Example: 22:00 to 08:00 means 10pm to 8am (midnight-spanning range)
-                    </p>
-                  )}
-                </div>
+                <QuietHoursConfig
+                  enabled={quietHoursConfig.enabled}
+                  startTime={quietHoursConfig.startTime}
+                  endTime={quietHoursConfig.endTime}
+                  onUpdate={handleUpdateQuietHoursConfig}
+                />
 
                 {/* Prompt Analytics Section */}
-                <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Prompt Analytics</h3>
-                  <p className={styles.sectionDescription}>
-                    Track your engagement with proactive task prompts.
-                  </p>
-
-                  {analyticsLoading ? (
-                    <p className={styles.loadingText}>Loading analytics...</p>
-                  ) : promptAnalytics ? (
-                    <div className={styles.analyticsGrid}>
-                      <div className={styles.analyticsStat}>
-                        <span className={styles.statsLabel}>Response Rate</span>
-                        <span className={styles.statsValue}>
-                          {promptAnalytics.promptResponseRate.toFixed(1)}%
-                        </span>
-                        <span className={styles.statsHint}>
-                          {promptAnalytics.promptResponseRate >= 40
-                            ? '✓ Exceeds 40% target'
-                            : 'Target: ≥40%'}
-                        </span>
-                      </div>
-
-                      <div className={styles.analyticsStat}>
-                        <span className={styles.statsLabel}>Completed</span>
-                        <span className={styles.statsValue}>
-                          {promptAnalytics.responseBreakdown.complete}
-                        </span>
-                      </div>
-
-                      <div className={styles.analyticsStat}>
-                        <span className={styles.statsLabel}>Dismissed</span>
-                        <span className={styles.statsValue}>
-                          {promptAnalytics.responseBreakdown.dismiss}
-                        </span>
-                      </div>
-
-                      <div className={styles.analyticsStat}>
-                        <span className={styles.statsLabel}>Snoozed</span>
-                        <span className={styles.statsValue}>
-                          {promptAnalytics.responseBreakdown.snooze}
-                        </span>
-                      </div>
-
-                      <div className={styles.analyticsStat}>
-                        <span className={styles.statsLabel}>Timed Out</span>
-                        <span className={styles.statsValue}>
-                          {promptAnalytics.responseBreakdown.timeout}
-                        </span>
-                      </div>
-
-                      <div className={styles.analyticsStat}>
-                        <span className={styles.statsLabel}>Avg Response Time</span>
-                        <span className={styles.statsValue}>
-                          {promptAnalytics.averageResponseTime > 0
-                            ? `${(promptAnalytics.averageResponseTime / 1000).toFixed(1)}s`
-                            : 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className={styles.noDataText}>No prompt data available yet.</p>
-                  )}
-                </div>
+                <PromptAnalyticsConfig analytics={promptAnalytics} loading={analyticsLoading} />
 
                 {/* Footer buttons */}
                 <div className={styles.footer}>

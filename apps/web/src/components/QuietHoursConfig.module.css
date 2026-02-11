@@ -1,0 +1,165 @@
+/* Section Container */
+.quietHoursConfig {
+  background-color: #ffffff;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+/* Section Heading */
+.heading {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+}
+
+/* Description Text */
+.description {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+}
+
+/* Control Container */
+.control {
+  margin: 16px 0;
+}
+
+/* Toggle Label */
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  color: #111827;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+/* Toggle Checkbox (styled as switch) */
+.toggle {
+  position: relative;
+  appearance: none;
+  width: 44px;
+  height: 24px;
+  background-color: #d1d5db;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 200ms ease;
+  outline: none;
+}
+
+.toggle::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  top: 2px;
+  left: 2px;
+  transition: transform 200ms ease;
+}
+
+.toggle:checked {
+  background-color: #3b82f6;
+}
+
+.toggle:checked::before {
+  transform: translateX(20px);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.toggleText {
+  user-select: none;
+}
+
+/* Time Picker Group */
+.timePickerGroup {
+  display: flex;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.timePicker {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timePickerLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.timeInput {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #111827;
+  background-color: #ffffff;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.timeInput:focus {
+  border-color: #3b82f6;
+  outline: 2px solid #3b82f6;
+  outline-offset: 0;
+}
+
+.timeInput:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Helper Text */
+.helperText {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 8px 0 0 0;
+}
+
+.equalTimeWarning {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.exampleText {
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+  margin: 8px 0 0 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .quietHoursConfig {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .quietHoursConfig {
+    padding: 16px;
+  }
+
+  .heading {
+    font-size: 16px;
+  }
+
+  .timePickerGroup {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
