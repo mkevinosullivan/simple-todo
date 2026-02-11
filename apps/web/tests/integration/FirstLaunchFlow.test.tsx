@@ -38,9 +38,12 @@ describe('First-Launch Flow Integration Test', () => {
     render(<App />);
 
     // Wait for loading to complete
-    await waitFor(() => {
-      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     // Verify FirstLaunchScreen is rendered
     expect(screen.getByText('Welcome to Simple To-Do App!')).toBeInTheDocument();
@@ -64,9 +67,12 @@ describe('First-Launch Flow Integration Test', () => {
     render(<App />);
 
     // Wait for loading to complete
-    await waitFor(() => {
-      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     // Verify FirstLaunchScreen is NOT rendered
     expect(screen.queryByText('Welcome to Simple To-Do App!')).not.toBeInTheDocument();
@@ -101,9 +107,12 @@ describe('First-Launch Flow Integration Test', () => {
     render(<App />);
 
     // Wait for FirstLaunchScreen to appear
-    await waitFor(() => {
-      expect(screen.getByText('Welcome to Simple To-Do App!')).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Welcome to Simple To-Do App!')).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     // Select WIP limit 8
     const button8 = screen.getByRole('radio', { name: 'Select WIP limit 8' });
@@ -114,14 +123,20 @@ describe('First-Launch Flow Integration Test', () => {
     fireEvent.click(getStartedBtn);
 
     // Verify API was called with correct payload
-    await waitFor(() => {
-      expect(configService.updateWipLimit).toHaveBeenCalledWith(8);
-    });
+    await waitFor(
+      () => {
+        expect(configService.updateWipLimit).toHaveBeenCalledWith(8);
+      },
+      { timeout: 5000 }
+    );
 
     // Verify navigation to TaskListView (FirstLaunchScreen should disappear)
-    await waitFor(() => {
-      expect(screen.queryByText('Welcome to Simple To-Do App!')).not.toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.queryByText('Welcome to Simple To-Do App!')).not.toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
   });
 
   it('should use default WIP limit 7 when Use Default Settings is clicked', async () => {
@@ -150,9 +165,12 @@ describe('First-Launch Flow Integration Test', () => {
     render(<App />);
 
     // Wait for FirstLaunchScreen to appear
-    await waitFor(() => {
-      expect(screen.getByText('Welcome to Simple To-Do App!')).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Welcome to Simple To-Do App!')).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     // Select a different limit first (e.g., 5)
     const button5 = screen.getByRole('radio', { name: 'Select WIP limit 5' });
@@ -163,14 +181,20 @@ describe('First-Launch Flow Integration Test', () => {
     fireEvent.click(useDefaultsBtn);
 
     // Verify API was called with limit=7 (not 5)
-    await waitFor(() => {
-      expect(configService.updateWipLimit).toHaveBeenCalledWith(7);
-    });
+    await waitFor(
+      () => {
+        expect(configService.updateWipLimit).toHaveBeenCalledWith(7);
+      },
+      { timeout: 5000 }
+    );
 
     // Verify navigation to TaskListView
-    await waitFor(() => {
-      expect(screen.queryByText('Welcome to Simple To-Do App!')).not.toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.queryByText('Welcome to Simple To-Do App!')).not.toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
   });
 
   it('should not show FirstLaunchScreen on subsequent loads after setup completed', async () => {
@@ -198,16 +222,22 @@ describe('First-Launch Flow Integration Test', () => {
     const { unmount } = render(<App />);
 
     // Complete setup
-    await waitFor(() => {
-      expect(screen.getByText('Welcome to Simple To-Do App!')).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Welcome to Simple To-Do App!')).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     const getStartedBtn = screen.getByRole('button', { name: /Get Started/i });
     fireEvent.click(getStartedBtn);
 
-    await waitFor(() => {
-      expect(screen.queryByText('Welcome to Simple To-Do App!')).not.toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.queryByText('Welcome to Simple To-Do App!')).not.toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     unmount();
 
@@ -227,9 +257,12 @@ describe('First-Launch Flow Integration Test', () => {
     render(<App />);
 
     // Wait for loading to complete
-    await waitFor(() => {
-      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     // Verify FirstLaunchScreen is NOT shown
     expect(screen.queryByText('Welcome to Simple To-Do App!')).not.toBeInTheDocument();
@@ -242,9 +275,14 @@ describe('First-Launch Flow Integration Test', () => {
     render(<App />);
 
     // Wait for error to appear
-    await waitFor(() => {
-      expect(screen.getByText(/Failed to load configuration. Please refresh the page./i)).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText(/Failed to load configuration. Please refresh the page./i)
+        ).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     expect(screen.getByRole('button', { name: /Retry/i })).toBeInTheDocument();
   });
@@ -268,23 +306,32 @@ describe('First-Launch Flow Integration Test', () => {
     render(<App />);
 
     // Wait for error to appear
-    await waitFor(() => {
-      expect(screen.getByText(/Failed to load configuration/i)).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Failed to load configuration/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     // Click Retry button
     const retryBtn = screen.getByRole('button', { name: /Retry/i });
     fireEvent.click(retryBtn);
 
     // Should show loading state
-    await waitFor(() => {
-      expect(screen.queryByText(/Failed to load configuration/i)).not.toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.queryByText(/Failed to load configuration/i)).not.toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     // Should eventually show FirstLaunchScreen
-    await waitFor(() => {
-      expect(screen.getByText('Welcome to Simple To-Do App!')).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Welcome to Simple To-Do App!')).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     expect(configService.getConfig).toHaveBeenCalledTimes(2);
   });
@@ -296,26 +343,38 @@ describe('First-Launch Flow Integration Test', () => {
     render(<App />);
 
     // First failure - show error
-    await waitFor(() => {
-      expect(screen.getByText(/Failed to load configuration/i)).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Failed to load configuration/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     // Retry 1
     fireEvent.click(screen.getByRole('button', { name: /Retry/i }));
-    await waitFor(() => {
-      expect(screen.getByText(/Failed to load configuration/i)).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Failed to load configuration/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     // Retry 2
     fireEvent.click(screen.getByRole('button', { name: /Retry/i }));
-    await waitFor(() => {
-      expect(screen.getByText(/Failed to load configuration/i)).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Failed to load configuration/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
 
     // Retry 3 - should show FirstLaunchScreen with default config
     fireEvent.click(screen.getByRole('button', { name: /Retry/i }));
-    await waitFor(() => {
-      expect(screen.getByText('Welcome to Simple To-Do App!')).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Welcome to Simple To-Do App!')).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
   });
 });

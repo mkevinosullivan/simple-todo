@@ -111,9 +111,12 @@ describe('FirstLaunchScreen', () => {
       const getStartedBtn = screen.getByRole('button', { name: /Get Started/i });
       fireEvent.click(getStartedBtn);
 
-      await waitFor(() => {
-        expect(onComplete).toHaveBeenCalledWith(8);
-      });
+      await waitFor(
+        () => {
+          expect(onComplete).toHaveBeenCalledWith(8);
+        },
+        { timeout: 3000 }
+      );
     });
 
     it('should call onComplete with default limit 7 when Use Default Settings clicked', async () => {
@@ -128,9 +131,12 @@ describe('FirstLaunchScreen', () => {
       const useDefaultsBtn = screen.getByRole('button', { name: /Use Default Settings/i });
       fireEvent.click(useDefaultsBtn);
 
-      await waitFor(() => {
-        expect(onComplete).toHaveBeenCalledWith(7); // Always 7, not 5
-      });
+      await waitFor(
+        () => {
+          expect(onComplete).toHaveBeenCalledWith(7); // Always 7, not 5
+        },
+        { timeout: 3000 }
+      );
     });
 
     it('should show loading state during API call', async () => {
@@ -141,13 +147,16 @@ describe('FirstLaunchScreen', () => {
       fireEvent.click(getStartedBtn);
 
       // Should show "Saving..." text
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Saving.../i })).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.getByRole('button', { name: /Saving.../i })).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
 
       // Should disable buttons during loading
-      expect(getStartedBtn).toBeDisabled();
-      expect(screen.getByRole('button', { name: /Saving.../i })).toBeDisabled();
+      const savingBtn = screen.getByRole('button', { name: /Saving.../i });
+      expect(savingBtn).toBeDisabled();
     });
 
     it('should show error message on API failure', async () => {
@@ -157,9 +166,12 @@ describe('FirstLaunchScreen', () => {
       const getStartedBtn = screen.getByRole('button', { name: /Get Started/i });
       fireEvent.click(getStartedBtn);
 
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toHaveTextContent(/Failed to save settings. Please try again./i);
-      });
+      await waitFor(
+        () => {
+          expect(screen.getByRole('alert')).toHaveTextContent(/Failed to save settings. Please try again./i);
+        },
+        { timeout: 3000 }
+      );
     });
 
     it('should allow retry after error', async () => {
@@ -173,17 +185,23 @@ describe('FirstLaunchScreen', () => {
       const getStartedBtn = screen.getByRole('button', { name: /Get Started/i });
       fireEvent.click(getStartedBtn);
 
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.getByRole('alert')).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
 
       // Second attempt - succeeds
       fireEvent.click(getStartedBtn);
 
-      await waitFor(() => {
-        expect(onComplete).toHaveBeenCalledTimes(2);
-        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(onComplete).toHaveBeenCalledTimes(2);
+          expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
   });
 

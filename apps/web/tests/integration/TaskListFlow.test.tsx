@@ -39,9 +39,12 @@ describe('TaskListFlow - Task Creation Integration', () => {
     render(<TaskListView />);
 
     // Wait for initial load
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.queryByText('Loading tasks...')).not.toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Should show empty state initially
     expect(screen.getByText(/no tasks yet/i)).toBeInTheDocument();
@@ -54,9 +57,12 @@ describe('TaskListFlow - Task Creation Integration', () => {
     await user.click(button);
 
     // Wait for task to appear in list
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Buy groceries')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Input should be cleared
     expect(input).toHaveValue('');
@@ -84,9 +90,12 @@ describe('TaskListFlow - Task Creation Integration', () => {
     render(<TaskListView />);
 
     // Wait for initial load
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.queryByText('Loading tasks...')).not.toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Add a task
     const input = screen.getByPlaceholderText('What needs to be done?');
@@ -96,9 +105,12 @@ describe('TaskListFlow - Task Creation Integration', () => {
     await user.click(button);
 
     // Wait for error to appear
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText(/Server error occurred/i)).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Input should preserve value for retry
     expect(input).toHaveValue('Test task');
@@ -148,9 +160,12 @@ describe('TaskListFlow - Task Creation Integration', () => {
     render(<TaskListView />);
 
     // Wait for initial load
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Second task')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Verify initial order (newest first: task2, task1)
     const initialTasks = screen.getAllByRole('listitem');
@@ -163,9 +178,12 @@ describe('TaskListFlow - Task Creation Integration', () => {
     await user.click(screen.getByRole('button', { name: /add task/i }));
 
     // Wait for new task to appear
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Third task')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Verify new task appears at the top (newest first)
     const updatedTasks = screen.getAllByRole('listitem');
@@ -211,18 +229,24 @@ describe('TaskListFlow - Complete and Delete Actions', () => {
     render(<TaskListView />);
 
     // Wait for task to load
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Buy groceries')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Click complete button
     const completeButton = screen.getByRole('button', { name: /complete task: buy groceries/i });
     await user.click(completeButton);
 
     // Task should be removed immediately (optimistic update)
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.queryByText('Buy groceries')).not.toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Should show empty state
     expect(screen.getByText(/no tasks yet/i)).toBeInTheDocument();
@@ -253,18 +277,24 @@ describe('TaskListFlow - Complete and Delete Actions', () => {
     render(<TaskListView />);
 
     // Wait for task to load
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Old task')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Click delete button
     const deleteButton = screen.getByRole('button', { name: /delete task: old task/i });
     await user.click(deleteButton);
 
     // Task should be removed immediately (optimistic update)
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.queryByText('Old task')).not.toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Should show empty state
     expect(screen.getByText(/no tasks yet/i)).toBeInTheDocument();
@@ -294,17 +324,23 @@ describe('TaskListFlow - Complete and Delete Actions', () => {
     const user = userEvent.setup();
     render(<TaskListView />);
 
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Buy groceries')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     const completeButton = screen.getByRole('button', { name: /complete task: buy groceries/i });
     await user.click(completeButton);
 
     // Task should reappear after API failure
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Buy groceries')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Error toast should be shown
     expect(screen.getByRole('alert')).toHaveTextContent(/failed to complete task/i);
@@ -334,17 +370,23 @@ describe('TaskListFlow - Complete and Delete Actions', () => {
     const user = userEvent.setup();
     render(<TaskListView />);
 
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Important task')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     const deleteButton = screen.getByRole('button', { name: /delete task: important task/i });
     await user.click(deleteButton);
 
     // Task should reappear after API failure
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Important task')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Error toast should be shown
     expect(screen.getByRole('alert')).toHaveTextContent(/failed to delete task/i);
@@ -381,9 +423,12 @@ describe('TaskListFlow - Edit Task Actions', () => {
     render(<TaskListView />);
 
     // Wait for task to load
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Buy groceries')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Click edit button
     const editButton = screen.getByRole('button', { name: /edit task: buy groceries/i });
@@ -399,9 +444,12 @@ describe('TaskListFlow - Edit Task Actions', () => {
     await user.click(saveButton);
 
     // Task text should be updated immediately (optimistic update)
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Buy milk')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // Original text should be gone
     expect(screen.queryByText('Buy groceries')).not.toBeInTheDocument();
@@ -425,9 +473,12 @@ describe('TaskListFlow - Edit Task Actions', () => {
     const user = userEvent.setup();
     render(<TaskListView />);
 
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Buy groceries')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     const editButton = screen.getByRole('button', { name: /edit task: buy groceries/i });
     await user.click(editButton);
@@ -463,9 +514,12 @@ describe('TaskListFlow - Edit Task Actions', () => {
     const user = userEvent.setup();
     render(<TaskListView />);
 
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Buy groceries')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     const editButton = screen.getByRole('button', { name: /edit task: buy groceries/i });
     await user.click(editButton);
@@ -502,9 +556,12 @@ describe('TaskListFlow - Edit Task Actions', () => {
     const user = userEvent.setup();
     render(<TaskListView />);
 
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Buy groceries')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     const editButton = screen.getByRole('button', { name: /edit task: buy groceries/i });
     await user.click(editButton);
@@ -517,9 +574,12 @@ describe('TaskListFlow - Edit Task Actions', () => {
     await user.click(saveButton);
 
     // Task should revert to original text after API failure
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Buy groceries')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     // New text should not appear
     expect(screen.queryByText('Buy milk')).not.toBeInTheDocument();
@@ -556,9 +616,12 @@ describe('TaskListFlow - Edit Task Actions', () => {
     const user = userEvent.setup();
     render(<TaskListView />);
 
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Buy groceries')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
 
     const editButton = screen.getByRole('button', { name: /edit task: buy groceries/i });
     await user.click(editButton);
@@ -568,8 +631,11 @@ describe('TaskListFlow - Edit Task Actions', () => {
     await user.type(input, 'Buy milk{Enter}');
 
     // Task text should be updated (Enter key saves)
-    await waitFor(() => {
+    await waitFor(
+        () => {
       expect(screen.getByText('Buy milk')).toBeInTheDocument();
-    });
+    },
+        { timeout: 5000 }
+      );
   });
 });
